@@ -115,7 +115,7 @@ def research_report_html() -> str:
 <header class="cover">
   <h1>EchoCLIP-TC：面向超声心动图视觉–语言模型的时序聚合与校准评测研究报告</h1>
   <p class="meta">EchoCLIP-TC (Temporal, Calibrated) Parallel Research Report · 单文件自包含 HTML · 2026-08-16</p>
-  <p class="meta">项目路径：E:\\Projects\\20260522-EchoCLIP · Git：无 .git · 临床指标：<span class="todo">待补充</span></p>
+  <p class="meta">项目路径：E:\\Projects\\20260522-EchoCLIP · 公开仓库：<a href="https://github.com/Coucou2016/EchoCLIP-TC">github.com/Coucou2016/EchoCLIP-TC</a>（commit <code>83147ad</code>）· 临床指标：<span class="todo">待补充</span></p>
   <p class="demo">声明：文中 DEMO 图与 DEMO 表格仅验证流水线，不得当作 EchoNet 临床 EF MAE / AUC。</p>
 </header>
 
@@ -169,10 +169,11 @@ def research_report_html() -> str:
 <section id="process">
 <h2>4. 实施过程（Process）</h2>
 <ol>
-  <li>阅读 README / PAPER.md / 既有 reports；确认无 git 仓库。</li>
+  <li>阅读 README / PAPER.md / 既有 reports；初始化 git 并推送公开仓库
+     <a href="https://github.com/Coucou2016/EchoCLIP-TC">https://github.com/Coucou2016/EchoCLIP-TC</a>（<code>83147ad</code>）。</li>
   <li>SciencePlots 已安装（v2.2.2）；用 <code>science, no-latex</code> + Times New Roman / Microsoft YaHei 重绘全部图至 <code>figures/</code>。</li>
   <li>nature-skills（nature-writing）按 methods 论文类型起草 <code>papers/echoclip_tc_manuscript.md</code>。</li>
-  <li>尝试 Cursor 浏览器打开 ChatGPT 做文献架构咨询：<strong>browser MCP 持续报 “No browser tab available”</strong>，未能新建对话；文献改由 WebSearch/WebFetch 独立核对；B0/M1 语义沿用既有对话
+  <li>尝试 Cursor 浏览器打开 ChatGPT 做文献架构咨询：<strong>browser MCP 持续报 “No browser tab available”</strong>，未能新建对话；已准备含 GitHub URL 的粘贴 CONTEXT；文献改由 WebSearch 独立核对；B0/M1 语义沿用既有对话
      <a href="https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6">chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6</a>。</li>
   <li>门禁：<code>unittest</code> 63 OK；<code>validate.py --skip-eval</code>（本构建脚本同步记录）。</li>
 </ol>
@@ -374,6 +375,7 @@ def research_report_md() -> str:
 
 **日期：** 2026-08-16  
 **项目：** E:\\\\Projects\\\\20260522-EchoCLIP  
+**GitHub：** https://github.com/Coucou2016/EchoCLIP-TC （commit `83147ad`）  
 **并行稿：** `reports/research_report.html`（单文件自包含） / `papers/echoclip_tc_manuscript.md`
 
 > **DEMO ≠ 临床。** 下表与 DEMO 图不得写作 EchoNet EF MAE。Christensen et al. 外部 EF MAE ≈7.1% 为文献目标，非本地结果。
@@ -455,7 +457,7 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 ## 9. 参考文献
 
 1. Christensen et al., Nat Med 2024, doi:10.1038/s41591-024-02959-y  
-2. EchoPrime, arXiv:2410.09704 / Nature 2025  
+2. EchoPrime, Nature 2026;650:970–977, doi:10.1038/s41586-025-09850-x; arXiv:2410.09704  
 3. CardiacCLIP, MICCAI 2025  
 4. Radford et al., CLIP, ICML 2021  
 """
