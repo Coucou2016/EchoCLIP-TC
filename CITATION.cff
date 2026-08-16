@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: EchoCLIP Training Implementation
+message: >-
+  If you use this code, please cite the EchoCLIP paper and this repository.
+type: software
+authors:
+  - name: EchoCLIP Implementation Contributors
+repository-code: 'https://github.com/echonet/echo_CLIP'
+license: MIT
+references:
+  - type: article
+    title: 'Vision–language foundation model for echocardiogram interpretation'
+    authors:
+      - family-names: Christensen
+        given-names: Matthew
+      - family-names: Vukadinovic
+        given-names: Milos
+      - family-names: Yuan
+        given-names: Neal
+      - family-names: Ouyang
+        given-names: David
+    year: 2024
+    journal: Nature Medicine
+    volume: 30
+    issue: 5
+    start: 1481
+    end: 1488
+    doi: 10.1038/s41591-024-02959-y

@@ -1,0 +1,32 @@
+# EchoNet-LVH placeholder (Stanford AIMI, non-commercial).
+# https://echonet.github.io/lvh/
+#   python scripts/build_public_echo_manifest.py --dataset echonet_lvh --root <ROOT>
+# Note: primary LVH labels may be wall thickness / diagnosis; EF rows only when present.
+
+seed: 42
+embed_dim: 512
+image_size: 224
+context_length: 77
+vision_backbone: convnext_base
+pretrained_vision: false
+
+temporal_type: transformer
+temporal_layers: 2
+video_frames: 16
+sample_strategy: uniform
+val_sample_strategy: uniform
+
+freeze_backbone: true
+freeze_text: true
+init_official_echo_clip: true
+official_checkpoint: null
+
+epochs: 0
+batch_size: 8
+output_dir: E:/Projects/20260522-EchoCLIP/checkpoints/protocol/echonet_lvh
+
+echonet_root: E:/data/EchoNet-LVH
+manifest: E:/Projects/20260522-EchoCLIP/data/echonet_lvh/train.json
+test_manifest: E:/Projects/20260522-EchoCLIP/data/echonet_lvh/test.json
+cal_manifest: E:/Projects/20260522-EchoCLIP/data/echonet_lvh/val.json
+manifest_dir: E:/data/EchoNet-LVH

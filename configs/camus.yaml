@@ -1,0 +1,33 @@
+# CAMUS placeholder config for EchoCLIP-TC external eval.
+# Obtain data yourself: https://www.creatis.insa-lyon.fr/Challenge/camus/
+# Then:
+#   python scripts/build_public_echo_manifest.py --dataset camus --root <CAMUS_ROOT>
+
+seed: 42
+embed_dim: 512
+image_size: 224
+context_length: 77
+vision_backbone: convnext_base
+pretrained_vision: false
+
+temporal_type: transformer
+temporal_layers: 2
+temporal_heads: 8
+video_frames: 16
+sample_strategy: uniform
+val_sample_strategy: uniform
+
+freeze_backbone: true
+freeze_text: true
+init_official_echo_clip: true
+official_checkpoint: null
+
+epochs: 0  # eval-only placeholder; train on EchoNet-Dynamic first
+batch_size: 8
+output_dir: E:/Projects/20260522-EchoCLIP/checkpoints/protocol/camus
+
+camus_root: E:/data/CAMUS
+manifest: E:/Projects/20260522-EchoCLIP/data/camus/train.json
+test_manifest: E:/Projects/20260522-EchoCLIP/data/camus/test.json
+cal_manifest: E:/Projects/20260522-EchoCLIP/data/camus/val.json
+manifest_dir: E:/data/CAMUS

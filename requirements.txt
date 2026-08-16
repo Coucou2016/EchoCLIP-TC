@@ -1,0 +1,13 @@
+# Full install (GPU + timm backbones). On Windows CPU with _lzma errors, use requirements-minimal.txt
+torch>=2.0.0,<2.13
+torchvision>=0.15.0
+timm>=0.9.0
+transformers>=4.30.0,<5
+opencv-python-headless>=4.8.0
+numpy>=1.24.0,<3
+Pillow>=10.0.0
+PyYAML>=6.0
+tqdm>=4.65.0
+
+# Optional: LAION CLIP init (paper finetune starting point)
+open-clip-torch>=2.20.0

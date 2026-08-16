@@ -1,0 +1,56 @@
+# Frozen EchoCLIP-TC protocol (Temporal, Calibrated).
+# Demo data is NOT a clinical result. Point manifest* at EchoNet-Dynamic after:
+#   python scripts/build_echonet_manifest.py --echonet-root <AIMI_ROOT> --subset-5000
+#
+# Official weights: open_clip hub hf-hub:mkaichristensen/echo-clip
+# (falls back to local official_checkpoint or simple_cnn without crashing).
+
+seed: 42
+embed_dim: 512
+image_size: 224
+context_length: 77
+vision_backbone: convnext_base  # paper; auto-falls back to simple_cnn if timm/_lzma fails
+text_layers: 12
+text_heads: 8
+text_width: 512
+pretrained_vision: false
+
+# Temporal aggregator on frozen dual-encoder CLIP
+temporal_type: transformer
+temporal_layers: 2
+temporal_heads: 8
+temporal_max_frames: 64
+video_frames: 16
+sample_strategy: mixed
+val_sample_strategy: uniform
+frame_pool: stack
+caption_mode: random
+view_weight: 0.5
+clip_weight: 1.0
+
+freeze_backbone: true
+freeze_text: true
+train_logit_scale: true
+
+# Pretrained towers
+init_official_echo_clip: true
+official_checkpoint: null  # local .pt if the HF hub is unavailable
+init_open_clip: false
+open_clip_model: convnext_base_w_320
+open_clip_tag: laion2b_s34b_b88k
+
+# Training (temporal + optional logit_scale only when towers are frozen)
+epochs: 10
+batch_size: 8
+lr: 1.0e-4
+weight_decay: 0.05
+num_workers: 0
+val_ratio: 0.1
+output_dir: E:/Projects/20260522-EchoCLIP/checkpoints/echoclip_tc
+
+# Placeholders — replace after downloading EchoNet-Dynamic (AIMI, non-commercial)
+echonet_root: E:/data/EchoNet-Dynamic
+manifest: E:/Projects/20260522-EchoCLIP/data/echonet_dynamic/train.json
+test_manifest: E:/Projects/20260522-EchoCLIP/data/echonet_dynamic/test.json
+cal_manifest: E:/Projects/20260522-EchoCLIP/data/echonet_dynamic/val.json
+manifest_dir: E:/data/EchoNet-Dynamic

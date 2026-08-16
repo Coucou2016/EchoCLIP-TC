@@ -1,0 +1,35 @@
+# EchoCLIP training defaults (see Nature Medicine 2024; adjust for your hardware)
+
+embed_dim: 512
+image_size: 224
+context_length: 77
+vision_backbone: resnet18  # resnet18/convnext_base via timm; use simple_cnn if timm import fails
+text_layers: 12
+text_heads: 8
+text_width: 512
+pretrained_vision: true
+
+# Training
+epochs: 10
+batch_size: 32
+lr: 5.0e-5
+weight_decay: 0.2
+warmup_steps: 500
+num_workers: 0
+val_ratio: 0.1
+seed: 42
+save_every: 1
+output_dir: E:/Projects/20260522-EchoCLIP/checkpoints
+
+# Data (generate with scripts/make_demo_data.py)
+manifest: E:/Projects/20260522-EchoCLIP/data/demo/manifest.json
+manifest_dir: E:/Projects/20260522-EchoCLIP/data/demo
+video_frames: 1
+# EchoCLIP-TC protocol (16-frame temporal + calibration) lives in configs/echonet_dynamic.yaml
+temporal_type: none
+sample_strategy: random
+
+# Optional LAION CLIP init (requires open-clip-torch + download)
+init_open_clip: false
+open_clip_model: convnext_base_w_320
+open_clip_tag: laion2b_s34b_b88k

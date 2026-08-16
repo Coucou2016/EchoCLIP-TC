@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Secrets / credentials (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials.json
+**/service-account*.json
+
+# Model weights / checkpoints
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+checkpoints/
+runs/
+wandb/
+**/metrics.json
+
+# Large / sensitive data (patient videos, local AIMI roots)
+data/demo/images/
+data/EchoNet*/
+data/echonet*/
+data/AIMI*/
+data/camus*/
+**/train_split.json
+**/val_split.json
+**/splits/
+*.avi
+*.mp4
+*.dcm
+*.nii
+*.nii.gz
+
+# Staging / local dual-agent bundles (may include large zips)
+_dual_agent_staging/*.zip
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# PDF build scratch
+reports/_pdf_build_status.txt
