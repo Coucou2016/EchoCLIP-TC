@@ -115,8 +115,9 @@ def research_report_html() -> str:
 <header class="cover">
   <h1>EchoCLIP-TC：面向超声心动图视觉–语言模型的时序聚合与校准评测研究报告</h1>
   <p class="meta">EchoCLIP-TC (Temporal, Calibrated) Parallel Research Report · 单文件自包含 HTML · 2026-08-16</p>
-  <p class="meta">项目路径：E:\\Projects\\20260522-EchoCLIP · 公开仓库：<a href="https://github.com/Coucou2016/EchoCLIP-TC">github.com/Coucou2016/EchoCLIP-TC</a>（commit <code>83147ad</code>）· 临床指标：<span class="todo">待补充</span></p>
-  <p class="demo">声明：文中 DEMO 图与 DEMO 表格仅验证流水线，不得当作 EchoNet 临床 EF MAE / AUC。</p>
+  <p class="meta">项目路径：E:\\Projects\\20260522-EchoCLIP · 公开仓库：<a href="https://github.com/Coucou2016/EchoCLIP-TC">github.com/Coucou2016/EchoCLIP-TC</a> · 临床指标：<span class="todo">待补充</span></p>
+  <p class="meta">五轮协作日志：<code>reports/echoclip_tc_five_round_collab_20260816.md</code> · 英文稿：<code>papers/echoclip_tc_manuscript.md</code></p>
+  <p class="demo">声明：文中 DEMO 图与 DEMO 表格仅验证流水线，不得当作 EchoNet 临床 EF MAE / AUC。磁盘检索未发现 EchoNet-Dynamic / FileList.csv。</p>
 </header>
 
 <nav class="toc" id="toc">
@@ -130,6 +131,7 @@ def research_report_html() -> str:
     <li><a href="#discussion">讨论 Discussion</a></li>
     <li><a href="#conclusions">结论 Conclusions</a></li>
     <li><a href="#limitations">局限 Limitations</a></li>
+    <li><a href="#collab">五轮协作摘要 Five-round log</a></li>
     <li><a href="#refs">参考文献 References</a></li>
   </ol>
 </nav>
@@ -148,66 +150,92 @@ def research_report_html() -> str:
 
 <section id="methods">
 <h2>3. 方法（Methods）</h2>
-<h3>3.1 协议定义</h3>
+<h3>3.1 协议定义（与 <code>echoclip/protocol.py</code> 对齐）</h3>
 <ul class="compact">
-  <li><strong>B0</strong>：官方风格——逐帧 embedding 上做 EF prompt 排序，再跨帧聚合 EF 标量。</li>
-  <li><strong>M1</strong>：先对帧 embedding 做均值池化得到 \(z_v\)，再做一次 EF 排序（无参视频向量消融）。</li>
-  <li><strong>M2</strong>：训练时序 Transformer/注意力池化得到 \(z_v\)（冻结视觉/文本塔）。</li>
-  <li><strong>M4</strong>：复用 M2，在 VAL 上拟合温度与共形分位数，在 TEST 上报 ECE、覆盖率与弃权（abstention）。</li>
+  <li><strong>B0</strong>：官方风格——逐帧 embedding 上做 EF prompt 排序，再跨帧聚合 EF 标量；采样 <code>uniform</code>，论文默认 T=16。</li>
+  <li><strong>M1</strong>：先对帧 embedding 做均值池化得到 z_v，再做一次 EF 排序（无参视频向量消融）；采样 <code>mixed</code>。</li>
+  <li><strong>M2</strong>：训练时序 Transformer/注意力池化得到 z_v（冻结视觉/文本塔）；采样 <code>mixed</code>。</li>
+  <li><strong>M4</strong>：复用 M2，在 VAL 上拟合温度与共形分位数，在 TEST 上报 ECE、覆盖率与弃权（abstention）；非 DEMO 时 cal≠test 硬失败。</li>
 </ul>
-<p>B0 与 M1 因排序非线性一般不等价；仓库已用单元测试固定该语义。</p>
+<p>B0 与 M1 因排序非线性一般不等价；仓库已用单元测试固定该语义（T=1 等价、同帧等价、rank-crossing 反例）。2D embedding 约定为 <code>(T,D)</code>，批视频向量须显式变为 <code>(B,1,D)</code>。</p>
+<table>
+<thead><tr><th>ID</th><th>Train</th><th>Pool</th><th>Sample</th><th>Calibrate</th></tr></thead>
+<tbody>
+<tr><td>B0</td><td>No</td><td>frames</td><td>uniform</td><td>No</td></tr>
+<tr><td>M1</td><td>No</td><td>mean</td><td>mixed</td><td>No</td></tr>
+<tr><td>M2</td><td>Yes</td><td>temporal</td><td>mixed</td><td>No</td></tr>
+<tr><td>M4</td><td>Reuse M2</td><td>temporal</td><td>mixed</td><td>VAL only</td></tr>
+</tbody>
+</table>
 {img_block("fig1", "Figure 1. EchoCLIP-TC protocol architecture (schematic)",
     "从左到右阅读数据流：视频帧 → 冻结 EchoCLIP 编码器 → 时序聚合 → 视频向量 z_v；下方虚线框对应 B0/M1/M2/M4 四种评测模式。",
-    "该图是方法总览，不包含任何数值性能；用于说明 TC 层「坐在」双塔之上而非重写编码器。",
+    "该图是方法总览，不包含任何数值性能；用于说明 TC 层「坐在」双塔之上而非重写编码器。SciencePlots 导出 PNG/PDF。",
     "可下结论：协议结构已在代码中落地。不可下结论：任何临床精度。")}
 {img_block("fig2", "Figure 2. Ablation logic for B0 / M1 / M2",
     "三列对比视频向量构造：B0 每帧直接出 EF；M1 先 mean-pool；M2 用 Temporal Transformer。箭头表示信息汇聚方向。",
-    "解释为何 M1 不是「官方 EchoCLIP + 简单平均 EF」的同义反复，而是无参 z_v 对照。",
+    "解释为何 M1 不是「官方 EchoCLIP + 简单平均 EF」的同义反复，而是无参 z_v 对照；与 PAPER.md「B0≠M1」一致。",
     "可下结论：消融逻辑清晰、可实现。不可把示意图当作已完成的 EchoNet 消融数值。")}
 </section>
 
 <section id="process">
 <h2>4. 实施过程（Process）</h2>
 <ol>
-  <li>阅读 README / PAPER.md / 既有 reports；初始化 git 并推送公开仓库
-     <a href="https://github.com/Coucou2016/EchoCLIP-TC">https://github.com/Coucou2016/EchoCLIP-TC</a>（<code>83147ad</code>）。</li>
-  <li>SciencePlots 已安装（v2.2.2）；用 <code>science, no-latex</code> + Times New Roman / Microsoft YaHei 重绘全部图至 <code>figures/</code>。</li>
-  <li>nature-skills（nature-writing）按 methods 论文类型起草 <code>papers/echoclip_tc_manuscript.md</code>。</li>
-  <li>尝试 Cursor 浏览器打开 ChatGPT 做文献架构咨询：<strong>browser MCP 持续报 “No browser tab available”</strong>，未能新建对话；已准备含 GitHub URL 的粘贴 CONTEXT；文献改由 WebSearch 独立核对；B0/M1 语义沿用既有对话
+  <li>阅读 README / PAPER.md / 既有 reports；公开仓库
+     <a href="https://github.com/Coucou2016/EchoCLIP-TC">https://github.com/Coucou2016/EchoCLIP-TC</a> 已同步代码+文档（无权重/无患者数据）。</li>
+  <li>SciencePlots（<code>science, no-latex</code>）+ Times New Roman / Microsoft YaHei 重绘 Fig.1–6 至 <code>figures/</code>。</li>
+  <li>nature-writing（methods）成熟化 <code>papers/echoclip_tc_manuscript.md</code>（采样策略、B0≠M1、文献 AUC 仅作引用）。</li>
+  <li>磁盘检索 EchoNet / FileList.csv：未找到；仅有 <code>data/demo/</code> 合成对。AIMI 需人工申请，无法静默下载。</li>
+  <li>ChatGPT 浏览器自动化：<strong>仍 blocked</strong>（无 <code>cursor-ide-browser</code>；<code>open_resource</code> → unknown agent）。执行 ≥5 轮 <strong>surrogate</strong> 文献自检 + 粘贴包；B0/M1 语义沿用
      <a href="https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6">chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6</a>。</li>
-  <li>门禁：<code>unittest</code> 63 OK；<code>validate.py --skip-eval</code>（本构建脚本同步记录）。</li>
+  <li>门禁：<code>unittest</code> + <code>validate.py --skip-eval</code>（见五轮日志最新记录）。</li>
 </ol>
 {img_block("fig5", "Figure 5. Research roadmap（中英双语文案）",
     "四个色块从左到右：公开数据、官方权重、协议评测、校准报告；标「待补充」处表示资产未到位。",
-    "用于沟通项目完成度，而非展示临床结果。",
+    "用于沟通项目完成度，而非展示临床结果。红色「待补充」对应磁盘上缺失的 FileList/Videos 与 hub 权重。",
     "可下结论：脚手架就绪、临床资产缺口明确。不可捏造已完成 EchoNet 评测。")}
 </section>
 
 <section id="results">
 <h2>5. 结果（Results）</h2>
 <h3>5.1 临床主结果</h3>
-<p><span class="todo">待补充</span>：需要 EchoNet-Dynamic（FileList + Videos）与 <code>load_source=hf-hub:mkaichristensen/echo-clip</code>（非 scratch_fallback）。</p>
-<h3>5.2 DEMO 流水线指标（非临床）</h3>
+<p><span class="todo">待补充</span>：需要 EchoNet-Dynamic（FileList + Videos）与 <code>load_source=hf-hub:mkaichristensen/echo-clip</code>（非 scratch_fallback）。Christensen 外部 EF MAE ≈7.1% 与阈值 AUC（EF&lt;50/40/30 ≈0.89–0.97）仅为文献目标，非本地结果。</p>
+<h3>5.2 可声称 vs 不可声称</h3>
+<table>
+<thead><tr><th>Claim</th><th>Allowed?</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Protocol B0/M1/M2/M4 defined + tested</td><td>Yes</td><td><code>protocol.py</code> + unit tests</td></tr>
+<tr><td>DEMO metrics I/O works</td><td>Yes (DEMO label)</td><td><code>checkpoints/protocol/*/metrics.json</code></td></tr>
+<tr><td>EchoCLIP literature external MAE ≈7.1%</td><td>Cite only</td><td>Nat Med 2024</td></tr>
+<tr><td>Local EchoNet EF MAE / AUC</td><td><span class="todo">No — 待补充</span></td><td>No AIMI videos on disk</td></tr>
+<tr><td>DEMO MAE ranks models clinically</td><td>No</td><td>scratch weights; toy overlap</td></tr>
+</tbody>
+</table>
+<h3>5.3 DEMO 流水线指标（非临床；T=4）</h3>
 {protocol_table_html()}
 {img_block("fig4", "Figure 4. DEMO protocol MAE / ECE bars",
-    "左图为各协议 ID 的 DEMO EF MAE；右图为 DEMO ECE（EF&lt;50）。红色标注强调 scratch_fallback。",
-    "数值来自 checkpoints/protocol/*/metrics.json，数据为 synthetic demo。",
-    "仅证明评测脚本可写出指标文件。严禁当作 EchoNet 或论文主表。")}
+    "左图为各协议 ID 的 DEMO EF MAE；右图为 DEMO ECE（EF&lt;50）。红色标注强调 scratch_fallback。注意 DEMO 使用 T=4，论文协议默认 T=16。",
+    "数值来自 checkpoints/protocol/*/metrics.json，数据为 synthetic demo；B0/M1 DEMO MAE 同为 11.25 不代表临床等价。",
+    "仅证明评测脚本可写出指标文件。严禁当作 EchoNet 或论文主表；不可用 DEMO 给 B0/M1/M2/M4 排序。")}
 {img_block("fig3", "Figure 3. Calibration reliability cartoons — DEMO / synthetic",
     "横轴置信度、纵轴准确率；虚线为理想校准；柱为分箱准确率。左：故意欠校准玩具曲线；右：温度缩放后玩具改善。",
-    "说明 M4「校准前后可靠性图」在论文中应如何呈现；曲线为合成，非 EchoNet 概率。",
+    "说明 M4「校准前后可靠性图」在论文中应如何呈现；曲线为合成，非 EchoNet 概率。M4 DEMO ECE≈0 反映玩具设定，非临床校准成功。",
     "可下结论：绘图模板可用。不可下结论：真实 ECE 改善幅度。")}
 {img_block("fig6", "Figure 6. Split-conformal interval cartoon — DEMO",
-    "散点为合成真值–预测 EF；阴影带宽使用 DEMO M4 的 conformal_quantile=15 示意 90% 区间。",
-    "帮助读者理解共形区间宽度与覆盖率的读图方式。",
+    "散点为合成真值–预测 EF；阴影带宽使用 DEMO M4 的 conformal_quantile=15 示意 90% 区间（mean width=30）。",
+    "帮助读者理解共形区间宽度与覆盖率的读图方式。DEMO coverage=1.0 因玩具残差与宽区间，不可外推。",
     "不可把覆盖率=1.0 的 DEMO 指标外推到临床 TEST。")}
 </section>
 
 <section id="discussion">
 <h2>6. 讨论（Discussion）</h2>
 <p><strong>创新点（诚实表述）：</strong>(1) 与冻结 EchoCLIP 兼容的视频级时序模块；(2) B0/M1 语义澄清与测试锁死；(3) VAL-only 温度/共形/弃权写入主指标；(4) 公开数据可复现协议。</p>
-<p><strong>不宣称：</strong>私有百万预训练、多切面全检查融合（EchoPrime 层级）、在无 EchoNet 时宣称超越 CardiacCLIP、任何 DEMO 数值为临床 EF MAE。</p>
-<p>文献定位经独立检索核对：EchoCLIP doi:10.1038/s41591-024-02959-y；EchoPrime arXiv:2410.09704 / Nature 2025 view-primed VL AI；CardiacCLIP MICCAI 2025 PDF（papers.miccai.org）。</p>
+<p><strong>与同侪对照（不宣称其数字为本结果）：</strong></p>
+<ul class="compact">
+  <li><strong>EchoCLIP</strong>：外部 EF MAE ≈7.1% 为 B0 复现目标。</li>
+  <li><strong>EchoPrime</strong>（Nature 2026;650:970–977）：&gt;12M 多切面检查级融合——作上限对照，本工作保持单 clip 冻结双塔。</li>
+  <li><strong>CardiacCLIP</strong>（MICCAI 2025）：MFL+EchoZoom；文献称 1-shot EchoNet MAE 降 2.07——最接近时序邻居；无本地 EchoNet 时不宣称 few-shot SOTA。</li>
+</ul>
+<p><strong>不宣称：</strong>私有百万预训练、多切面全检查融合、在无 EchoNet 时宣称超越 CardiacCLIP、任何 DEMO 数值为临床 EF MAE。</p>
 </section>
 
 <section id="conclusions">
@@ -219,23 +247,38 @@ def research_report_html() -> str:
 <h2>8. 局限（Limitations）</h2>
 <ul>
   <li>无 EchoNet-Dynamic / 官方权重 → 无真实 MAE/AUC。</li>
-  <li>Windows CPU + simple_cnn 路径仅为连通性验证。</li>
+  <li>Windows CPU + simple_cnn / scratch 路径仅为连通性验证。</li>
   <li>DEMO 校准分割不满足严格 VAL/TEST 分离的临床解释。</li>
-  <li>本轮 ChatGPT 新对话因浏览器自动化故障未建成；需用户侧补做文献讨论时可粘贴 CONTEXT。</li>
+  <li>本轮 ChatGPT 新对话因浏览器自动化故障未建成（surrogate 五轮 + 粘贴包替代）；用户可粘贴 CONTEXT 启用 web search 后回填 URL。</li>
 </ul>
 </section>
 
+<section id="collab">
+<h2>9. 五轮协作摘要（Five-round collaboration）</h2>
+<p>详见 <code>reports/echoclip_tc_five_round_collab_20260816.md</code>。本轮全部为 <strong>surrogate</strong>（ChatGPT 浏览器 MCP 不可用），但每轮均：CONTEXT → 独立 WebSearch/源码核对 → 改稿 → 证据回写。</p>
+<ol>
+  <li>R1 文献架构与创新面（EchoCLIP / EchoPrime / CardiacCLIP DOIs 核对）</li>
+  <li>R2 Methods vs <code>protocol.py</code> / <code>zeroshot.py</code> / <code>calibrate.py</code> / <code>temporal.py</code></li>
+  <li>R3 Results/figures 诚实边界与 DEMO 可声称表</li>
+  <li>R4 Discussion vs EchoCLIP / EchoPrime / CardiacCLIP</li>
+  <li>R5 全文一致性 + 本报告加深图注</li>
+</ol>
+<p>既有 live ChatGPT（B0/M1）：<a href="https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6">6a80922d-d1d0-83ea-970c-67b829457cd6</a>。新文献 chat URL：<strong>Unavailable</strong>（blocker 同上）。</p>
+</section>
+
 <section id="refs">
-<h2>9. 参考文献（References）</h2>
+<h2>10. 参考文献（References）</h2>
 <ol>
   <li>Christensen M, et al. Vision–language foundation model for echocardiogram interpretation. <em>Nat Med</em> 2024. doi:10.1038/s41591-024-02959-y</li>
-  <li>EchoPrime / view-primed vision-language AI for comprehensive echocardiography. arXiv:2410.09704; Nature 2025.</li>
-  <li>CardiacCLIP: Video-based CLIP Adaptation for LVEF Prediction in a Few-shot Manner. MICCAI 2025.</li>
+  <li>Vukadinovic M, et al. Comprehensive echocardiogram evaluation with view primed vision language AI. <em>Nature</em> 2026;650:970–977. doi:10.1038/s41586-025-09850-x ; arXiv:2410.09704</li>
+  <li>Du Y, Guo J, Li X. CardiacCLIP: Video-based CLIP Adaptation for LVEF Prediction in a Few-shot Manner. MICCAI 2025. arXiv:2509.17065</li>
+  <li>Ouyang D, et al. EchoNet-Dynamic. <em>Nature</em> 2020. doi:10.1038/s41586-020-2145-8</li>
+  <li>Leclerc S, et al. CAMUS. <em>IEEE TMI</em> 2019.</li>
   <li>Radford A, et al. CLIP. ICML 2021.</li>
-  <li>Guo C, et al. On calibration of modern neural networks.</li>
+  <li>Guo C, et al. On calibration of modern neural networks. ICML 2017.</li>
   <li>Angelopoulos A, Bates S. Conformal prediction primer.</li>
 </ol>
-<p class="small">报告生成器：scripts 外临时代码路径写入 reports；图片均为 Base64 内嵌，无外链 CDN。</p>
+<p class="small">报告生成器：<code>scripts/build_research_report_bundle.py</code>；图片均为 Base64 内嵌，无外链 CDN。</p>
 </section>
 </div>
 </body>
@@ -375,10 +418,11 @@ def research_report_md() -> str:
 
 **日期：** 2026-08-16  
 **项目：** E:\\\\Projects\\\\20260522-EchoCLIP  
-**GitHub：** https://github.com/Coucou2016/EchoCLIP-TC （commit `83147ad`）  
-**并行稿：** `reports/research_report.html`（单文件自包含） / `papers/echoclip_tc_manuscript.md`
+**GitHub：** https://github.com/Coucou2016/EchoCLIP-TC  
+**并行稿：** `reports/research_report.html`（单文件自包含） / `papers/echoclip_tc_manuscript.md`  
+**五轮日志：** `reports/echoclip_tc_five_round_collab_20260816.md`
 
-> **DEMO ≠ 临床。** 下表与 DEMO 图不得写作 EchoNet EF MAE。Christensen et al. 外部 EF MAE ≈7.1% 为文献目标，非本地结果。
+> **DEMO ≠ 临床。** 下表与 DEMO 图不得写作 EchoNet EF MAE。Christensen et al. 外部 EF MAE ≈7.1% 为文献目标，非本地结果。磁盘检索未发现 EchoNet-Dynamic。
 
 ## 目录
 
@@ -390,7 +434,8 @@ def research_report_md() -> str:
 6. 讨论  
 7. 结论  
 8. 局限  
-9. 参考文献  
+9. 五轮协作  
+10. 参考文献  
 
 ## 1. 摘要
 
@@ -402,7 +447,7 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 ## 3. 方法
 
-见 PAPER.md。要点：B0 逐帧 EF 聚合；M1 mean-pool \(z_v\)；M2 学习时序 \(z_v\)；M4 加温度与共形（VAL only）。
+见 PAPER.md / manuscript §3。要点：B0=`uniform`/frames；M1=`mixed`/mean；M2=`mixed`/temporal；M4=VAL-only cal。B0≠M1（非线性排序）。
 
 ![Fig1](../figures/fig1_protocol_architecture.png)
 
@@ -414,10 +459,10 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 ## 4. 过程
 
-- SciencePlots 重绘图至 `figures/`（Times New Roman + Microsoft YaHei）  
-- nature-writing（methods）起草英文稿  
-- ChatGPT 新对话：浏览器 MCP 失败（见验收报告）  
-- 既有 ChatGPT：https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6  
+- SciencePlots 重绘图至 `figures/`  
+- manuscript Methods/Results/Discussion 成熟化  
+- ChatGPT 浏览器 MCP blocked → 5 轮 surrogate + 粘贴包  
+- 既有 live ChatGPT（B0/M1）：https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6  
 
 ![Fig5](../figures/fig5_roadmap_bilingual.png)
 
@@ -427,7 +472,7 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 **待补充。**
 
-### 5.2 DEMO 流水线（非临床）
+### 5.2 DEMO 流水线（非临床；T=4）
 
 | ID | DEMO MAE | DEMO ECE@50 | load_source | demo | n |
 |----|----------|-------------|-------------|------|---|
@@ -444,7 +489,7 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 ## 6. 讨论
 
-诚实创新面：时序模块、B0/M1 语义、校准协议、公开复现。不宣称私有大规模预训练或 DEMO 临床意义。
+诚实创新面：时序模块、B0/M1 语义、校准协议、公开复现。不宣称私有大规模预训练或 DEMO 临床意义。EchoPrime / CardiacCLIP 仅作定位对照。
 
 ## 7. 结论
 
@@ -454,11 +499,15 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 无真实数据/权重；浏览器咨询受阻；DEMO 校准不可外推。
 
-## 9. 参考文献
+## 9. 五轮协作
+
+见 `reports/echoclip_tc_five_round_collab_20260816.md`（5× surrogate；ChatGPT 新 URL unavailable）。
+
+## 10. 参考文献
 
 1. Christensen et al., Nat Med 2024, doi:10.1038/s41591-024-02959-y  
 2. EchoPrime, Nature 2026;650:970–977, doi:10.1038/s41586-025-09850-x; arXiv:2410.09704  
-3. CardiacCLIP, MICCAI 2025  
+3. CardiacCLIP, MICCAI 2025, arXiv:2509.17065  
 4. Radford et al., CLIP, ICML 2021  
 """
 

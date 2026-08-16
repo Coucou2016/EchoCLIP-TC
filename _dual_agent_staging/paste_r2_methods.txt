@@ -1,0 +1,17 @@
+CONTEXT 2/5 — Methods accuracy audit
+
+Enable web search if needed. Repo: https://github.com/Coucou2016/EchoCLIP-TC
+
+Paste/verify against these locked facts from local code (Cursor-verified):
+- B0: pool=frames, sample=uniform, T=16 paper default; per-frame EF rank then aggregate
+- M1: pool=mean, sample=mixed; mean-pool embeddings THEN rank once (NOT mean of per-frame EF)
+- M2: TemporalTransformer/AttentionPool on frozen towers; sample=mixed
+- M4: M2 + VAL-only temperature + split-conformal; cal_manifest≠test outside demo (hard fail)
+- zeroshot: top-20% median of ranked EF prompts; 2D tensor = (T,D) not (B,D)
+
+Ask:
+1) Any Methods wording that would mislead reviewers?
+2) Should sampling strategy differences (uniform vs mixed) be emphasized in Abstract/Methods?
+3) Recommended unit tests / honesty notes we might still be missing?
+
+Do not invent clinical metrics.

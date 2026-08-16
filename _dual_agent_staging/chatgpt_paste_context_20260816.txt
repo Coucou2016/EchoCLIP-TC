@@ -1,0 +1,24 @@
+Enable web search / browsing for this reply.
+
+Please READ the public GitHub repository (code + docs only; no patient data / checkpoints):
+https://github.com/Coucou2016/EchoCLIP-TC
+Commit: 604447eb6cfeced4ed96ea474c99943920141fc9
+
+Key paths after you browse the repo:
+- README.md, PAPER.md
+- papers/echoclip_tc_manuscript.md
+- reports/research_report.md
+- echoclip/protocol.py, echoclip/temporal.py, echoclip/calibrate.py
+
+CONTEXT (desensitized): EchoCLIP-TC = Temporal + Calibrated layer on frozen EchoCLIP dual encoders.
+Protocol IDs locked: B0 (official per-frame EF prompt ranking then aggregate), M1 (mean-pooled video vector z_v then rank once), M2 (learned temporal aggregator → z_v), M4 (M2 + VAL-only temperature scaling + split-conformal + abstention).
+We do NOT retrain on private 1M reports; evaluation target is public EchoNet-Dynamic + official hub weights.
+Clinical EF MAE/AUC in our workspace: 待补充 (no local AIMI videos / hub weights). Demo/synthetic metrics must not be treated as clinical.
+Prior ChatGPT chat for B0/M1 semantics: https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6
+
+Please provide:
+1) Related literature with full citations (EchoCLIP, EchoPrime, CardiacCLIP, EchoNet-Dynamic, CAMUS, calibration/conformal).
+2) Which papers' writing architecture to imitate for Nat Med / MICCAI / TMI-style submission.
+3) Paper outline with honest innovation points (and explicit non-claims).
+4) Recommended figure list.
+5) Manuscript review suggestions for papers/echoclip_tc_manuscript.md after reading the public repo.

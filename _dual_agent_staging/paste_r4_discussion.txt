@@ -1,0 +1,15 @@
+CONTEXT 4/5 — Discussion vs EchoCLIP / EchoPrime / CardiacCLIP
+
+Repo: https://github.com/Coucou2016/EchoCLIP-TC
+Enable web search.
+
+Our stance: single-clip frozen EchoCLIP + temporal z_v + VAL-only calibration protocol.
+EchoPrime: >12M multi-view study-level (Nature 2026;650:970–977) — contrast only.
+CardiacCLIP: few-shot MFL+EchoZoom; reported 1-shot EchoNet MAE Δ−2.07 — their claim; we did not reproduce.
+
+Ask:
+1) Fair Discussion paragraph structure.
+2) Limitations checklist.
+3) What comparison table columns are honest without our EchoNet numbers?
+
+Do not invent our clinical MAE/AUC.

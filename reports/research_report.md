@@ -2,10 +2,11 @@
 
 **日期：** 2026-08-16  
 **项目：** E:\\Projects\\20260522-EchoCLIP  
-**GitHub：** https://github.com/Coucou2016/EchoCLIP-TC （commit `83147ad`）  
-**并行稿：** `reports/research_report.html`（单文件自包含） / `papers/echoclip_tc_manuscript.md`
+**GitHub：** https://github.com/Coucou2016/EchoCLIP-TC  
+**并行稿：** `reports/research_report.html`（单文件自包含） / `papers/echoclip_tc_manuscript.md`  
+**五轮日志：** `reports/echoclip_tc_five_round_collab_20260816.md`
 
-> **DEMO ≠ 临床。** 下表与 DEMO 图不得写作 EchoNet EF MAE。Christensen et al. 外部 EF MAE ≈7.1% 为文献目标，非本地结果。
+> **DEMO ≠ 临床。** 下表与 DEMO 图不得写作 EchoNet EF MAE。Christensen et al. 外部 EF MAE ≈7.1% 为文献目标，非本地结果。磁盘检索未发现 EchoNet-Dynamic。
 
 ## 目录
 
@@ -17,7 +18,8 @@
 6. 讨论  
 7. 结论  
 8. 局限  
-9. 参考文献  
+9. 五轮协作  
+10. 参考文献  
 
 ## 1. 摘要
 
@@ -29,7 +31,7 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 ## 3. 方法
 
-见 PAPER.md。要点：B0 逐帧 EF 聚合；M1 mean-pool \(z_v\)；M2 学习时序 \(z_v\)；M4 加温度与共形（VAL only）。
+见 PAPER.md / manuscript §3。要点：B0=`uniform`/frames；M1=`mixed`/mean；M2=`mixed`/temporal；M4=VAL-only cal。B0≠M1（非线性排序）。
 
 ![Fig1](../figures/fig1_protocol_architecture.png)
 
@@ -41,10 +43,10 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 ## 4. 过程
 
-- SciencePlots 重绘图至 `figures/`（Times New Roman + Microsoft YaHei）  
-- nature-writing（methods）起草英文稿  
-- ChatGPT 新对话：浏览器 MCP 失败（见验收报告）  
-- 既有 ChatGPT：https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6  
+- SciencePlots 重绘图至 `figures/`  
+- manuscript Methods/Results/Discussion 成熟化  
+- ChatGPT 浏览器 MCP blocked → 5 轮 surrogate + 粘贴包  
+- 既有 live ChatGPT（B0/M1）：https://chatgpt.com/c/6a80922d-d1d0-83ea-970c-67b829457cd6  
 
 ![Fig5](../figures/fig5_roadmap_bilingual.png)
 
@@ -54,7 +56,7 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 **待补充。**
 
-### 5.2 DEMO 流水线（非临床）
+### 5.2 DEMO 流水线（非临床；T=4）
 
 | ID | DEMO MAE | DEMO ECE@50 | load_source | demo | n |
 |----|----------|-------------|-------------|------|---|
@@ -71,7 +73,7 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 ## 6. 讨论
 
-诚实创新面：时序模块、B0/M1 语义、校准协议、公开复现。不宣称私有大规模预训练或 DEMO 临床意义。
+诚实创新面：时序模块、B0/M1 语义、校准协议、公开复现。不宣称私有大规模预训练或 DEMO 临床意义。EchoPrime / CardiacCLIP 仅作定位对照。
 
 ## 7. 结论
 
@@ -81,9 +83,13 @@ EchoCLIP-TC 在冻结 EchoCLIP 双塔上增加时序聚合与 VAL-only 校准/�
 
 无真实数据/权重；浏览器咨询受阻；DEMO 校准不可外推。
 
-## 9. 参考文献
+## 9. 五轮协作
+
+见 `reports/echoclip_tc_five_round_collab_20260816.md`（5× surrogate；ChatGPT 新 URL unavailable）。
+
+## 10. 参考文献
 
 1. Christensen et al., Nat Med 2024, doi:10.1038/s41591-024-02959-y  
 2. EchoPrime, Nature 2026;650:970–977, doi:10.1038/s41586-025-09850-x; arXiv:2410.09704  
-3. CardiacCLIP, MICCAI 2025  
+3. CardiacCLIP, MICCAI 2025, arXiv:2509.17065  
 4. Radford et al., CLIP, ICML 2021  

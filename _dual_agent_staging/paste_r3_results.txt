@@ -1,0 +1,13 @@
+CONTEXT 3/5 — Results / figures honesty
+
+Repo: https://github.com/Coucou2016/EchoCLIP-TC
+Local DEMO metrics (scratch_fallback/scratch, T=4, n=32, demo_mode=true):
+B0 MAE 11.25 ECE~0.65; M1 same; M2 MAE 8.125 ECE~0.34; M4 MAE 8.125 ECE~0 coverage=1.0 width=30.
+EchoNet-Dynamic NOT on disk. Published EchoCLIP external MAE ≈7.1% is LITERATURE only.
+
+Ask:
+1) What may we claim in Results vs must mark 待补充?
+2) How should SciencePlots DEMO figures be captioned?
+3) Is it ever OK to compare DEMO MAE across B0/M1/M2/M4 in the paper text?
+
+Reject any suggestion to treat DEMO as clinical.

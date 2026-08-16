@@ -1,0 +1,15 @@
+CONTEXT 1/5 — EchoCLIP-TC literature / writing architecture
+
+Enable web search. Please READ: https://github.com/Coucou2016/EchoCLIP-TC
+(Key: README.md, PAPER.md, papers/echoclip_tc_manuscript.md, echoclip/protocol.py)
+
+EchoCLIP-TC = Temporal + Calibrated layer on frozen EchoCLIP. Protocol: B0/M1/M2/M4. Clinical EchoNet metrics locally: 待补充. DEMO ≠ clinical.
+
+Ask:
+1) Full citations: EchoCLIP, EchoPrime, CardiacCLIP, EchoNet-Dynamic, CAMUS, calibration/conformal.
+2) Which writing architectures to imitate (Nat Med / MICCAI / TMI) and what NOT to imitate.
+3) Honest innovation points + explicit non-claims.
+4) Figure list for a methods paper.
+5) Brief critique of our manuscript outline after reading the repo.
+
+Reply in structured bullets. Do not invent our EchoNet MAE/AUC.

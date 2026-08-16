@@ -1,0 +1,12 @@
+CONTEXT 5/5 — Full manuscript + report consistency
+
+Repo: https://github.com/Coucou2016/EchoCLIP-TC
+After reading papers/echoclip_tc_manuscript.md and reports/research_report.md (or HTML):
+
+Ask:
+1) Inconsistencies across Abstract / Methods / Results / Discussion / Availability.
+2) Any place DEMO could be misread as clinical.
+3) Minimal high-value edits only (bullet list).
+4) Confirm EchoPrime year/pages and CardiacCLIP citation look correct.
+
+Return a short punch-list. No invented EchoNet numbers.
