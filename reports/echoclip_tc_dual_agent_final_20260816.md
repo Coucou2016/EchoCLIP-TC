@@ -26,6 +26,7 @@
 | URL | **https://github.com/Coucou2016/EchoCLIP-TC** |
 | Visibility | **PUBLIC** |
 | Initial commit SHA | `83147ad283f049a30f5d528294400c769dd1a069` |
+| Latest commit SHA (docs refresh) | `103a36f7915f0ad38370e085d177092e15c11cb0` |
 | Contents | code + docs + SciencePlots figures + manuscript/report HTML/MD/PDF |
 | Excluded | `checkpoints/` (~1.5 GB), weights `*.pt`, patient/AIMI videos, `.env`, `_dual_agent_staging/*.zip` |
 | Secret scan | No live secrets; prior “hits” were false positives (`os.environ`, report text mentioning `API_KEY` scan tokens) |
