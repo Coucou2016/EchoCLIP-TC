@@ -108,4 +108,4 @@ Paste packs: `_dual_agent_staging/paste_r1_literature.txt` … `paste_r5_consist
 |------|--------|
 | `python -m unittest discover -s tests` | **63 tests OK** (≈7.8s) |
 | `python scripts/validate.py --skip-eval` | **All validation steps passed** |
-| GitHub HEAD SHA | *(filled after push)* |
+| GitHub HEAD SHA | `604973bf4c7448dd210f291be18061dcd32ac524` |

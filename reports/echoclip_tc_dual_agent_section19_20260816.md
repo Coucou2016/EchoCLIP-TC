@@ -26,7 +26,7 @@
 |-------|--------|
 | URL | https://github.com/Coucou2016/EchoCLIP-TC |
 | Contents pushed | code + docs + figures + manuscript/report (no secrets / no large weights / no patient data) |
-| HEAD SHA | *(see below after push)* |
+| HEAD SHA | `604973bf4c7448dd210f291be18061dcd32ac524` |
 
 ### 19.3 Round count & honesty
 
@@ -73,4 +73,8 @@
 
 ## Push record
 
-*(filled immediately after `git push`)*
+| Field | Value |
+|-------|--------|
+| Commit | `604973bf4c7448dd210f291be18061dcd32ac524` |
+| Remote | `origin/main` @ https://github.com/Coucou2016/EchoCLIP-TC |
+| Force-push | No |
