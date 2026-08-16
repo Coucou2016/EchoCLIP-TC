@@ -75,6 +75,7 @@
 
 | Field | Value |
 |-------|--------|
-| Commit | `604973bf4c7448dd210f291be18061dcd32ac524` |
+| Content commit | `604973bf4c7448dd210f291be18061dcd32ac524` |
+| HEAD (this SHA note) | `8b7d6728c7013a621577601be70262a0f399d948` |
 | Remote | `origin/main` @ https://github.com/Coucou2016/EchoCLIP-TC |
 | Force-push | No |
