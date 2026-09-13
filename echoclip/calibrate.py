@@ -50,6 +50,10 @@ def fit_temperature(
     Minimize NLL of softmax(logits / T) (multiclass) or BCE (1-D logits).
 
     labels: class indices (N,) for multiclass, or {0,1} for binary.
+
+    Note: for EchoCLIP EF threshold scores, ``logits`` are often *pseudo-logits*
+    ``(threshold - predicted_EF)``, not calibrated classifier logits. Prefer
+    ``fit_affine_logistic`` when reporting calibrated P(EF < t).
     """
     z = torch.as_tensor(_as_numpy(logits), dtype=torch.float64)
     y = torch.as_tensor(_as_numpy(labels), dtype=torch.float64)
@@ -78,6 +82,43 @@ def fit_temperature(
 
     opt.step(closure)
     return float(log_t.exp().clamp(1e-3, 100.0).detach())
+
+
+def fit_affine_logistic(
+    scores: ArrayLike,
+    labels: ArrayLike,
+    max_iter: int = 100,
+) -> Tuple[float, float]:
+    """Fit P(y=1) = σ(a * score + b) on VAL; returns (a, b).
+
+    Intended for EF-threshold calibration where ``score`` is a pseudo-logit
+    such as ``(threshold - pred_EF)``. Fit on VAL only; apply on TEST.
+    """
+    z = torch.as_tensor(_as_numpy(scores), dtype=torch.float64).reshape(-1)
+    y = torch.as_tensor(_as_numpy(labels), dtype=torch.float64).reshape(-1)
+    if z.numel() < 2 or y.min() == y.max():
+        return 1.0, 0.0
+    a = torch.nn.Parameter(torch.ones((), dtype=torch.float64))
+    b = torch.nn.Parameter(torch.zeros((), dtype=torch.float64))
+    opt = torch.optim.LBFGS([a, b], lr=0.25, max_iter=max_iter, line_search_fn="strong_wolfe")
+
+    def closure():
+        opt.zero_grad()
+        logits = a * z + b
+        loss = F.binary_cross_entropy_with_logits(logits, y.clamp(0.0, 1.0))
+        loss.backward()
+        return loss
+
+    opt.step(closure)
+    return float(a.detach()), float(b.detach())
+
+
+def apply_affine_logistic(
+    scores: ArrayLike, a: float, b: float
+) -> np.ndarray:
+    """σ(a * score + b)."""
+    z = _as_numpy(scores).reshape(-1).astype(np.float64)
+    return sigmoid(float(a) * z + float(b))
 
 
 def expected_calibration_error(

@@ -22,11 +22,13 @@ class TestStructuredText(unittest.TestCase):
             self.assertIn(sentence.strip(), joined)
 
     def test_edv_maps_to_official_dilation_prompts(self):
-        caps = captions_from_measurements(ef=30, edv=260.0)
+        # Dilation is optional ablation only; primary path is EF prompts.
+        self.assertEqual(len(captions_from_measurements(ef=30, edv=260.0)), 2)
+        caps = captions_from_measurements(ef=30, edv=260.0, include_dilation=True)
         dilation = list(ZERO_SHOT_PROMPTS["severe_left_ventricle_dilation"])
         for sentence in dilation:
             self.assertIn(sentence, caps)
-        mild = captions_from_measurements(ef=60, edv=160.0)
+        mild = captions_from_measurements(ef=60, edv=160.0, include_dilation=True)
         self.assertTrue(
             any(s in mild for s in ZERO_SHOT_PROMPTS["mild_left_ventricle_dilation"])
         )

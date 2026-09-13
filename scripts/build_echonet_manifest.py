@@ -165,7 +165,7 @@ def build_pairs(
     filelist_rows: List[dict],
     videos_dir: Path,
     tracings: Optional[Dict[str, Tuple[int, int]]] = None,
-    include_dilation: bool = True,
+    include_dilation: bool = False,
     require_video: bool = True,
 ) -> Tuple[List[dict], List[str]]:
     pairs: List[dict] = []
@@ -248,8 +248,16 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--subset-5000", action="store_true",
                         help="Also write EchoCLIP-style random 5000-study subset")
-    parser.add_argument("--allow-missing-videos", action="store_true")
-    parser.add_argument("--no-dilation", action="store_true")
+    parser.add_argument(
+        "--include-dilation",
+        action="store_true",
+        help="Optional ablation: append EDV dilation captions (primary is EF-only)",
+    )
+    parser.add_argument(
+        "--no-dilation",
+        action="store_true",
+        help="Deprecated alias: primary path is already EF-only",
+    )
     args = parser.parse_args()
 
     set_seed(args.seed)
@@ -276,7 +284,7 @@ def main() -> int:
         rows,
         videos_dir,
         tracings=tracings,
-        include_dilation=not args.no_dilation,
+        include_dilation=bool(args.include_dilation) and not args.no_dilation,
         require_video=not args.allow_missing_videos,
     )
     if not pairs:

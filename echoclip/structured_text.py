@@ -38,13 +38,14 @@ def captions_from_measurements(
     ef: Optional[float] = None,
     edv: Optional[float] = None,
     esv: Optional[float] = None,
-    include_dilation: bool = True,
+    include_dilation: bool = False,
 ) -> List[str]:
     """
     One or more official-style captions.
 
-    * EF → both ``ejection_fraction`` templates.
-    * EDV → mild/moderate/severe LV dilation templates when above 150 mL.
+    * EF → both ``ejection_fraction`` templates (primary structured captions).
+    * EDV → mild/moderate/severe LV dilation templates when ``include_dilation``
+      and EDV is above 150 mL (optional ablation only).
     * ESV is accepted for API completeness but has no official numeric template,
       so it is not verbalized.
     """
@@ -74,7 +75,7 @@ def measurements_to_text(
     ef: Optional[float] = None,
     edv: Optional[float] = None,
     esv: Optional[float] = None,
-    include_dilation: bool = True,
+    include_dilation: bool = False,
 ) -> str:
     """Single ``text`` field for a DATA.md-compatible manifest pair."""
     return join_captions(
@@ -90,7 +91,7 @@ def pair_record(
     edv: Optional[float] = None,
     esv: Optional[float] = None,
     extra: Optional[Dict] = None,
-    include_dilation: bool = True,
+    include_dilation: bool = False,
 ) -> Dict:
     """Manifest dict with required image/text plus optional clinical fields."""
     captions = captions_from_measurements(

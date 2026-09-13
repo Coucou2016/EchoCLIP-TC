@@ -6,6 +6,7 @@ import torch
 
 from echoclip.model import EchoCLIP
 from echoclip.prompts import ZERO_SHOT_PROMPTS
+from echoclip.protocol import DEFAULT_EF_VALUES, OFFICIAL_EF_VALUES
 from echoclip.text import EchoTokenizer
 
 PathLike = Union[str, torch.Tensor]
@@ -71,11 +72,21 @@ class EchoCLIPInference:
         model: EchoCLIP,
         device: Optional[str] = None,
         tokenizer: Optional[EchoTokenizer] = None,
+        *,
+        official_reproduction: bool = False,
+        ef_values: Optional[List[int]] = None,
     ):
         self.model = model
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device).eval()
         self.tokenizer = tokenizer or EchoTokenizer(context_length=model.config.context_length)
+        self.official_reproduction = bool(official_reproduction)
+        if ef_values is not None:
+            self.default_ef_values = list(ef_values)
+        elif self.official_reproduction:
+            self.default_ef_values = list(OFFICIAL_EF_VALUES)
+        else:
+            self.default_ef_values = list(DEFAULT_EF_VALUES)
 
     @torch.inference_mode()
     def encode_texts(self, texts: List[str], clean: bool = True) -> torch.Tensor:
@@ -184,7 +195,7 @@ class EchoCLIPInference:
         if prompt_embeddings is not None and prompt_values is not None:
             return list(prompt_values), prompt_embeddings
         templates = ZERO_SHOT_PROMPTS["ejection_fraction"]
-        ef_values = ef_values or list(range(15, 81, 5))
+        ef_values = ef_values or self.default_ef_values
         prompts = [self.tokenizer.fill_prompt(t, v) for t in templates for v in ef_values]
         values = [float(v) for _ in templates for v in ef_values]
         return values, self.encode_texts(prompts)

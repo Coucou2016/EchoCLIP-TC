@@ -6,6 +6,22 @@ from pathlib import Path
 from echoclip.data import load_manifest, split_manifest, validate_manifest
 
 
+class TestDatasetEpoch(unittest.TestCase):
+    def test_set_epoch_changes_seed(self):
+        from echoclip.data import EchoCLIPDataset
+
+        # Minimal: construct without loading files by mocking pairs
+        ds = EchoCLIPDataset.__new__(EchoCLIPDataset)
+        ds.seed = 42
+        ds.epoch = 0
+        s0 = ds._item_seed(0)
+        ds.set_epoch(3)
+        s3 = ds._item_seed(0)
+        self.assertNotEqual(s0, s3)
+        ds.set_epoch(0)
+        self.assertEqual(ds._item_seed(0), s0)
+
+
 class TestManifest(unittest.TestCase):
     def test_load_json_pairs(self):
         with tempfile.TemporaryDirectory() as d:

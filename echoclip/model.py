@@ -36,10 +36,16 @@ class ResidualAttentionBlock(nn.Module):
         )
         self.ln_2 = LayerNorm(d_model)
 
-    def forward(self, x: torch.Tensor, attn_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, attn_mask: Optional[torch.Tensor] = None,
+                key_padding_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         x_norm = self.ln_1(x)
         attn_out, _ = self.attn(
-            x_norm, x_norm, x_norm, attn_mask=attn_mask, need_weights=False
+            x_norm,
+            x_norm,
+            x_norm,
+            attn_mask=attn_mask,
+            key_padding_mask=key_padding_mask,
+            need_weights=False,
         )
         x = x + attn_out
         x = x + self.mlp(self.ln_2(x))
@@ -161,6 +167,7 @@ class EchoCLIP(nn.Module):
         self.logit_scale = nn.Parameter(torch.ones([]) * torch.log(torch.tensor(1 / 0.07)))
         self.temporal = None
         self.external_clip = None
+        self.official_preprocess = None
         self.load_source = "scratch"
         kind = getattr(self.config, "temporal_type", "none")
         if kind and str(kind).lower() not in ("none", "mean", ""):
@@ -268,18 +275,28 @@ class EchoCLIP(nn.Module):
         config: Optional[EchoCLIPConfig] = None,
         checkpoint_path: Optional[str] = None,
         hub: str = OFFICIAL_ECHOCLIP_HUB,
-    ) -> "EchoCLIP":
+        *,
+        allow_scratch_fallback: bool = True,
+        return_preprocess: bool = False,
+    ):
         """
-        Load official EchoCLIP when possible; never raise on missing hub weights.
+        Load official EchoCLIP when possible.
 
         Order: local ``checkpoint_path`` (this repo's format) → open_clip hub →
-        ``EchoCLIP(config)`` with ``simple_cnn`` if timm is unavailable.
+        optional ``scratch_fallback`` (disabled when ``allow_scratch_fallback=False``,
+        e.g. ``--paper`` / official reproduction).
+
+        When ``return_preprocess=True``, returns ``(model, preprocess_or_None)`` where
+        preprocess is the open_clip image transform if the hub path succeeded.
+        Remaining gaps vs golden echo_CLIP (tokenization quirks, exact crop zoom,
+        dtype) are documented in PAPER.md — do not claim bit-exact parity.
         """
         import os
         import warnings
         from pathlib import Path
 
         cfg = config or EchoCLIPConfig()
+        preprocess = None
         if checkpoint_path:
             path = Path(checkpoint_path)
             if path.exists():
@@ -287,6 +304,8 @@ class EchoCLIP(nn.Module):
 
                 model, _ = load_checkpoint(path, strict=False)
                 model.load_source = f"local_checkpoint:{path}"
+                if return_preprocess:
+                    return model, None
                 return model
             warnings.warn(f"Official/local checkpoint not found: {path}")
 
@@ -307,7 +326,7 @@ class EchoCLIP(nn.Module):
             try:
                 import open_clip
 
-                oc_model, _, _ = open_clip.create_model_and_transforms(hub)
+                oc_model, _, preprocess = open_clip.create_model_and_transforms(hub)
                 # Align local embed_dim with the hub tower before attaching temporal.
                 probe = getattr(oc_model, "visual", None)
                 hub_dim = None
@@ -330,6 +349,7 @@ class EchoCLIP(nn.Module):
                     cfg.embed_dim = hub_dim
                 model = cls(cfg)
                 model.external_clip = _OpenCLIPHolder(oc_model)
+                model.official_preprocess = preprocess
                 if hasattr(oc_model, "logit_scale"):
                     model.logit_scale.data.copy_(oc_model.logit_scale.data)
                 # Re-attach temporal if dim changed after initial construction.
@@ -347,15 +367,39 @@ class EchoCLIP(nn.Module):
                             max_frames=getattr(cfg, "temporal_max_frames", 64),
                         )
                 model.load_source = hub
+                if return_preprocess:
+                    return model, preprocess
                 return model
             except Exception as exc:
                 warnings.warn(
                     f"Could not load official EchoCLIP ({hub}): {exc}. "
-                    "Falling back to a local randomly initialized model."
+                    + (
+                        "Scratch fallback disabled (paper / official reproduction)."
+                        if not allow_scratch_fallback
+                        else "Falling back to a local randomly initialized model."
+                    )
                 )
+                if not allow_scratch_fallback:
+                    raise RuntimeError(
+                        f"Paper/official reproduction requires real EchoCLIP weights "
+                        f"({hub} or a local official checkpoint). Hub/local load failed: {exc}. "
+                        "Unset --paper / --official-reproduction for demo wiring, or set "
+                        "ECHOCLIP_SKIP_HUB=0 and install open-clip-torch + network access."
+                    ) from exc
+
+        if not allow_scratch_fallback:
+            raise RuntimeError(
+                "Paper/official reproduction requires real EchoCLIP weights "
+                f"({hub} or local --official-checkpoint). "
+                "Scratch / simple_cnn fallback is disabled. "
+                "For pipeline smoke only, use --demo without --paper."
+            )
 
         model = cls(cfg)
         model.load_source = "scratch_fallback"
+        model.official_preprocess = None
+        if return_preprocess:
+            return model, None
         return model
 
     def encode_video_frames(

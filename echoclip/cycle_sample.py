@@ -12,7 +12,24 @@ from typing import Optional, Sequence, Union
 
 import numpy as np
 
-STRATEGIES = ("random", "uniform", "ed_es", "mixed")
+STRATEGIES = ("random", "uniform", "ed_es", "mixed", "official_stride")
+
+
+def sample_official_stride(
+    num_frames: int,
+    *,
+    max_span: int = 40,
+    stride: int = 2,
+) -> np.ndarray:
+    """Official echo_CLIP-style indices: ``0:min(max_span, T):stride``.
+
+    Matches the common official pattern of taking every ``stride``-th frame
+    from the first ``min(max_span, T)`` frames (not a fixed-length uniform grid).
+    """
+    if num_frames <= 0:
+        raise ValueError("num_frames must be positive")
+    end = min(int(max_span), int(num_frames))
+    return np.arange(0, end, int(stride), dtype=int)
 
 
 def _clamp_index(index: Optional[int], num_frames: int) -> Optional[int]:
@@ -119,6 +136,8 @@ def sample_cycle_indices(
         return sample_uniform(num_frames, n_samples)
     if key in ("ed_es", "edes", "ed-es"):
         return sample_ed_es(num_frames, n_samples, ed_index, es_index, seed)
+    if key in ("official_stride", "official", "echo_clip_stride"):
+        return sample_official_stride(num_frames, max_span=40, stride=2)
     if key == "random":
         return sample_random(num_frames, n_samples, seed)
     raise ValueError(f"Unknown sampling strategy '{strategy}'. Use {STRATEGIES}.")

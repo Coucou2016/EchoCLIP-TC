@@ -113,6 +113,11 @@ class EchoCLIPDataset(Dataset):
         self.frame_pool = frame_pool
         self.two_views = two_views
         self.caption_mode = caption_mode
+        self.epoch = 0
+
+    def set_epoch(self, epoch: int) -> None:
+        """Set epoch for deterministic per-item seeds (VAL/TEST should stay 0)."""
+        self.epoch = int(epoch)
 
     def __len__(self) -> int:
         return len(self.pairs)
@@ -124,7 +129,8 @@ class EchoCLIPDataset(Dataset):
     def _item_seed(self, index: int, view: int = 0) -> Optional[int]:
         if self.seed is None:
             return None
-        return int(self.seed + index + 10007 * view)
+        # Include epoch so train reshuffles across epochs; keep VAL/TEST at epoch=0.
+        return int(self.seed + index + 10007 * view + 100003 * int(self.epoch))
 
     def _choose_text(self, item: Dict[str, Any], index: int) -> str:
         captions = item.get("captions")

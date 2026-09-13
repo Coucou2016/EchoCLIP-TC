@@ -14,10 +14,12 @@ import torch
 from echoclip.calibrate import (
     abstain_by_probability,
     apply_abstention,
+    apply_affine_logistic,
     brier_score,
     conformal_coverage,
     conformal_intervals,
     expected_calibration_error,
+    fit_affine_logistic,
     fit_temperature,
     sigmoid,
     split_conformal_quantile,
@@ -149,8 +151,15 @@ def summarize_clinical(
     n_boot: int = 1000,
     seed: int = 42,
     abstain_width_quantile: float = 0.8,
+    calibration_method: str = "temperature",
 ) -> Dict:
-    """Regression + threshold AUC + optional val-fitted calibration/conformal."""
+    """Regression + threshold AUC + optional val-fitted calibration/conformal.
+
+    ``calibration_method``:
+      - ``temperature``: scale pseudo-logit ``(t - pred)`` by T (legacy; limited
+        because scores are not true classifier logits — see PAPER.md).
+      - ``affine_logistic``: fit σ(a·score + b) on VAL for EF<50 (hooks for 40/30).
+    """
     y = _as_numpy(y_true).reshape(-1)
     p = _as_numpy(y_pred).reshape(-1)
     metrics = regression_metrics(y, p)
@@ -158,12 +167,18 @@ def summarize_clinical(
     lo, hi = bootstrap_mae_ci(y, p, n_boot=n_boot, seed=seed)
     metrics["mae_bootstrap_ci95"] = [lo, hi]
 
-    # Uncalibrated P(EF < 50) from (50 - pred) via sigmoid
+    # Uncalibrated P(EF < 50) from (50 - pred) via sigmoid — pseudo-logit limitation.
     primary_t = 50
     test_logits = ef_threshold_logits(p, primary_t)
     test_labels = (y < primary_t).astype(np.float64)
     temperature = 1.0
+    affine_a, affine_b = 1.0, 0.0
     conformal_q = None
+    method = str(calibration_method).strip().lower()
+    metrics["calibration_score_note"] = (
+        "EF threshold scores use pseudo-logit (threshold - pred_EF), not true "
+        "classifier logits; temperature scaling is limited. Prefer affine_logistic."
+    )
 
     if cal_true is not None and cal_pred is not None:
         cy = _as_numpy(cal_true).reshape(-1)
@@ -171,15 +186,35 @@ def summarize_clinical(
         cal_logits = ef_threshold_logits(cp, primary_t)
         cal_labels = (cy < primary_t).astype(np.float64)
         if cy.size >= 2 and cal_labels.min() != cal_labels.max():
-            temperature = fit_temperature(cal_logits, cal_labels)
+            if method in ("affine", "affine_logistic", "logistic"):
+                affine_a, affine_b = fit_affine_logistic(cal_logits, cal_labels)
+                metrics["calibration_method"] = "affine_logistic"
+                metrics["affine_a_ef_lt_50"] = float(affine_a)
+                metrics["affine_b_ef_lt_50"] = float(affine_b)
+                # Also fit hooks for 40/30 (stored; primary reporting stays @50)
+                for t in (40, 30):
+                    a_t, b_t = fit_affine_logistic(
+                        ef_threshold_logits(cp, t), (cy < float(t)).astype(np.float64)
+                    )
+                    metrics[f"affine_a_ef_lt_{t}"] = float(a_t)
+                    metrics[f"affine_b_ef_lt_{t}"] = float(b_t)
+            else:
+                temperature = fit_temperature(cal_logits, cal_labels)
+                metrics["calibration_method"] = "temperature"
         residuals = np.abs(cp - cy)
         if residuals.size:
             conformal_q = split_conformal_quantile(residuals, alpha=conformal_alpha)
             metrics["conformal_fitted_on"] = "calibration_split"
         metrics["n_calibration"] = int(cy.size)
 
-    probs = sigmoid(test_logits / max(temperature, 1e-6))
-    metrics["temperature_ef_lt_50"] = float(temperature)
+    if method in ("affine", "affine_logistic", "logistic") and (
+        "affine_a_ef_lt_50" in metrics or (cal_true is not None)
+    ):
+        probs = apply_affine_logistic(test_logits, affine_a, affine_b)
+        metrics["temperature_ef_lt_50"] = float(temperature)
+    else:
+        probs = sigmoid(test_logits / max(temperature, 1e-6))
+        metrics["temperature_ef_lt_50"] = float(temperature)
     metrics["ece_ef_lt_50"] = expected_calibration_error(probs, test_labels)
     metrics["brier_ef_lt_50"] = brier_score(probs, test_labels)
 

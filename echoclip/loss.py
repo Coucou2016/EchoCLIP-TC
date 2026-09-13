@@ -61,3 +61,46 @@ class TemporalClipLoss(nn.Module):
                 video_features, video_features_2, logit_scale
             )
         return loss
+
+
+class EFSoftContrastiveLoss(nn.Module):
+    """EF-aware soft / multi-positive contrastive loss (optional train flag).
+
+    Videos with similar EF are soft positives. Target distribution for video i
+    over texts j is proportional to ``exp(-|EF_i - EF_j| / temperature_ef)``
+    (self always included). Falls back to hard diagonal InfoNCE when EF is
+    missing for the batch.
+    """
+
+    def __init__(self, ef_temperature: float = 5.0, soft_weight: float = 1.0):
+        super().__init__()
+        self.ef_temperature = float(ef_temperature)
+        self.soft_weight = float(soft_weight)
+        self.hard = ClipLoss()
+
+    def forward(
+        self,
+        video_features: torch.Tensor,
+        text_features: torch.Tensor,
+        logit_scale: torch.Tensor,
+        ef: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        if ef is None or not torch.isfinite(ef).all():
+            return self.hard(video_features, text_features, logit_scale)
+
+        video_features = F.normalize(video_features, dim=-1)
+        text_features = F.normalize(text_features, dim=-1)
+        scale = logit_scale.exp()
+        logits = scale * video_features @ text_features.T  # (B, B)
+
+        ef = ef.float().view(-1, 1)
+        dist = torch.abs(ef - ef.T)
+        # Soft multi-positive targets from EF proximity
+        soft = torch.exp(-dist / max(self.ef_temperature, 1e-3))
+        soft = soft / soft.sum(dim=1, keepdim=True).clamp(min=1e-8)
+
+        log_prob = F.log_softmax(logits, dim=1)
+        loss_i = -(soft * log_prob).sum(dim=1).mean()
+        log_prob_t = F.log_softmax(logits.T, dim=1)
+        loss_t = -(soft * log_prob_t).sum(dim=1).mean()
+        return self.soft_weight * (loss_i + loss_t) / 2.0

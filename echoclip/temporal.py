@@ -69,16 +69,25 @@ class TemporalTransformer(nn.Module):
     def forward(
         self, x: torch.Tensor, mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        del mask  # ResidualAttentionBlock uses attn_mask, not key padding
         bsz, seq_len, _ = x.shape
         if seq_len > self.max_frames:
-            x = x[:, : self.max_frames]
+            # No silent prefix truncation: uniformly subsample to max_frames.
+            idx = torch.linspace(0, seq_len - 1, self.max_frames, device=x.device)
+            idx = idx.round().long().clamp(0, seq_len - 1)
+            x = x[:, idx, :]
+            if mask is not None:
+                mask = mask[:, idx]
             seq_len = self.max_frames
         cls = self.cls.expand(bsz, -1, -1)
         tokens = torch.cat([cls, x], dim=1)
         tokens = tokens + self.positional_embedding[:, : seq_len + 1]
+        key_padding = None
+        if mask is not None:
+            # mask: True = padding (key_padding_mask). CLS is never padded.
+            cls_pad = torch.zeros(bsz, 1, dtype=torch.bool, device=x.device)
+            key_padding = torch.cat([cls_pad, mask.bool()], dim=1)
         for block in self.blocks:
-            tokens = block(tokens)
+            tokens = block(tokens, key_padding_mask=key_padding)
         return self.ln(tokens[:, 0])
 
 

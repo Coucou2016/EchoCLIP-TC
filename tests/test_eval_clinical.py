@@ -104,6 +104,8 @@ class TestRunProtocolCalLeak(unittest.TestCase):
             args.no_official = True
             args.vision_backbone = "simple_cnn"
             args.demo = False
+            args.paper = False
+            args.calibration_method = "temperature"
             spec_m4 = mod.get_experiment("M4")
             code = mod._eval_experiment(
                 args,
@@ -114,6 +116,7 @@ class TestRunProtocolCalLeak(unittest.TestCase):
                 checkpoint=None,
                 out_metrics=Path(tmp) / "metrics.json",
                 demo=False,
+                paper=False,
             )
             self.assertEqual(code, 1)
 

@@ -26,6 +26,13 @@ from echoclip.checkpoint import load_checkpoint
 from echoclip.clinical import parse_ef_from_text, summarize_clinical
 from echoclip.data import EchoCLIPDataset, collate_batch, load_manifest, validate_manifest
 from echoclip.model import EchoCLIP
+from echoclip.protocol import (
+    DEFAULT_EF_VALUES,
+    OFFICIAL_EF_VALUES,
+    assert_primary_eval_sampling,
+    get_experiment,
+    resolve_eval_sample_strategy,
+)
 from echoclip.text import EchoTokenizer
 from echoclip.utils import set_seed
 from echoclip.zeroshot import EchoCLIPInference
@@ -115,6 +122,23 @@ def resolve_pool(args_pool: str, model: EchoCLIP) -> str:
     raise ValueError(f"Unknown --pool {args_pool!r}")
 
 
+def _infer_split_name(manifest: Path, cfg: dict) -> str:
+    name = manifest.name.lower()
+    for key in ("test", "val", "valid", "train"):
+        if key in name:
+            return "val" if key.startswith("val") else key
+    # Heuristic from config paths
+    for key, label in (
+        ("test_manifest", "test"),
+        ("cal_manifest", "val"),
+        ("manifest", "train"),
+    ):
+        p = cfg.get(key)
+        if p and Path(p).name == manifest.name:
+            return label
+    return "test"
+
+
 def _run_split(
     engine: EchoCLIPInference,
     manifest: Path,
@@ -122,7 +146,18 @@ def _run_split(
     cfg: dict,
     args,
     pool: str,
+    *,
+    sample_strategy: str,
+    split: str = "test",
 ) -> Tuple[np.ndarray, np.ndarray, dict]:
+    assert_primary_eval_sampling(
+        split=split,
+        strategy=sample_strategy,
+        experiment_id=getattr(args, "experiment_id", None),
+        allow_annotation_assisted=bool(
+            getattr(args, "allow_annotation_assisted", False)
+        ),
+    )
     ds = EchoCLIPDataset(
         manifest,
         manifest_dir=manifest_dir,
@@ -130,10 +165,10 @@ def _run_split(
         context_length=engine.model.config.context_length,
         tokenizer=EchoTokenizer(context_length=engine.model.config.context_length),
         video_frames=args.video_frames or cfg.get("video_frames", 1),
-        sample_strategy=args.sample_strategy
-        or cfg.get("val_sample_strategy", cfg.get("sample_strategy", "uniform")),
+        sample_strategy=sample_strategy,
         seed=args.seed,
     )
+    ds.set_epoch(0)  # VAL/TEST: fixed epoch for reproducibility
     loader = DataLoader(
         ds,
         batch_size=min(args.batch_size, max(len(ds), 1)),
@@ -148,6 +183,8 @@ def _run_split(
         "n_missing_ef": n_missing,
         "manifest": str(manifest),
         "pool": pool,
+        "sample_strategy": sample_strategy,
+        "split": split,
     }
     return y_true, y_pred, info
 
@@ -178,7 +215,31 @@ def main() -> int:
         "--experiment-id",
         type=str,
         default=None,
-        help="Optional protocol label (B0/M1/M2/M4) written into metrics.json",
+        help="Optional protocol label (R0–R6 / B0/M1/… / ORACLE_EDES) in metrics.json",
+    )
+    parser.add_argument(
+        "--paper",
+        "--official-reproduction",
+        dest="paper",
+        action="store_true",
+        help="Strict official reproduction: EF 0–100, no scratch fallback, prefer official stride",
+    )
+    parser.add_argument(
+        "--allow-annotation-assisted",
+        action="store_true",
+        help="Permit ed_es/mixed on VAL/TEST (Oracle-EDES only)",
+    )
+    parser.add_argument(
+        "--calibration-method",
+        choices=["temperature", "affine_logistic"],
+        default="temperature",
+        help="VAL-fit calibration for P(EF<50); affine_logistic preferred over pseudo-logit T",
+    )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default=None,
+        help="Split name for sampling guards (test|val|train). Inferred from manifest if omitted.",
     )
     args = parser.parse_args()
 
@@ -187,6 +248,18 @@ def main() -> int:
     cfg = {}
     if args.config.exists():
         cfg = yaml.safe_load(args.config.read_text(encoding="utf-8")) or {}
+
+    paper = bool(args.paper)
+    if paper:
+        # Paper path must not silently use random towers.
+        import os
+
+        if os.environ.get("ECHOCLIP_SKIP_HUB", "").strip() in ("1", "true", "yes"):
+            print(
+                "Error: --paper/--official-reproduction cannot run with ECHOCLIP_SKIP_HUB=1. "
+                "Unset it and provide hub access or --official-checkpoint."
+            )
+            return 1
 
     manifest = args.manifest or Path(
         cfg.get("test_manifest") or cfg.get("manifest") or ROOT / "data" / "demo" / "manifest.json"
@@ -211,40 +284,114 @@ def main() -> int:
             print(f"  - {err}")
         return 1
 
+    # Resolve experiment + eval sampling (honor val_sample_strategy; force uniform primary)
+    spec = None
+    if args.experiment_id:
+        try:
+            spec = get_experiment(args.experiment_id)
+            args.experiment_id = spec.id
+            if spec.annotation_assisted:
+                args.allow_annotation_assisted = True
+        except KeyError as exc:
+            print(exc)
+            return 1
+
+    split_name = args.split or _infer_split_name(manifest, cfg)
+    if spec is not None:
+        sample_strategy = resolve_eval_sample_strategy(
+            spec=spec,
+            cli_strategy=args.sample_strategy,
+            cfg=cfg,
+            split=split_name,
+        )
+    else:
+        sample_strategy = args.sample_strategy or cfg.get(
+            "val_sample_strategy", cfg.get("sample_strategy", "uniform")
+        )
+        assert_primary_eval_sampling(
+            split=split_name,
+            strategy=sample_strategy,
+            experiment_id=args.experiment_id,
+            allow_annotation_assisted=args.allow_annotation_assisted,
+        )
+
+    # Paper mode: prefer official stride frame selection when not overridden
+    if paper and args.sample_strategy is None and (
+        spec is None or not spec.annotation_assisted
+    ):
+        if sample_strategy == "uniform":
+            sample_strategy = "official_stride"
+
     if args.checkpoint and args.checkpoint.exists():
         model, ckpt = load_checkpoint(args.checkpoint, device=device)
         ckpt_epoch = ckpt.get("epoch", "?")
         load_source = getattr(model, "load_source", "checkpoint")
+        if paper and str(load_source).startswith("scratch"):
+            print(
+                "Error: --paper requires real EchoCLIP weights; checkpoint load_source="
+                f"{load_source}"
+            )
+            return 1
     elif args.init_official:
         from echoclip.config import EchoCLIPConfig
         from echoclip.utils import config_from_dict
 
         model_cfg = config_from_dict(cfg) if cfg else EchoCLIPConfig()
         model_cfg.pretrained_vision = False
-        if model_module_needs_simple_cnn():
+        if model_module_needs_simple_cnn() and not paper:
             model_cfg.vision_backbone = "simple_cnn"
-        model = EchoCLIP.from_official_echo_clip(
-            model_cfg, checkpoint_path=str(args.official_checkpoint) if args.official_checkpoint else None
-        )
+        try:
+            model = EchoCLIP.from_official_echo_clip(
+                model_cfg,
+                checkpoint_path=str(args.official_checkpoint)
+                if args.official_checkpoint
+                else None,
+                allow_scratch_fallback=not paper,
+            )
+        except RuntimeError as exc:
+            print(f"Error: {exc}")
+            return 1
         model.to(device)
         ckpt_epoch = None
         load_source = model.load_source
+        if paper and (
+            str(load_source).startswith("scratch")
+            or load_source == "scratch_fallback"
+        ):
+            print(
+                "Error: --paper/--official-reproduction refused scratch_fallback. "
+                "Provide hub weights or --official-checkpoint."
+            )
+            return 1
     else:
         print("Provide --checkpoint PATH or --init-official")
         return 1
 
-    engine = EchoCLIPInference(model, device=device)
+    ef_values = list(OFFICIAL_EF_VALUES) if paper else list(DEFAULT_EF_VALUES)
+    engine = EchoCLIPInference(
+        model,
+        device=device,
+        official_reproduction=paper,
+        ef_values=ef_values,
+    )
     pool = resolve_pool(args.pool, model)
     if pool == "temporal" and getattr(model, "temporal", None) is None:
         print(
             "Error: --pool temporal requires an attached temporal aggregator, "
             "but this model has temporal=None (would silently mean-pool).\n"
-            "Train M2 first, load a TC checkpoint, or use --pool mean|frames."
+            "Train R5/M2 first, load a TC checkpoint, or use --pool mean|frames."
         )
         return 1
 
     y_true, y_pred, info = _run_split(
-        engine, manifest, manifest_dir, cfg, args, pool
+        engine,
+        manifest,
+        manifest_dir,
+        cfg,
+        args,
+        pool,
+        sample_strategy=sample_strategy,
+        split=split_name,
     )
     mask = np.isfinite(y_true) & np.isfinite(y_pred)
     n_eval = int(mask.sum())
@@ -260,7 +407,14 @@ def main() -> int:
     if args.cal_manifest and args.cal_manifest.exists():
         cal_dir = args.manifest_dir or args.cal_manifest.parent
         cy, cp, cal_info = _run_split(
-            engine, args.cal_manifest, cal_dir, cfg, args, pool
+            engine,
+            args.cal_manifest,
+            cal_dir,
+            cfg,
+            args,
+            pool,
+            sample_strategy=sample_strategy,
+            split="val",
         )
         cmask = np.isfinite(cy) & np.isfinite(cp)
         cal_true, cal_pred = cy[cmask], cp[cmask]
@@ -277,15 +431,24 @@ def main() -> int:
         "pool": pool,
         "use_temporal": pool == "temporal",
         "video_frames": args.video_frames or cfg.get("video_frames", 1),
-        "sample_strategy": args.sample_strategy
-        or cfg.get("val_sample_strategy", cfg.get("sample_strategy", "uniform")),
+        "sample_strategy": sample_strategy,
         "seed": args.seed,
         "note": protocol_note,
         "paper_primary": True,
         "demo_is_not_clinical": info["ef_source"] != "manifest",
+        "official_reproduction": paper,
+        "ef_grid": "0_100_step1" if paper else "15_80_step5",
+        "ef_grid_n": len(ef_values),
+        "baseline_name": (
+            "Official EchoCLIP zero-shot (reproduction path)"
+            if paper
+            else "EchoCLIP-based zero-shot baseline"
+        ),
     }
     if args.experiment_id:
         metrics["experiment_id"] = str(args.experiment_id).upper()
+        if spec is not None and spec.annotation_assisted:
+            metrics["annotation_assisted"] = True
     if n_eval >= 2:
         clinical = summarize_clinical(
             y_true[mask],
@@ -293,6 +456,7 @@ def main() -> int:
             cal_true=cal_true,
             cal_pred=cal_pred,
             seed=args.seed,
+            calibration_method=args.calibration_method,
         )
         metrics.update(clinical)
     else:

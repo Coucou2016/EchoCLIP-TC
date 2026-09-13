@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 from echoclip.checkpoint import save_checkpoint
 from echoclip.config import EchoCLIPConfig
 from echoclip.data import EchoCLIPDataset, collate_batch, split_manifest, load_manifest, validate_manifest
-from echoclip.loss import ClipLoss, TemporalClipLoss
+from echoclip.loss import ClipLoss, TemporalClipLoss, EFSoftContrastiveLoss
 from echoclip.text import EchoTokenizer
 from echoclip import model as model_module
 from echoclip.model import EchoCLIP
@@ -105,8 +105,10 @@ def apply_freeze(model: EchoCLIP, cfg: dict) -> None:
         model.logit_scale.requires_grad = True
 
 
-def train_epoch(model, loader, optimizer, criterion, device, scaler=None):
+def train_epoch(model, loader, optimizer, criterion, device, scaler=None, epoch: int = 1):
     model.train()
+    if hasattr(loader, "dataset") and hasattr(loader.dataset, "set_epoch"):
+        loader.dataset.set_epoch(epoch)
     total_loss = 0.0
     for batch in tqdm(loader, desc="train", leave=False):
         images = batch["image"].to(device)
@@ -114,7 +116,12 @@ def train_epoch(model, loader, optimizer, criterion, device, scaler=None):
         optimizer.zero_grad(set_to_none=True)
         with torch.amp.autocast("cuda", enabled=scaler is not None):
             img_f, txt_f, scale = model(images, texts)
-            if isinstance(criterion, TemporalClipLoss) and "image_2" in batch:
+            if isinstance(criterion, EFSoftContrastiveLoss):
+                ef = batch.get("ef")
+                loss = criterion(
+                    img_f, txt_f, scale, ef=ef.to(device) if ef is not None else None
+                )
+            elif isinstance(criterion, TemporalClipLoss) and "image_2" in batch:
                 img_f2 = model.encode_image(batch["image_2"].to(device))
                 loss = criterion(img_f, txt_f, scale, video_features_2=img_f2)
             else:
@@ -133,12 +140,17 @@ def train_epoch(model, loader, optimizer, criterion, device, scaler=None):
 @torch.no_grad()
 def eval_epoch(model, loader, criterion, device):
     model.eval()
+    if hasattr(loader, "dataset") and hasattr(loader.dataset, "set_epoch"):
+        loader.dataset.set_epoch(0)
     total_loss = 0.0
     for batch in loader:
         images = batch["image"].to(device)
         texts = batch["text"].to(device)
         img_f, txt_f, scale = model(images, texts)
-        total_loss += criterion(img_f, txt_f, scale).item()
+        if isinstance(criterion, EFSoftContrastiveLoss) and batch.get("ef") is not None:
+            total_loss += criterion(img_f, txt_f, scale, ef=batch["ef"].to(device)).item()
+        else:
+            total_loss += criterion(img_f, txt_f, scale).item()
     return total_loss / max(len(loader), 1)
 
 
@@ -157,6 +169,11 @@ def main() -> None:
     parser.add_argument("--freeze-backbone", action="store_true")
     parser.add_argument("--no-official", action="store_true")
     parser.add_argument("--sample-strategy", type=str, default=None)
+    parser.add_argument(
+        "--ef-soft-contrastive",
+        action="store_true",
+        help="Optional EF-aware soft multi-positive contrastive loss",
+    )
     args = parser.parse_args()
 
     cfg = load_config(args.config)
@@ -246,7 +263,11 @@ def main() -> None:
 
     model = build_model(cfg).to(device)
     view_weight = float(cfg.get("view_weight", 0.0))
-    if cfg.get("video_frames", 1) > 1 or view_weight > 0:
+    if args.ef_soft_contrastive or cfg.get("ef_soft_contrastive"):
+        criterion = EFSoftContrastiveLoss(
+            ef_temperature=float(cfg.get("ef_soft_temperature", 5.0)),
+        )
+    elif cfg.get("video_frames", 1) > 1 or view_weight > 0:
         criterion = TemporalClipLoss(
             clip_weight=cfg.get("clip_weight", 1.0),
             view_weight=view_weight,
@@ -282,7 +303,9 @@ def main() -> None:
 
     best_val = float("inf")
     for epoch in range(1, cfg.get("epochs", 10) + 1):
-        train_loss = train_epoch(model, train_loader, optimizer, criterion, device, scaler)
+        train_loss = train_epoch(
+            model, train_loader, optimizer, criterion, device, scaler, epoch=epoch
+        )
         val_loss = eval_epoch(model, val_loader, criterion, device)
         print(f"epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f}")
 

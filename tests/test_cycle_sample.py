@@ -6,6 +6,7 @@ from echoclip.cycle_sample import (
     pad_or_trim_indices,
     sample_cycle_indices,
     sample_ed_es,
+    sample_official_stride,
     sample_uniform,
 )
 
@@ -51,6 +52,12 @@ class TestCycleSample(unittest.TestCase):
     def test_unknown_strategy(self):
         with self.assertRaises(ValueError):
             sample_cycle_indices(10, 4, strategy="bogus")
+
+    def test_official_stride_matches_slice(self):
+        idx = sample_official_stride(100, max_span=40, stride=2)
+        self.assertTrue(np.array_equal(idx, np.arange(0, 40, 2)))
+        idx2 = sample_cycle_indices(30, 16, strategy="official_stride")
+        self.assertTrue(np.array_equal(idx2, np.arange(0, 30, 2)))
 
 
 if __name__ == "__main__":

@@ -1,9 +1,11 @@
-"""Run EchoCLIP-TC paper protocol experiments B0 / M1 / M2 / M4.
+"""Run EchoCLIP-TC / EchoCLIP-TA paper protocol experiments R0–R6 + Oracle-EDES.
 
-Writes comparable ``metrics.json`` under ``checkpoints/protocol/<ID>/``.
+Legacy aliases B0/M1/M2/M4 (and S0/S1/S2) still resolve. Writes comparable
+``metrics.json`` under ``checkpoints/protocol/<ID>/``.
 
 Demo mode (``--demo``) exercises the wiring on synthetic data only —
-metrics are never clinical.
+metrics are never clinical. Paper mode (``--paper``) hard-fails without
+official EchoCLIP weights.
 
 Examples
 --------
@@ -11,13 +13,13 @@ List modes::
 
   python scripts/run_protocol.py --list
 
-B0 official zero-shot (needs EchoNet + hub weights for paper numbers)::
+R0 / B0 zero-shot (needs EchoNet + hub weights for paper numbers)::
 
-  python scripts/run_protocol.py --experiments B0
+  python scripts/run_protocol.py --experiments R0 --paper
 
-Full matrix with training for M2/M4::
+Full primary matrix::
 
-  python scripts/run_protocol.py --experiments B0,M1,M2,M4
+  python scripts/run_protocol.py --experiments R0,R1,R5,R6
 
 Windows CPU smoke (demo, simple_cnn)::
 
@@ -45,18 +47,23 @@ from echoclip.protocol import (  # noqa: E402
     merge_metrics_meta,
     metrics_path,
     protocol_output_dir,
+    resolve_eval_sample_strategy,
     write_protocol_comparison,
 )
 
 
 def _print_catalog() -> None:
-    print("EchoCLIP-TC protocol experiments (Table 1 path)\n")
+    print("EchoCLIP-TC / EchoCLIP-TA protocol experiments (R0–R6 + Oracle-EDES)\n")
     for spec in list_experiments():
-        print(f"  {spec.id}: {spec.title}")
+        aliases = f" (aliases: {', '.join(spec.legacy_aliases)})" if spec.legacy_aliases else ""
+        print(f"  {spec.id}: {spec.title}{aliases}")
         print(f"      {spec.description}")
         print(
-            f"      train={spec.train} pool={spec.pool} calibrate={spec.calibrate}"
+            f"      train={spec.train} pool={spec.pool} calibrate={spec.calibrate} "
+            f"eval_sample={spec.eval_sample_strategy}"
         )
+        if spec.annotation_assisted:
+            print("      *** annotation-assisted Oracle — not primary uniform-16 ***")
         if spec.notes:
             print(f"      note: {spec.notes}")
         print()
@@ -64,7 +71,8 @@ def _print_catalog() -> None:
 
 def _parse_experiments(raw: Optional[str]) -> List[str]:
     if not raw or raw.strip().lower() in ("all", "*"):
-        return list(EXPERIMENT_IDS)
+        # Default "all" = primary matrix without Oracle (opt-in)
+        return [i for i in EXPERIMENT_IDS if i != "ORACLE_EDES"]
     out: List[str] = []
     for part in raw.split(","):
         part = part.strip()
@@ -123,7 +131,9 @@ def _missing_data_help(path: Path) -> str:
         f"  python scripts/build_echonet_manifest.py "
         f"--echonet-root <root> --subset-5000\n\n"
         "For pipeline wiring only:\n"
-        "  python scripts/run_protocol.py --demo --experiments B0,M1\n"
+        "  python scripts/run_protocol.py --demo --experiments R0,R1\n"
+        "For strict paper path (requires official weights):\n"
+        "  python scripts/run_protocol.py --paper --experiments R0\n"
     )
 
 
@@ -157,6 +167,47 @@ def _train_m2(args, cfg: dict, train_manifest: Path, manifest_dir: Path, out_dir
         cmd.extend(["--sample-strategy", args.sample_strategy])
     if args.device:
         cmd.extend(["--device", args.device])
+    if getattr(args, "ef_soft_contrastive", False):
+        cmd.append("--ef-soft-contrastive")
+    return _run(cmd)
+
+
+def _train_supervised(
+    args,
+    spec,
+    cfg: dict,
+    train_manifest: Path,
+    manifest_dir: Path,
+    out_dir: Path,
+) -> int:
+    """Train S0/S1/S2 style heads via train_supervised.py."""
+    script = ROOT / "scripts" / "train_supervised.py"
+    cmd = [
+        sys.executable,
+        str(script),
+        "--config",
+        str(args.config),
+        "--manifest",
+        str(train_manifest),
+        "--manifest-dir",
+        str(manifest_dir),
+        "--output-dir",
+        str(out_dir),
+        "--head",
+        spec.supervised_head or "linear",
+    ]
+    if args.video_frames is not None:
+        cmd.extend(["--video-frames", str(args.video_frames)])
+    if args.epochs is not None:
+        cmd.extend(["--epochs", str(args.epochs)])
+    if args.batch_size is not None:
+        cmd.extend(["--batch-size", str(args.batch_size)])
+    if args.vision_backbone:
+        cmd.extend(["--vision-backbone", args.vision_backbone])
+    if args.no_official or args.vision_backbone == "simple_cnn" or args.demo:
+        cmd.append("--no-official")
+    if args.device:
+        cmd.extend(["--device", args.device])
     return _run(cmd)
 
 
@@ -170,6 +221,7 @@ def _eval_experiment(
     checkpoint: Optional[Path],
     out_metrics: Path,
     demo: bool,
+    paper: bool,
 ) -> int:
     cmd = [
         sys.executable,
@@ -181,16 +233,21 @@ def _eval_experiment(
         "--manifest-dir",
         str(manifest_dir),
         "--pool",
-        spec.pool,
+        "mean" if spec.pool == "supervised" else spec.pool,
         "--seed",
         str(args.seed),
         "--output",
         str(out_metrics),
         "--experiment-id",
         spec.id,
+        "--split",
+        "test",
     ]
+    if paper:
+        cmd.append("--paper")
+    if spec.annotation_assisted:
+        cmd.append("--allow-annotation-assisted")
     if spec.calibrate and cal_manifest.exists():
-        # Non-demo: refuse fitting temperature/conformal on the same split as TEST.
         try:
             same_split = cal_manifest.resolve() == test_manifest.resolve()
         except OSError:
@@ -208,6 +265,8 @@ def _eval_experiment(
                 "(pipeline smoke only — not clinical)."
             )
         cmd.extend(["--cal-manifest", str(cal_manifest)])
+        if getattr(args, "calibration_method", None):
+            cmd.extend(["--calibration-method", args.calibration_method])
     elif spec.calibrate and not demo:
         print(
             f"Error: {spec.id} requires a calibration manifest (VAL only), missing: "
@@ -220,10 +279,21 @@ def _eval_experiment(
     vf = args.video_frames if args.video_frames is not None else spec.video_frames
     if vf is not None:
         cmd.extend(["--video-frames", str(vf)])
-    ss = args.sample_strategy or spec.sample_strategy
-    if ss:
-        # eval uses val strategy for reproducibility unless overridden
-        cmd.extend(["--sample-strategy", ss if spec.id != "B0" else (args.sample_strategy or "uniform")])
+
+    # Honor val_sample_strategy / forced uniform primary; Oracle keeps ed_es.
+    cfg = _load_cfg(args.config)
+    try:
+        ss = resolve_eval_sample_strategy(
+            spec=spec,
+            cli_strategy=args.sample_strategy,
+            cfg=cfg,
+            split="test",
+        )
+    except ValueError as exc:
+        print(f"Error: {exc}")
+        return 1
+    cmd.extend(["--sample-strategy", ss])
+
     if args.batch_size is not None:
         cmd.extend(["--batch-size", str(args.batch_size)])
     if args.device:
@@ -235,8 +305,12 @@ def _eval_experiment(
         cmd.append("--init-official")
         if args.official_checkpoint:
             cmd.extend(["--official-checkpoint", str(args.official_checkpoint)])
-        # Demo / --no-official plumbing: skip hub download attempts.
         if demo or args.no_official or args.vision_backbone == "simple_cnn":
+            if paper:
+                print(
+                    "Error: --paper cannot combine with --demo / --no-official / simple_cnn."
+                )
+                return 1
             import os
 
             os.environ.setdefault("ECHOCLIP_SKIP_HUB", "1")
@@ -245,26 +319,25 @@ def _eval_experiment(
     if code != 0:
         return code
 
-    # Stamp protocol metadata onto metrics.json
     if out_metrics.exists():
         metrics = json.loads(out_metrics.read_text(encoding="utf-8"))
         metrics = merge_metrics_meta(
             metrics,
             experiment=spec,
             demo=demo,
+            paper=paper,
             extra={
                 "protocol_output": str(out_metrics.parent),
                 "b0_reproduce_hint": (
                     "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
                     "(see subset_5000_ids.json) AND/OR full TEST; "
                     "load_source must be hf-hub:mkaichristensen/echo-clip "
-                    "(not scratch_fallback / simple_cnn)."
-                    if spec.id == "B0"
+                    "(not scratch_fallback / simple_cnn). Use --paper."
+                    if spec.id == "R0"
                     else None
                 ),
             },
         )
-        # Drop null hint for non-B0
         if metrics.get("b0_reproduce_hint") is None:
             metrics.pop("b0_reproduce_hint", None)
         out_metrics.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
@@ -274,14 +347,15 @@ def _eval_experiment(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="EchoCLIP-TC paper protocol runner (B0/M1/M2/M4)"
+        description="EchoCLIP-TC / EchoCLIP-TA paper protocol runner (R0–R6 + Oracle)"
     )
     parser.add_argument("--list", action="store_true", help="Print experiment catalog")
     parser.add_argument(
         "--experiments",
         type=str,
         default="all",
-        help="Comma-separated IDs or 'all' (default). Example: B0,M1,M2,M4",
+        help="Comma-separated IDs or 'all' (default primary, no Oracle). "
+        "Example: R0,R1,R5,R6 or B0,M1,M2,M4",
     )
     parser.add_argument(
         "--config",
@@ -293,7 +367,7 @@ def main() -> int:
     parser.add_argument("--cal-manifest", type=Path, default=None)
     parser.add_argument("--manifest-dir", type=Path, default=None)
     parser.add_argument("--output-root", type=Path, default=ROOT)
-    parser.add_argument("--checkpoint", type=Path, default=None, help="Reuse TC ckpt for M2/M4")
+    parser.add_argument("--checkpoint", type=Path, default=None, help="Reuse TC ckpt for R5/R6")
     parser.add_argument("--official-checkpoint", type=Path, default=None)
     parser.add_argument("--no-official", action="store_true")
     parser.add_argument("--vision-backbone", type=str, default=None)
@@ -310,9 +384,26 @@ def main() -> int:
         help="Use data/demo manifests; skip missing-EchoNet hard fail (NOT clinical)",
     )
     parser.add_argument(
+        "--paper",
+        "--official-reproduction",
+        dest="paper",
+        action="store_true",
+        help="Strict official reproduction path (EF 0–100; no scratch fallback)",
+    )
+    parser.add_argument(
+        "--calibration-method",
+        choices=["temperature", "affine_logistic"],
+        default="temperature",
+    )
+    parser.add_argument(
+        "--ef-soft-contrastive",
+        action="store_true",
+        help="Optional: train R5 with EF-aware soft multi-positive contrastive loss",
+    )
+    parser.add_argument(
         "--skip-train",
         action="store_true",
-        help="Do not train M2/M4; require existing checkpoint",
+        help="Do not train R2–R6; require existing checkpoint",
     )
     parser.add_argument(
         "--dry-run",
@@ -325,13 +416,15 @@ def main() -> int:
         _print_catalog()
         return 0
 
+    if args.paper and args.demo:
+        print("Error: --paper and --demo are mutually exclusive.")
+        return 1
+
     experiments = _parse_experiments(args.experiments)
     cfg = _load_cfg(args.config)
     train_m, test_m, mdir, cal_m = _resolve_manifests(args, cfg, args.demo)
 
     if not args.demo:
-        # Fail clearly before launching GPU work
-        need = test_m if test_m.exists() or not train_m.exists() else train_m
         if not test_m.exists() and not train_m.exists():
             print(_missing_data_help(test_m))
             return 1
@@ -347,11 +440,15 @@ def main() -> int:
             "DEMO MODE — results are pipeline smoke only, not EchoNet / paper EF MAE.\n"
         )
 
-    # Shared M2 checkpoint directory under protocol/
-    m2_dir = protocol_output_dir(args.output_root, "M2")
+    # Shared R5/M2 checkpoint directory under protocol/
+    r5_dir = protocol_output_dir(args.output_root, "R5")
     shared_ckpt = args.checkpoint
-    if shared_ckpt is None and (m2_dir / "best.pt").exists():
-        shared_ckpt = m2_dir / "best.pt"
+    if shared_ckpt is None and (r5_dir / "best.pt").exists():
+        shared_ckpt = r5_dir / "best.pt"
+    # Also accept legacy M2 path
+    m2_legacy = Path(args.output_root) / "checkpoints" / "protocol" / "M2" / "best.pt"
+    if shared_ckpt is None and m2_legacy.exists():
+        shared_ckpt = m2_legacy
 
     results = {}
     protocol_root = Path(args.output_root) / "checkpoints" / "protocol"
@@ -370,9 +467,12 @@ def main() -> int:
                         "train": spec.train and not args.skip_train,
                         "pool": spec.pool,
                         "calibrate": spec.calibrate,
+                        "eval_sample_strategy": spec.eval_sample_strategy,
+                        "annotation_assisted": spec.annotation_assisted,
                         "test": str(test_m),
                         "cal": str(cal_m) if spec.calibrate else None,
                         "metrics": str(out_metrics),
+                        "paper": bool(args.paper),
                     },
                     indent=2,
                 )
@@ -382,41 +482,64 @@ def main() -> int:
 
         ckpt: Optional[Path] = None
         if spec.train:
-            train_out = m2_dir  # M2 and M4 share the trained temporal ckpt
-            train_out.mkdir(parents=True, exist_ok=True)
-            ckpt = shared_ckpt if shared_ckpt and shared_ckpt.exists() else train_out / "best.pt"
-            if not args.skip_train and (spec.id == "M2" or not ckpt.exists()):
-                if not train_m.exists() and not args.demo:
-                    print(_missing_data_help(train_m))
-                    return 1
-                # Demo train: force short schedule if user did not override
-                if args.demo and args.epochs is None:
-                    args.epochs = 1
-                if args.demo and args.video_frames is None:
-                    args.video_frames = min(4, spec.video_frames or 4)
-                if args.demo and args.vision_backbone is None:
-                    args.vision_backbone = "simple_cnn"
-                code = _train_m2(args, cfg, train_m, mdir, train_out)
-                if code != 0:
-                    results[spec.id] = f"train_failed:{code}"
-                    continue
+            is_supervised = spec.pool == "supervised"
+            if is_supervised:
+                train_out = out_dir
+                train_out.mkdir(parents=True, exist_ok=True)
                 ckpt = train_out / "best.pt"
-                shared_ckpt = ckpt
-            elif not ckpt.exists():
-                print(
-                    f"{spec.id} needs a temporal checkpoint. Train M2 first or pass --checkpoint."
-                )
-                results[spec.id] = "missing_checkpoint"
-                continue
+                if not args.skip_train and not ckpt.exists():
+                    if not train_m.exists() and not args.demo:
+                        print(_missing_data_help(train_m))
+                        return 1
+                    if args.demo and args.epochs is None:
+                        args.epochs = 1
+                    if args.demo and args.video_frames is None:
+                        args.video_frames = min(4, spec.video_frames or 4)
+                    if args.demo and args.vision_backbone is None:
+                        args.vision_backbone = "simple_cnn"
+                    code = _train_supervised(args, spec, cfg, train_m, mdir, train_out)
+                    if code != 0:
+                        results[spec.id] = f"train_failed:{code}"
+                        continue
+                    ckpt = train_out / "best.pt"
+                elif not ckpt.exists():
+                    print(f"{spec.id} needs a supervised checkpoint under {train_out}")
+                    results[spec.id] = "missing_checkpoint"
+                    continue
+            else:
+                # R5/R6 contrastive temporal
+                train_out = r5_dir
+                train_out.mkdir(parents=True, exist_ok=True)
+                ckpt = shared_ckpt if shared_ckpt and shared_ckpt.exists() else train_out / "best.pt"
+                if not args.skip_train and (spec.id == "R5" or not ckpt.exists()):
+                    if not train_m.exists() and not args.demo:
+                        print(_missing_data_help(train_m))
+                        return 1
+                    if args.demo and args.epochs is None:
+                        args.epochs = 1
+                    if args.demo and args.video_frames is None:
+                        args.video_frames = min(4, spec.video_frames or 4)
+                    if args.demo and args.vision_backbone is None:
+                        args.vision_backbone = "simple_cnn"
+                    code = _train_m2(args, cfg, train_m, mdir, train_out)
+                    if code != 0:
+                        results[spec.id] = f"train_failed:{code}"
+                        continue
+                    ckpt = train_out / "best.pt"
+                    shared_ckpt = ckpt
+                elif not ckpt.exists():
+                    print(
+                        f"{spec.id} needs a temporal checkpoint. Train R5/M2 first or pass --checkpoint."
+                    )
+                    results[spec.id] = "missing_checkpoint"
+                    continue
         elif args.checkpoint and args.checkpoint.exists() and not spec.init_official:
             ckpt = args.checkpoint
 
-        # B0/M1: prefer --init-official unless user forced a checkpoint for plumbing
         eval_ckpt = None
         if spec.requires_checkpoint:
             eval_ckpt = ckpt
         elif args.checkpoint and args.checkpoint.exists() and args.no_official:
-            # plumbing path: local TC/simple ckpt
             eval_ckpt = args.checkpoint
 
         code = _eval_experiment(
@@ -428,10 +551,10 @@ def main() -> int:
             checkpoint=eval_ckpt,
             out_metrics=out_metrics,
             demo=args.demo,
+            paper=args.paper,
         )
         results[spec.id] = "ok" if code == 0 else f"eval_failed:{code}"
 
-    # Dry-run must not clobber a prior clinical/demo summary.json.
     if args.dry_run:
         print("\nDry-run complete — summary.json / comparison.* left unchanged.")
         print(json.dumps({"experiments": results, "dry_run": True}, indent=2))
@@ -442,22 +565,26 @@ def main() -> int:
     summary = {
         "experiments": results,
         "demo": bool(args.demo),
+        "paper": bool(args.paper),
         "seed": args.seed,
         "note": (
             "Demo protocol run — not clinical."
             if args.demo
-            else "Clinical metrics only valid with EchoNet labels + official weights."
+            else (
+                "Paper/official reproduction path."
+                if args.paper
+                else "Clinical metrics only valid with EchoNet labels + official weights."
+            )
         ),
     }
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(f"\nSummary → {summary_path}")
     print(json.dumps(summary, indent=2))
 
-    # Refresh cross-experiment comparison whenever any metrics exist.
     try:
         paths = write_protocol_comparison(protocol_root)
         print(f"Comparison → {paths['md']}")
-    except Exception as exc:  # noqa: BLE001 — table is best-effort after runs
+    except Exception as exc:  # noqa: BLE001
         print(f"Warning: could not write protocol comparison table: {exc}")
 
     failed = [k for k, v in results.items() if v != "ok" and v != "dry-run"]
@@ -466,4 +593,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

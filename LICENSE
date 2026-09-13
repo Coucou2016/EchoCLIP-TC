@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 EchoCLIP implementation contributors
+Copyright (c) 2026 EchoCLIP-TC / EchoCLIP-TA contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+NOTE: See ATTRIBUTION.md for provenance risk. MIT applies to original scaffold
+code in this repository; it does not re-license upstream EchoCLIP prompts,
+official weights, or Stanford AIMI / EchoNet dataset terms. TODO: complete
+Academic Software License audit for upstream-derived materials.

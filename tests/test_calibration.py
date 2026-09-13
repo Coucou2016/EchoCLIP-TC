@@ -57,6 +57,17 @@ class TestCalibration(unittest.TestCase):
         self.assertGreaterEqual(coverages[1], coverages[0] - 1e-6)
         self.assertGreaterEqual(coverages[2], coverages[1] - 1e-6)
 
+    def test_fit_affine_logistic_improves_or_runs(self):
+        from echoclip.calibrate import apply_affine_logistic, fit_affine_logistic
+
+        # Separable scores
+        scores = np.array([-2.0, -1.0, 1.0, 2.0])
+        labels = np.array([0.0, 0.0, 1.0, 1.0])
+        a, b = fit_affine_logistic(scores, labels)
+        probs = apply_affine_logistic(scores, a, b)
+        self.assertEqual(probs.shape, (4,))
+        self.assertTrue(np.all((probs >= 0) & (probs <= 1)))
+
     def test_abstention_improves_or_keeps_mae(self):
         y = np.array([10.0, 20.0, 30.0, 40.0])
         p = np.array([11.0, 21.0, 50.0, 80.0])  # last two badly off

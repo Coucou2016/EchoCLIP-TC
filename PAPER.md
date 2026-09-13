@@ -1,172 +1,109 @@
-# EchoCLIP-TC paper protocol
-
-This document locks the experiment IDs, commands, and honesty rules for the
-EchoCLIP-TC (Temporal, Calibrated) paper path in this repository.
-
-**Demo ≠ clinical.** Numbers from `data/demo/` or `--demo` must never be
-reported as EchoNet or Nature Medicine EF MAE.
-
-## Cite
-
-- Christensen, Vukadinovic, Yuan, Ouyang. *Vision–language foundation model for echocardiogram interpretation.* Nature Medicine (2024).
-- Official inference / prompts: [echonet/echo_CLIP](https://github.com/echonet/echo_CLIP)
-- EchoNet-Dynamic (and related AIMI sets): Stanford AIMI **non-commercial** terms — obtain separately.
-
-## Experiment matrix (Table 1 path)
-
-| ID | What | Train | Pool | Calibrate |
-|----|------|-------|------|-----------|
-| **B0** | Official EchoCLIP zero-shot (hub or local fallback) | No | `frames` (per-frame → top-20% median EF) | No |
-| **M1** | Cycle / uniform sampling + **mean** pool (no extra params) | No | `mean` | No |
-| **M2** | Temporal aggregator on frozen towers | Yes | `temporal` | No |
-| **M4** | M2 + val-fit temperature & split-conformal | Yes (reuse M2) | `temporal` | Yes (VAL only) |
-
-**B0 vs M1 (intentional):** B0 keeps frame embeddings `(T,D)` and averages *ranked EF values* across frames inside the official top-20% median aggregator. M1 mean-pools embeddings to one `z_v` *before* that aggregator (same path as M2’s single video vector). These are **not** identical; M1 is the no-parameter video-vector ablation, not “mean of per-frame EF scalars.” Optional scalar-mean ablation can be added later as M1b if needed — do not silently redefine M1.
-
-Definitions live in `echoclip/protocol.py`. Runner: `scripts/run_protocol.py`.  
-Table aggregate: `scripts/write_protocol_table.py` → `checkpoints/protocol/comparison.{json,md}`.
-
-### Commands (EchoNet-Dynamic)
-
-```powershell
-# 1. Build manifests + lock seed-42 subset IDs
-python scripts\build_echonet_manifest.py `
-  --echonet-root E:\data\EchoNet-Dynamic `
-  --subset-5000
-
-# 2. List modes
-python scripts\run_protocol.py --list
-
-# 3. B0 baseline (official hub when available)
-python scripts\run_protocol.py --experiments B0
-
-# 4. M1 mean-pool ablation
-python scripts\run_protocol.py --experiments M1
-
-# 5. Train temporal (M2) then calibrated eval (M4)
-python scripts\run_protocol.py --experiments M2,M4
-
-# Or full matrix
-python scripts\run_protocol.py --experiments B0,M1,M2,M4
-```
-
-Comparable outputs:
-
-```
-checkpoints/protocol/B0/metrics.json
-checkpoints/protocol/M1/metrics.json
-checkpoints/protocol/M2/metrics.json   # also M2/best.pt
-checkpoints/protocol/M4/metrics.json
-checkpoints/protocol/summary.json
-checkpoints/protocol/comparison.json   # cross-ID table
-checkpoints/protocol/comparison.md
-```
-
-Rebuild the comparison table without re-running eval:
-
-```powershell
-python scripts\write_protocol_table.py --print
-```
-
-### B0 → reproduce EchoCLIP external ~7.1% EF MAE
-
-Paper-style external protocol (you must have real data + official weights):
-
-1. Weights: `hf-hub:mkaichristensen/echo-clip` via open_clip (`load_source` in metrics must show the hub id, **not** `scratch_fallback` / random `simple_cnn`).
-2. Subset: `data/echonet_dynamic/subset_5000.json` drawn with **seed 42**; locked IDs in `subset_5000_ids.json` / `.txt`.
-3. Also report **full TEST** (`test.json`) — do not substitute demo or VAL-tuned numbers.
-4. Eval:
-
-```powershell
-python scripts\eval_clinical.py `
-  --config configs\echonet_dynamic.yaml `
-  --init-official `
-  --manifest data\echonet_dynamic\subset_5000.json `
-  --manifest-dir E:\data\EchoNet-Dynamic `
-  --pool frames --video-frames 16 --sample-strategy uniform `
-  --experiment-id B0 `
-  --output checkpoints\protocol\B0\metrics_subset5000.json
-
-python scripts\eval_clinical.py `
-  --config configs\echonet_dynamic.yaml `
-  --init-official `
-  --manifest data\echonet_dynamic\test.json `
-  --manifest-dir E:\data\EchoNet-Dynamic `
-  --pool frames --video-frames 16 --sample-strategy uniform `
-  --experiment-id B0 `
-  --output checkpoints\protocol\B0\metrics_test.json
-```
-
-This repo does **not** invent or hard-code 7.1%. That figure is from Christensen et al.; your run may differ slightly with frame sampling / software stack.
-
-### Demo / Windows CPU plumbing (not clinical)
-
-```powershell
-python scripts\make_demo_data.py
-python scripts\run_protocol.py --demo --experiments B0,M1 `
-  --vision-backbone simple_cnn --video-frames 4 --batch-size 4
-# Optional M2/M4 smoke (1 epoch):
-python scripts\run_protocol.py --demo --experiments M2,M4 `
-  --vision-backbone simple_cnn --video-frames 4 --epochs 1 --batch-size 4
-```
-
-## Cross-dataset wiring
-
-Builders fail clearly when data is absent:
-
-```powershell
-python scripts\build_public_echo_manifest.py --dataset camus --root E:\data\CAMUS
-python scripts\build_public_echo_manifest.py --dataset echonet_pediatric --root E:\data\EchoNet-Pediatric
-python scripts\build_public_echo_manifest.py --dataset echonet_lvh --root E:\data\EchoNet-LVH
-python scripts\build_public_echo_manifest.py --dataset echonet_dynamic --root E:\data\EchoNet-Dynamic
-```
-
-Config stubs: `configs/camus.yaml`, `configs/echonet_pediatric.yaml`, `configs/echonet_lvh.yaml`.
-
-After manifests exist, point `run_protocol.py --config` / `--test-manifest` at those paths (same B0–M4 IDs).
-
-## Honesty rules
-
-1. Never report demo MAE/AUC as clinical results.
-2. Fit temperature / conformal **only** on VAL (`cal_manifest`); never retune on TEST.
-   Non-demo M4 hard-fails if `cal_manifest` resolves to the same path as the test
-   manifest (`run_protocol.py`).
-3. State `load_source` (hub vs local vs scratch) next to any table number.
-4. State which split (TEST vs subset_5000) and seed.
-5. `simple_cnn` / missing hub = plumbing only on this Windows CPU path.
-6. `--pool temporal` hard-fails when the loaded model has no temporal aggregator
-   (avoids silently mean-pooling under an M2/M4 label).
-
-## Comparison table (after runs)
-
-Aggregate existing `checkpoints/protocol/<ID>/metrics.json` into one table:
-
-```powershell
-python scripts\write_protocol_table.py
-python scripts\write_protocol_table.py --print
-```
-
-Also written automatically at the end of a non-dry-run `run_protocol.py` pass:
-
-```
-checkpoints/protocol/comparison.json
-checkpoints/protocol/comparison.md
-checkpoints/protocol/summary.json
-```
-
-`--dry-run` does **not** overwrite `summary.json` or comparison files.
-
-## Remaining gaps (need real assets)
-
-| Gap | Needed |
-|-----|--------|
-| EchoNet-Dynamic videos + FileList | AIMI download |
-| Official EchoCLIP weights | open_clip hub or local `.pt` |
-| GPU + `convnext_base` | paper-scale B0/M2 |
-| CAMUS / Pediatric / LVH on disk | cross-dataset tables |
-| NIfTI/MHD readers for some CAMUS dumps | convert or extend preprocess |
-
-## Primary metric script
-
-`scripts/eval_clinical.py` (EF MAE/RMSE/R², AUC@50/40/30, ECE, Brier, conformal, abstention).  
-`scripts/eval.py` retrieval R@k is diagnostic only — not Table 1.
+# EchoCLIP-TC / EchoCLIP-TA paper protocol
+
+This document locks the experiment IDs, commands, and honesty rules for the
+EchoCLIP-TC (Temporal, Calibrated) / EchoCLIP-TA (parameter-efficient temporal
+adaptation) paper path in this repository. The Python package remains `echoclip`.
+
+**Demo ≠ clinical.** Numbers from `data/demo/` or `--demo` must never be
+reported as EchoNet or Nature Medicine EF MAE. Do **not** invent clinical MAE.
+
+## Cite
+
+- Christensen, Vukadinovic, Yuan, Ouyang. *Vision–language foundation model for echocardiogram interpretation.* Nature Medicine (2024).
+- Official inference / prompts: [echonet/echo_CLIP](https://github.com/echonet/echo_CLIP)
+- EchoNet-Dynamic (and related AIMI sets): Stanford AIMI **non-commercial** terms — obtain separately.
+- This repo: https://github.com/Coucou2016/EchoCLIP-TC
+
+## Experiment matrix (R0–R6 + Oracle-EDES)
+
+Primary VAL/TEST sampling is **uniform-16** (or `val_sample_strategy` from config).
+`ed_es` / `mixed` on VAL/TEST hard-fail unless the experiment is **Oracle-EDES**.
+
+| ID | Alias | What | Train | Pool | Eval sample | Calibrate |
+|----|-------|------|-------|------|-------------|-----------|
+| **R0** | B0 | EchoCLIP-based zero-shot (frames → top-20% median EF). Use `--paper` for official reproduction path | No | `frames` | uniform / official_stride (`--paper`) | No |
+| **R1** | M1 | Uniform-16 mean pool (no extra params) | No | `mean` | **uniform** | No |
+| **R2** | S0 | Frozen mean + linear/ridge EF head | Yes | supervised | **uniform** | No |
+| **R3** | S1 | Frozen mean + MLP EF head | Yes | supervised | **uniform** | No |
+| **R4** | S2 | Temporal aggregator + direct L1/Huber EF | Yes | supervised | **uniform** | No |
+| **R5** | M2 | EF-label-supervised temporal adaptation (contrastive) of **frozen** EchoCLIP — **not** zero-shot temporal extension | Yes | `temporal` | **uniform** | No |
+| **R6** | M4 | R5 + val-fit temperature / conformal (or `--calibration-method affine_logistic`) | Yes (reuse R5) | `temporal` | **uniform** | Yes (VAL only) |
+| **ORACLE_EDES** | Oracle-EDES | Annotation-assisted upper bound (ED/ES indices) — **label clearly; not primary** | No | `mean` | **ed_es** | No |
+
+Definitions live in `echoclip/protocol.py`. Runner: `scripts/run_protocol.py`.  
+Table aggregate: `scripts/write_protocol_table.py` → `checkpoints/protocol/comparison.{json,md}`.
+
+### R0 / B0 naming and `--paper`
+
+- **Default (non-paper):** report as **"EchoCLIP-based zero-shot baseline"** until golden parity with official echo_CLIP is proven.
+- **`--paper` / `--official-reproduction`:**
+  - EF prompt grid `0..100` step 1
+  - Prefer `official_stride` frame selection (`0:min(40,T):2`)
+  - Prefer open_clip preprocess when hub load succeeds
+  - `allow_scratch_fallback=False` → **RuntimeError** if official weights are missing
+  - Still document remaining gaps (tokenizer quirks, crop zoom, dtype) — do not claim bit-exact parity
+
+### M2 / R5 framing
+
+R5 is **parameter-efficient temporal adaptation** of frozen EchoCLIP towers using
+structured **EF prompts only** (primary). EDV dilation captions are an optional
+ablation (`--include-dilation` on the EchoNet builder), not the default.
+
+### Commands
+
+```powershell
+# Set roots via env (do not hard-code machine paths)
+$env:ECHONET_ROOT = "<AIMI_EchoNet-Dynamic>"
+$env:ECHOCLIP_ROOT = (Get-Location).Path
+
+python scripts\build_echonet_manifest.py --echonet-root $env:ECHONET_ROOT --subset-5000
+
+python scripts\run_protocol.py --list
+
+# Demo wiring only (NOT clinical)
+python scripts\run_protocol.py --demo --experiments R0,R1 --vision-backbone simple_cnn
+
+# Paper path (hard-fails without official weights)
+python scripts\run_protocol.py --paper --experiments R0
+
+# Primary + supervised + temporal matrix
+python scripts\run_protocol.py --experiments R0,R1,R2,R3,R4,R5,R6
+
+# Legacy aliases still work
+python scripts\run_protocol.py --experiments B0,M1,M2,M4
+
+# Oracle (annotation-assisted) — opt-in
+python scripts\run_protocol.py --experiments ORACLE_EDES
+```
+
+### Calibration honesty
+
+Threshold scores use a **pseudo-logit** `(threshold - pred_EF)`, not true classifier
+logits. Temperature scaling is therefore limited. Prefer
+`--calibration-method affine_logistic` for P(EF&lt;50) (hooks also fit 40/30).
+
+## Honesty rules
+
+1. Never report demo MAE/AUC as clinical results; never invent MAE numbers.
+2. Fit temperature / conformal / affine logistic **only** on VAL; never retune on TEST.
+3. State `load_source` (hub vs local vs scratch) next to any table number.
+4. State which split (TEST vs subset_5000) and seed.
+5. `simple_cnn` / missing hub = plumbing only.
+6. Oracle-EDES must be labeled annotation-assisted in every table.
+7. `--pool temporal` hard-fails when the model has no temporal aggregator.
+
+## Remaining gaps (need real assets)
+
+| Gap | Needed |
+|-----|--------|
+| EchoNet-Dynamic videos + FileList | AIMI download |
+| Official EchoCLIP weights | open_clip hub or local `.pt` |
+| CardiacCLIP comparison | weights + data (not bundled) |
+| Adaptive conformal | optional future work |
+| GPU + `convnext_base` | paper-scale R0/R5 |
+
+## Primary metric script
+
+`scripts/eval_clinical.py` (EF MAE/RMSE/R², AUC@50/40/30, ECE, Brier, conformal, abstention).  
+`scripts/eval.py` retrieval R@k is diagnostic only — not Table 1.
+
