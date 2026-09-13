@@ -115,8 +115,8 @@ def research_report_html() -> str:
 <header class="cover">
   <h1>EchoCLIP-TC：面向超声心动图视觉–语言模型的时序聚合与校准评测研究报告</h1>
   <p class="meta">EchoCLIP-TC (Temporal, Calibrated) Parallel Research Report · 单文件自包含 HTML · 2026-08-16</p>
-  <p class="meta">项目路径：E:\\Projects\\20260522-EchoCLIP · 公开仓库：<a href="https://github.com/Coucou2016/EchoCLIP-TC">github.com/Coucou2016/EchoCLIP-TC</a> · 临床指标：<span class="todo">待补充</span></p>
-  <p class="meta">五轮协作日志：<code>reports/echoclip_tc_five_round_collab_20260816.md</code> · 英文稿：<code>papers/echoclip_tc_manuscript.md</code></p>
+  <p class="meta">项目：EchoCLIP-TC 仓库根目录（环境变量 <code>ECHOCLIP_ROOT</code> / <code>ECHONET_ROOT</code>） · 公开仓库：<a href="https://github.com/Coucou2016/EchoCLIP-TC">github.com/Coucou2016/EchoCLIP-TC</a> · 临床指标：<span class="todo">待补充</span></p>
+  <p class="meta">五轮协作日志：<code>reports/echoclip_tc_five_round_collab_20260816.md</code> · 英文稿：<code>papers/echoclip_tc_manuscript.md</code> · 协议：R0–R6</p>
   <p class="demo">声明：文中 DEMO 图与 DEMO 表格仅验证流水线，不得当作 EchoNet 临床 EF MAE / AUC。磁盘检索未发现 EchoNet-Dynamic / FileList.csv。</p>
 </header>
 
@@ -417,9 +417,9 @@ def research_report_md() -> str:
     return f"""# EchoCLIP-TC 学术研究报告
 
 **日期：** 2026-08-16  
-**项目：** E:\\\\Projects\\\\20260522-EchoCLIP  
+**项目：** 仓库根目录（`ECHOCLIP_ROOT` / `ECHONET_ROOT`）
 **GitHub：** https://github.com/Coucou2016/EchoCLIP-TC  
-**并行稿：** `reports/research_report.html`（单文件自包含） / `papers/echoclip_tc_manuscript.md`  
+**并行稿：** `reports/research_report.html`（单文件自包含） / `papers/echoclip_tc_manuscript.md`
 **五轮日志：** `reports/echoclip_tc_five_round_collab_20260816.md`
 
 > **DEMO ≠ 临床。** 下表与 DEMO 图不得写作 EchoNet EF MAE。Christensen et al. 外部 EF MAE ≈7.1% 为文献目标，非本地结果。磁盘检索未发现 EchoNet-Dynamic。

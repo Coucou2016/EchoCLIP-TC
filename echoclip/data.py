@@ -100,6 +100,7 @@ class EchoCLIPDataset(Dataset):
         frame_pool: str = "stack",
         two_views: bool = False,
         caption_mode: str = "primary",
+        use_edv_captions: bool = False,
     ):
         self.manifest_path = Path(manifest_path)
         self.root = Path(manifest_dir) if manifest_dir else self.manifest_path.parent
@@ -113,6 +114,8 @@ class EchoCLIPDataset(Dataset):
         self.frame_pool = frame_pool
         self.two_views = two_views
         self.caption_mode = caption_mode
+        # Primary R5 path: EF-only captions. EDV dilation is opt-in ablation.
+        self.use_edv_captions = bool(use_edv_captions)
         self.epoch = 0
 
     def set_epoch(self, epoch: int) -> None:
@@ -132,13 +135,39 @@ class EchoCLIPDataset(Dataset):
         # Include epoch so train reshuffles across epochs; keep VAL/TEST at epoch=0.
         return int(self.seed + index + 10007 * view + 100003 * int(self.epoch))
 
-    def _choose_text(self, item: Dict[str, Any], index: int) -> str:
+    @staticmethod
+    def _is_ef_caption(text: str) -> bool:
+        t = str(text).upper()
+        return "EJECTION FRACTION" in t or "LVEF" in t
+
+    def _ef_only_captions(self, item: Dict[str, Any]) -> List[str]:
+        """Prefer EF prompt sentences; rebuild from ``ef`` when needed."""
         captions = item.get("captions")
+        if isinstance(captions, list) and captions:
+            ef_caps = [str(c) for c in captions if self._is_ef_caption(c)]
+            if ef_caps:
+                return ef_caps
+        if item.get("ef") is not None and str(item.get("ef")) != "":
+            from echoclip.structured_text import captions_from_measurements
+
+            return captions_from_measurements(
+                ef=float(item["ef"]), include_dilation=False
+            )
+        text = item.get("text") or ""
+        return [str(text)] if text else []
+
+    def _choose_text(self, item: Dict[str, Any], index: int) -> str:
+        if self.use_edv_captions:
+            captions = item.get("captions")
+        else:
+            captions = self._ef_only_captions(item)
         if self.caption_mode == "random" and isinstance(captions, list) and captions:
             rng = random.Random(self._item_seed(index) or index)
             return str(rng.choice(captions))
         if self.caption_mode == "join" and isinstance(captions, list) and captions:
             return " ".join(str(c) for c in captions)
+        if not self.use_edv_captions and isinstance(captions, list) and captions:
+            return str(captions[0])
         return item["text"]
 
     def _sample_video_tensor(

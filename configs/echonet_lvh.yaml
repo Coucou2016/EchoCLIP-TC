@@ -2,6 +2,7 @@
 # https://echonet.github.io/lvh/
 #   python scripts/build_public_echo_manifest.py --dataset echonet_lvh --root <ROOT>
 # Note: primary LVH labels may be wall thickness / diagnosis; EF rows only when present.
+# Set ECHONET_LVH_ROOT (or ECHONET_ROOT) — do not hard-code machine paths.
 
 seed: 42
 embed_dim: 512
@@ -23,10 +24,10 @@ official_checkpoint: null
 
 epochs: 0
 batch_size: 8
-output_dir: E:/Projects/20260522-EchoCLIP/checkpoints/protocol/echonet_lvh
+output_dir: checkpoints/protocol/echonet_lvh
 
-echonet_root: E:/data/EchoNet-LVH
-manifest: E:/Projects/20260522-EchoCLIP/data/echonet_lvh/train.json
-test_manifest: E:/Projects/20260522-EchoCLIP/data/echonet_lvh/test.json
-cal_manifest: E:/Projects/20260522-EchoCLIP/data/echonet_lvh/val.json
-manifest_dir: E:/data/EchoNet-LVH
+echonet_root: ${ECHONET_LVH_ROOT}
+manifest: data/echonet_lvh/train.json
+test_manifest: data/echonet_lvh/test.json
+cal_manifest: data/echonet_lvh/val.json
+manifest_dir: ${ECHONET_LVH_ROOT}

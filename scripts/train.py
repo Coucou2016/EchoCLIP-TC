@@ -56,8 +56,11 @@ def build_model(cfg: dict) -> EchoCLIP:
         ),
     )
     if cfg.get("init_official_echo_clip"):
+        allow_scratch = bool(cfg.get("allow_scratch_fallback", True))
         model = EchoCLIP.from_official_echo_clip(
-            model_cfg, checkpoint_path=cfg.get("official_checkpoint")
+            model_cfg,
+            checkpoint_path=cfg.get("official_checkpoint"),
+            allow_scratch_fallback=allow_scratch,
         )
         print(f"pretrained source: {model.load_source}")
     elif cfg.get("init_open_clip"):
@@ -172,7 +175,25 @@ def main() -> None:
     parser.add_argument(
         "--ef-soft-contrastive",
         action="store_true",
-        help="Optional EF-aware soft multi-positive contrastive loss",
+        default=None,
+        help="EF-aware soft multi-positive contrastive (default ON for temporal/R5)",
+    )
+    parser.add_argument(
+        "--no-ef-soft-contrastive",
+        action="store_true",
+        help="Disable EF soft contrastive; use hard InfoNCE / TemporalClipLoss",
+    )
+    parser.add_argument(
+        "--use-edv-captions",
+        action="store_true",
+        help="Opt-in: allow EDV dilation captions (default is EF-only captions)",
+    )
+    parser.add_argument(
+        "--paper",
+        "--official-reproduction",
+        dest="paper",
+        action="store_true",
+        help="Strict paper path: refuse scratch / simple_cnn / SKIP_HUB",
     )
     args = parser.parse_args()
 
@@ -203,7 +224,28 @@ def main() -> None:
         cfg["init_open_clip"] = False
     if args.sample_strategy:
         cfg["sample_strategy"] = args.sample_strategy
+    if args.use_edv_captions:
+        cfg["use_edv_captions"] = True
+    paper = bool(getattr(args, "paper", False))
+    if paper:
+        import os
+
+        if os.environ.get("ECHOCLIP_SKIP_HUB", "").strip() in ("1", "true", "yes"):
+            print(
+                "Error: --paper/--official-reproduction cannot run with ECHOCLIP_SKIP_HUB=1."
+            )
+            sys.exit(1)
+        if args.no_official or cfg.get("vision_backbone") == "simple_cnn":
+            print(
+                "Error: --paper cannot combine with --no-official / simple_cnn. "
+                "Provide official EchoCLIP weights."
+            )
+            sys.exit(1)
+        cfg["allow_scratch_fallback"] = False
     if cfg.get("vision_backbone") == "simple_cnn":
+        if paper:
+            print("Error: --paper refused vision_backbone=simple_cnn.")
+            sys.exit(1)
         cfg["init_official_echo_clip"] = False
         cfg["init_open_clip"] = False
 
@@ -250,6 +292,7 @@ def main() -> None:
         frame_pool=cfg.get("frame_pool", "stack"),
         two_views=float(cfg.get("view_weight", 0.0)) > 0,
         caption_mode=cfg.get("caption_mode", "random"),
+        use_edv_captions=bool(cfg.get("use_edv_captions", False)),
     )
     train_ds = EchoCLIPDataset(
         train_manifest,
@@ -262,10 +305,32 @@ def main() -> None:
     )
 
     model = build_model(cfg).to(device)
+    if paper and str(getattr(model, "load_source", "")).startswith("scratch"):
+        print(
+            "Error: --paper requires real EchoCLIP weights; got load_source="
+            f"{model.load_source}"
+        )
+        sys.exit(1)
     view_weight = float(cfg.get("view_weight", 0.0))
-    if args.ef_soft_contrastive or cfg.get("ef_soft_contrastive"):
+    temporal = str(cfg.get("temporal_type", "none")).lower()
+    is_temporal = temporal not in ("none", "mean", "")
+    # R5 default: EF soft contrastive ON unless explicitly disabled.
+    use_ef_soft = False
+    if args.no_ef_soft_contrastive:
+        use_ef_soft = False
+    elif args.ef_soft_contrastive is True:
+        use_ef_soft = True
+    elif cfg.get("ef_soft_contrastive") is not None:
+        use_ef_soft = bool(cfg.get("ef_soft_contrastive"))
+    else:
+        use_ef_soft = is_temporal  # default for temporal / R5 train path
+    if use_ef_soft:
         criterion = EFSoftContrastiveLoss(
             ef_temperature=float(cfg.get("ef_soft_temperature", 5.0)),
+        )
+        print(
+            "loss=EFSoftContrastiveLoss "
+            f"(use_edv_captions={bool(cfg.get('use_edv_captions', False))})"
         )
     elif cfg.get("video_frames", 1) > 1 or view_weight > 0:
         criterion = TemporalClipLoss(

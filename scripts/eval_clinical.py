@@ -233,7 +233,18 @@ def main() -> int:
         "--calibration-method",
         choices=["temperature", "affine_logistic"],
         default="temperature",
-        help="VAL-fit calibration for P(EF<50); affine_logistic preferred over pseudo-logit T",
+        help="VAL-fit calibration for P(EF<50/40/30); affine_logistic preferred over pseudo-logit T",
+    )
+    parser.add_argument(
+        "--adaptive-conformal",
+        action="store_true",
+        help="Also report normalized residual conformal + risk-coverage / AURC",
+    )
+    parser.add_argument(
+        "--adaptive-scale",
+        choices=["heuristic", "head"],
+        default="heuristic",
+        help="Scale s(x) for adaptive conformal (heuristic or learned PositiveScaleHead)",
     )
     parser.add_argument(
         "--split",
@@ -457,6 +468,8 @@ def main() -> int:
             cal_pred=cal_pred,
             seed=args.seed,
             calibration_method=args.calibration_method,
+            adaptive_conformal=bool(args.adaptive_conformal),
+            adaptive_scale=args.adaptive_scale,
         )
         metrics.update(clinical)
     else:

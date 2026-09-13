@@ -167,8 +167,16 @@ def _train_m2(args, cfg: dict, train_manifest: Path, manifest_dir: Path, out_dir
         cmd.extend(["--sample-strategy", args.sample_strategy])
     if args.device:
         cmd.extend(["--device", args.device])
-    if getattr(args, "ef_soft_contrastive", False):
+    # R5 default train path: EF soft contrastive ON (train.py default for temporal).
+    # Opt out only with --no-ef-soft-contrastive.
+    if getattr(args, "no_ef_soft_contrastive", False):
+        cmd.append("--no-ef-soft-contrastive")
+    elif getattr(args, "ef_soft_contrastive", False):
         cmd.append("--ef-soft-contrastive")
+    if getattr(args, "use_edv_captions", False):
+        cmd.append("--use-edv-captions")
+    if getattr(args, "paper", False):
+        cmd.append("--paper")
     return _run(cmd)
 
 
@@ -267,6 +275,8 @@ def _eval_experiment(
         cmd.extend(["--cal-manifest", str(cal_manifest)])
         if getattr(args, "calibration_method", None):
             cmd.extend(["--calibration-method", args.calibration_method])
+        if getattr(args, "adaptive_conformal", False):
+            cmd.append("--adaptive-conformal")
     elif spec.calibrate and not demo:
         print(
             f"Error: {spec.id} requires a calibration manifest (VAL only), missing: "
@@ -398,7 +408,22 @@ def main() -> int:
     parser.add_argument(
         "--ef-soft-contrastive",
         action="store_true",
-        help="Optional: train R5 with EF-aware soft multi-positive contrastive loss",
+        help="Force-enable EF soft contrastive for R5 (already default for temporal)",
+    )
+    parser.add_argument(
+        "--no-ef-soft-contrastive",
+        action="store_true",
+        help="Disable EF soft contrastive for R5 (use hard InfoNCE)",
+    )
+    parser.add_argument(
+        "--use-edv-captions",
+        action="store_true",
+        help="Opt-in EDV dilation captions for R5 train (default: EF-only)",
+    )
+    parser.add_argument(
+        "--adaptive-conformal",
+        action="store_true",
+        help="Also fit normalized residual conformal + AURC (R6)",
     )
     parser.add_argument(
         "--skip-train",

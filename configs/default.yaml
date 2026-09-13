@@ -19,11 +19,11 @@ num_workers: 0
 val_ratio: 0.1
 seed: 42
 save_every: 1
-output_dir: E:/Projects/20260522-EchoCLIP/checkpoints
+output_dir: checkpoints
 
 # Data (generate with scripts/make_demo_data.py)
-manifest: E:/Projects/20260522-EchoCLIP/data/demo/manifest.json
-manifest_dir: E:/Projects/20260522-EchoCLIP/data/demo
+manifest: data/demo/manifest.json
+manifest_dir: data/demo
 video_frames: 1
 # EchoCLIP-TC protocol (16-frame temporal + calibration) lives in configs/echonet_dynamic.yaml
 temporal_type: none

@@ -13,9 +13,9 @@ Examples
 --------
 ::
 
-  python scripts/build_public_echo_manifest.py --dataset camus --root E:\\data\\CAMUS
-  python scripts/build_public_echo_manifest.py --dataset echonet_pediatric --root E:\\data\\EchoNet-Pediatric
-  python scripts/build_public_echo_manifest.py --dataset echonet_lvh --root E:\\data\\EchoNet-LVH
+  python scripts/build_public_echo_manifest.py --dataset camus --root <CAMUS_ROOT>
+  python scripts/build_public_echo_manifest.py --dataset echonet_pediatric --root <ECHONET_PEDIATRIC_ROOT>
+  python scripts/build_public_echo_manifest.py --dataset echonet_lvh --root <ECHONET_LVH_ROOT>
 """
 
 from __future__ import annotations

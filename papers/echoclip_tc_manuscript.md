@@ -6,7 +6,7 @@
 
 **Axes (nature-writing):** `task=manuscript` · `paper_type=methods` · `language=en` · `journal=nature-family` (methods / Nat Commun–style framing).
 
-**One-sentence argument.** In echocardiogram vision–language interpretation, we present EchoCLIP-TC—a frozen-encoder temporal aggregator with validation-only temperature scaling and split-conformal intervals—together with a locked B0/M1/M2/M4 public-data protocol that makes video-level ejection-fraction (EF; left-ventricular ejection fraction) evaluation and uncertainty reporting reproducible; clinical superiority claims remain contingent on EchoNet-Dynamic + official EchoCLIP weights (**待补充**).
+**One-sentence argument.** In echocardiogram vision–language interpretation, we present EchoCLIP-TC / EchoCLIP-TA—a parameter-efficient, EF-aware temporal adapter on frozen EchoCLIP with validation-only calibration (temperature / affine logistic, split and optional adaptive conformal)—together with a locked R0–R6 (+ Oracle-EDES) public-data protocol that makes video-level ejection-fraction (EF) evaluation and uncertainty reporting reproducible; clinical superiority claims remain contingent on EchoNet-Dynamic + official EchoCLIP weights (**待补充**). We do **not** claim to be “the first temporal EchoCLIP.”
 
 ---
 
@@ -18,8 +18,9 @@
 | This work | EchoCLIP-TC | Temporal, Calibrated adaptation layer |
 | Primary metric | EF MAE | Mean absolute error in EF percentage points |
 | Video embedding | \(z_v\) | Video-level representation after pooling |
-| Protocol IDs | B0, M1, M2, M4 | Locked in `PAPER.md` / `echoclip/protocol.py` |
-| Calibration | Temperature scaling; ECE; Brier; split-conformal | Fit on VAL only |
+| Protocol IDs | R0–R6 + Oracle-EDES (aliases B0/M1/M2/M4, S0–S2) | Locked in `PAPER.md` / `echoclip/protocol.py` |
+| Calibration | Temperature / affine logistic; ECE; Brier; split + optional adaptive conformal; bootstrap CIs | Fit on VAL only |
+| This work framing | Parameter-efficient / EF-aware temporal adaptation (EchoCLIP-TA) | **Not** “first temporal EchoCLIP” |
 | Public data | EchoNet-Dynamic | Stanford AIMI; non-commercial |
 | Related VLMs | EchoPrime; CardiacCLIP | Baselines for positioning, not reimplemented here |
 
@@ -37,11 +38,11 @@
 
 **Background.** EchoCLIP aligns echocardiogram frames with clinical text and supports zero-shot estimation of left ventricular ejection fraction (EF), but the published pipeline is primarily frame-centric and reports uncalibrated cosine similarities.
 
-**Methods.** We introduce EchoCLIP-TC (Temporal, Calibrated): a lightweight temporal aggregator (attention pooling or Temporal Transformer) on frozen EchoCLIP towers, cycle-aware frame sampling, structured EchoNet caption templates, and validation-only temperature scaling with split-conformal EF intervals and abstention. We lock a four-arm protocol—B0 (official per-frame EF aggregation), M1 (mean-pooled video vector), M2 (learned temporal \(z_v\)), M4 (M2 + calibration)—for EchoNet-Dynamic. Protocol defaults: \(T=16\), seed 42; B0 uses `uniform` sampling; M1/M2/M4 use `mixed` sampling (`echoclip/protocol.py`).
+**Methods.** We introduce EchoCLIP-TC (Temporal, Calibrated) / EchoCLIP-TA (parameter-efficient temporal adaptation): a lightweight temporal aggregator (attention pooling or Temporal Transformer) on frozen EchoCLIP towers, cycle-aware frame sampling, **EF-only** structured captions by default (EDV dilation opt-in), EF soft multi-positive contrastive training for R5, and validation-only temperature / affine-logistic calibration with split-conformal (and optional normalized adaptive conformal + AURC) EF intervals and abstention. We lock the R0–R6 matrix (legacy aliases B0/M1/M2/M4; supervised S0–S2 as R2–R4) plus Oracle-EDES for EchoNet-Dynamic. Protocol defaults: \(T=16\), seed 42; **primary VAL/TEST sampling is uniform** (ed_es/mixed hard-fail except Oracle). R5 is EF-label-supervised adaptation of frozen towers—not a zero-shot temporal extension.
 
 **Results.** **待补充 (EchoNet-Dynamic + official hub weights).** Locally we only demonstrate end-to-end pipeline smoke tests on synthetic demo pairs (`load_source=scratch_fallback` / `scratch`; demo uses \(T=4\)). Demo MAE/ECE/conformal coverage must not be read as clinical performance.
 
-**Conclusions.** EchoCLIP-TC reframes honest innovation as *reproducible temporal aggregation + trustworthy uncertainty* on public data, without claiming private million-scale pretraining. Clinical claims require completing the gated evaluation path.
+**Conclusions.** EchoCLIP-TC reframes honest innovation as *parameter-efficient EF-aware temporal adaptation + trustworthy uncertainty + fair public protocol*, without claiming private million-scale pretraining or temporal-first priority. Clinical claims require completing the gated evaluation path (`--paper` hard-fails without official weights).
 
 **Keywords:** echocardiography; vision–language model; temporal aggregation; calibration; conformal prediction; EchoCLIP
 
@@ -63,7 +64,7 @@ EchoCLIP-TC addresses both gaps *without rewriting the dual encoder*: we freeze 
 
 **EchoPrime (Nature 2026 / arXiv:2410.09704).** Vukadinovic et al. introduced a multi-video, view-primed VLM trained on >12M video–report pairs with view-informed anatomical attention and retrieval-augmented study-level interpretation (doi:10.1038/s41586-025-09850-x; *Nature* 2026;650:970–977). We cite it as the multi-view / multi-exam upper bound; EchoCLIP-TC stays single-clip video-vector aggregation on frozen EchoCLIP and does not attempt multi-exam fusion.
 
-**CardiacCLIP (MICCAI 2025).** Du, Guo & Li adapt CLIP for few-shot LVEF with Multi-Frame Learning (attention frame fusion) and EchoZoom multi-resolution inputs (arXiv:2509.17065; papers.miccai.org; github.com/xmed-lab/CardiacCLIP). Closest methodological neighbor for temporal fusion; they report a 1-shot EchoNet-Dynamic MAE reduction of 2.07 under their few-shot protocol—**their claim, not ours**. Our contribution emphasizes *frozen EchoCLIP compatibility*, a locked ablation ladder (B0/M1/M2/M4), and explicit calibration / conformal reporting rather than few-shot SOTA claims without EchoNet runs.
+**CardiacCLIP (MICCAI 2025).** Du, Guo & Li adapt CLIP for few-shot LVEF with Multi-Frame Learning (attention frame fusion) and EchoZoom multi-resolution inputs (arXiv:2509.17065; papers.miccai.org; github.com/xmed-lab/CardiacCLIP). Closest methodological neighbor for temporal fusion; they report a 1-shot EchoNet-Dynamic MAE reduction of 2.07 under their few-shot protocol—**their claim, not ours**. Our contribution emphasizes *frozen EchoCLIP compatibility*, a locked ablation ladder (**R0–R6**), and explicit calibration / conformal reporting rather than few-shot SOTA claims without EchoNet runs. Comparison interface: `echoclip/cardiacclip_stub.py` (requires external weights; no invented numbers).
 
 **Public video / segmentation benchmarks.** EchoNet-Dynamic (Ouyang et al., *Nature* 2020; doi:10.1038/s41586-020-2145-8) provides the primary public EF video benchmark (~10k A4C clips) used for EchoCLIP external validation and for our locked protocol. CAMUS (Leclerc et al., *IEEE TMI* 2019; doi:10.1109/TMI.2019.2900516) remains the canonical open multi-structure 2D echo segmentation / EF resource (500 patients, A2C/A4C); we keep CAMUS as an optional external generalization stub (**待补充** on disk), not a substitute for EchoNet protocol numbers.
 
@@ -78,14 +79,15 @@ EchoCLIP-TC addresses both gaps *without rewriting the dual encoder*: we freeze 
 | *MICCAI* CardiacCLIP | Compact related-work contrast; ablation / few-shot tables; method figures for MFL-style fusion | Few-shot SOTA numbers without reproducing their protocol |
 | *IEEE TMI* CAMUS-style methods | Dataset contract, metrics definitions, segmentation/EF reporting discipline | Segmentation-first story as the main claim |
 
-**Recommended hybrid outline for this paper:** Nat Med–style Intro + honest positioning; MICCAI-style Methods/Experiments with B0/M1/M2/M4 tables; reliability diagrams + conformal coverage/width (calibration-first Results); Discussion that separates *protocol innovation* from *foundation-scale* claims.
+**Recommended hybrid outline for this paper:** Nat Med–style Intro + honest positioning; MICCAI-style Methods/Experiments with **R0–R6** tables; reliability diagrams + conformal coverage/width (calibration-first Results); Discussion that separates *parameter-efficient / EF-aware protocol innovation* from *foundation-scale* or “first temporal EchoCLIP” claims.
 
 ### 2.2 Honest innovation surface (non-claims explicit)
 
-1. Frozen-encoder **video-level** \(z_v\) temporal module compatible with official EchoCLIP towers.  
-2. Explicit **B0 ≠ M1** semantics (nonlinear prompt ranking ⇒ frame-then-aggregate ≠ aggregate-then-rank).  
-3. **VAL-only** temperature / ECE / Brier / split-conformal / abstention as first-class metrics (M4).  
-4. Locked **public-data** reproducibility contract (EchoNet-Dynamic + PAPER.md protocol IDs)—no invented clinical MAE.
+1. Frozen-encoder **video-level** \(z_v\) temporal module compatible with official EchoCLIP towers (**parameter-efficient adaptation**, not a new foundation model).  
+2. Explicit **R0 ≠ R1** (B0 ≠ M1) semantics (nonlinear prompt ranking ⇒ frame-then-aggregate ≠ aggregate-then-rank); primary eval uses **uniform** sampling (fairness fix).  
+3. **VAL-only** temperature / affine logistic @50/40/30 / ECE / Brier / split-conformal (+ optional adaptive conformal / AURC) / abstention as first-class metrics (R6).  
+4. Locked **public-data** reproducibility contract (EchoNet-Dynamic + PAPER.md R0–R6)—no invented clinical MAE; multi-seed mean±SD (prefer 5 seeds for paper).  
+5. **Non-claim:** we do not assert priority as “the first temporal EchoCLIP.”
 
 ---
 
@@ -103,48 +105,50 @@ Image tower: ConvNeXt-Base (paper) or documented fallbacks (`resnet18` / `simple
 
 Strategies: `random`, `uniform`, `ed_es`, `mixed` (`echoclip/cycle_sample.py`). Locked protocol defaults (`echoclip/protocol.py`):
 
-| ID | \(T\) (paper) | Sample strategy | Notes |
-|----|---------------|-----------------|-------|
-| B0 | 16 | `uniform` | Official-style frame grid |
-| M1 | 16 | `mixed` | No-parameter \(z_v\) ablation |
-| M2 / M4 | 16 | `mixed` | Learned temporal \(z_v\) |
+| ID | Alias | \(T\) (paper) | Train sample | Eval sample (VAL/TEST) | Notes |
+|----|-------|---------------|--------------|----------------------|-------|
+| R0 | B0 | 16 | — | `uniform` / `official_stride` (`--paper`) | Zero-shot frames |
+| R1 | M1 | 16 | — | **`uniform`** | Mean-pool \(z_v\) |
+| R5 / R6 | M2 / M4 | 16 | `mixed` (train only) | **`uniform`** | Temporal \(z_v\); R6 + cal |
+| Oracle-EDES | — | 16 | — | `ed_es` | Annotation-assisted upper bound |
 
-Seed 42 throughout. Local **DEMO** smoke runs may use \(T=4\) and must be labeled DEMO.
+Primary VAL/TEST **hard-fails** on `ed_es`/`mixed` unless Oracle-EDES. Seed 42 throughout (multi-seed helper: `scripts/run_seeds.py`; paper prefers 5 seeds). Local **DEMO** smoke runs may use \(T=4\) and must be labeled DEMO.
 
 ### 3.4 Temporal aggregation
 
-Frame embeddings \(Z\in\mathbb{R}^{T\times D}\) → \(z_v\in\mathbb{R}^{D}\) via mean pool (M1) or Temporal Transformer / attention pool (M2/M4; `echoclip/temporal.py`: `AttentionPool`, `TemporalTransformer` with CLS token). Only the temporal module (and optionally `logit_scale`) is trained; towers remain frozen when official weights load.
+Frame embeddings \(Z\in\mathbb{R}^{T\times D}\) → \(z_v\in\mathbb{R}^{D}\) via mean pool (R1) or Temporal Transformer / attention pool (R5/R6; `echoclip/temporal.py`: `AttentionPool`, `TemporalTransformer` with CLS token). Only the temporal module (and optionally `logit_scale`) is trained; towers remain frozen when official weights load. Default R5 loss: `EFSoftContrastiveLoss` with **EF-only** captions (`--use-edv-captions` opt-in).
 
 ### 3.5 Zero-shot EF
 
 Implementation: `echoclip/zeroshot.compute_regression_score` — cosine similarities → argsort prompts per frame → take top 20% of ranked EF values → median. Shape convention: 2D tensors are interpreted as `(T, D)` (one video), **not** `(B, D)`; batched video vectors must be reshaped to `(B, 1, D)` by the caller (`EchoCLIPInference.zero_shot_ef_batch`).
 
-**B0** keeps frame embeddings and applies the aggregator per frame then aggregates EF scalars across frames. **M1/M2/M4** build one \(z_v\) first, then apply the aggregator once. Because ranking is nonlinear, B0 ≠ M1 in general (documented in `PAPER.md` and unit tests: T=1 equivalence, same-frame equivalence, rank-crossing counterexample). Optional scalar-mean “M1b” is **not** the locked M1.
+**R0/B0** keeps frame embeddings and applies the aggregator per frame then aggregates EF scalars across frames. **R1/R5/R6** build one \(z_v\) first, then apply the aggregator once. Because ranking is nonlinear, R0 ≠ R1 in general (documented in `PAPER.md` and unit tests). Optional scalar-mean “M1b” is **not** the locked R1.
 
-### 3.6 Calibration (M4)
+### 3.6 Calibration (R6)
 
-On VAL only (`echoclip/calibrate.py`): temperature scaling for binary EF-threshold logits; report ECE and Brier; fit split-conformal absolute residuals for target coverage \(1-\alpha\) (default 90%); optional width-based abstention. Protocol runner hard-fails if `cal_manifest` equals the test manifest outside demo mode (`scripts/run_protocol.py`). Demo mode may use overlapping toy splits—**not** clinically interpretable.
+On VAL only (`echoclip/calibrate.py`): temperature or **affine logistic** for binary EF-threshold scores at **50/40/30**; report ECE and Brier at each threshold; fit split-conformal absolute residuals for target coverage \(1-\alpha\) (default 90%). Basic split conformal has **fixed width** (limitation documented); optional `--adaptive-conformal` uses normalized residuals \(|y-\hat{y}|/s(x)\) with heuristic or learned positive scale + risk–coverage / AURC. Bootstrap CIs for MAE/RMSE/\(R^2\)/AUCs and paired ΔMAE between methods are emitted in `echoclip/clinical.py`. Protocol runner hard-fails if `cal_manifest` equals the test manifest outside demo mode. Demo mode may use overlapping toy splits—**not** clinically interpretable.
 
 ### 3.7 Experiment matrix
 
-| ID | Train | Pool | Calibrate | Role |
-|----|-------|------|-----------|------|
-| B0 | No | frames | No | Official-style baseline |
-| M1 | No | mean | No | No-parameter video-vector ablation |
-| M2 | Yes (temporal) | temporal | No | Primary TC model |
-| M4 | Reuse M2 | temporal | Yes (VAL) | Calibrated TC |
+| ID | Alias | Train | Pool | Calibrate | Role |
+|----|-------|-------|------|-----------|------|
+| R0 | B0 | No | frames | No | EchoCLIP-based zero-shot (`--paper` for official path) |
+| R1 | M1 | No | mean | No | No-parameter video-vector ablation |
+| R2–R4 | S0–S2 | Yes | supervised | No | Linear / MLP / temporal L1 heads |
+| R5 | M2 | Yes (temporal + EF soft contrastive) | temporal | No | EF-aware PEFT temporal adaptation |
+| R6 | M4 | Reuse R5 | temporal | Yes (VAL) | Calibrated TC |
+| Oracle-EDES | — | No | mean | No | Annotation-assisted upper bound |
 
 ### 3.8 Metrics
 
-Primary: EF MAE, RMSE, \(R^2\); AUC at EF < 50/40/30; ECE; Brier; conformal coverage / width; abstention MAE. Retrieval R@k is diagnostic only. Comparison table: `scripts/write_protocol_table.py` → `checkpoints/protocol/comparison.{json,md}`.
-
+Primary: EF MAE, RMSE, \(R^2\) (with bootstrap CIs); AUC at EF < 50/40/30 (with bootstrap CIs); ECE/Brier @50/40/30; conformal coverage / width; optional adaptive conformal + AURC; abstention MAE; paired bootstrap ΔMAE. Retrieval R@k is diagnostic only. Comparison table: `scripts/write_protocol_table.py` → `checkpoints/protocol/comparison.{json,md}`.
 ---
 
 ## 4. Experiments
 
 ### 4.1 Datasets
 
-- **EchoNet-Dynamic (primary):** **待补充** — not present in this workspace after disk search of common paths (`data/`, `E:/D:/C:` Dataset/AIMI/EchoNet roots). Builder exits with AIMI download instructions (`DATA.md`). Legal access: Stanford AIMI non-commercial request at https://echonet.github.io/dynamic/ — not redistributed here.
+- **EchoNet-Dynamic (primary):** **待补充** — not present in this workspace after disk search of common paths (`data/`, env `ECHONET_ROOT`). Builder exits with AIMI download instructions (`DATA.md`). Legal access: Stanford AIMI non-commercial request at https://echonet.github.io/dynamic/ — not redistributed here.
 - **CAMUS / EchoNet-Pediatric / EchoNet-LVH:** config stubs + builders; **待补充** on-disk data.
 - **Demo synthetic pairs:** pipeline wiring only (`demo_is_not_clinical=true`; `ef_source=text_parse_demo_only`).
 
@@ -167,7 +171,7 @@ Local `checkpoints/protocol/*/metrics.json` (synthetic demo, \(T=4\), scratch we
 | M2 | 8.125 | ≈0.34 | — | scratch | 32 |
 | M4 | 8.125 | ≈0.00 | 1.0 (width 30; toy) | scratch | 32 |
 
-**Interpretation bound:** These numbers prove metrics I/O and calibration code paths execute. They do **not** support any clinical ranking of B0/M1/M2/M4. M4’s near-zero DEMO ECE and perfect coverage reflect toy overlap / scratch embeddings, not calibrated clinical reliability.
+**Interpretation bound:** These numbers prove metrics I/O and calibration code paths execute. They do **not** support any clinical ranking of R0–R6 (legacy B0/M1/M2/M4). R6’s near-zero DEMO ECE and perfect coverage reflect toy overlap / scratch embeddings, not calibrated clinical reliability.
 
 ### 4.5 Figures (this draft)
 
@@ -182,7 +186,7 @@ Local `checkpoints/protocol/*/metrics.json` (synthetic demo, \(T=4\), scratch we
 
 ## 5. Discussion
 
-**Honest innovation surface.** (i) Video-vector temporal module compatible with frozen EchoCLIP; (ii) explicit B0 vs M1 semantics to prevent unfair ablations; (iii) VAL-only calibration + conformal + abstention as first-class paper metrics; (iv) public-data reproducibility contract.
+**Honest innovation surface.** (i) Parameter-efficient / EF-aware temporal module on frozen EchoCLIP; (ii) explicit R0 vs R1 semantics + uniform primary eval; (iii) VAL-only calibration + conformal (+ optional adaptive) + abstention as first-class paper metrics; (iv) public-data reproducibility contract. **Non-claim:** not “first temporal EchoCLIP.”
 
 **Positioning vs peers (claims we do *not* make).**
 

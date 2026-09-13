@@ -2,6 +2,7 @@
 # Obtain data yourself: https://www.creatis.insa-lyon.fr/Challenge/camus/
 # Then:
 #   python scripts/build_public_echo_manifest.py --dataset camus --root <CAMUS_ROOT>
+# Paths use env placeholders — set CAMUS_ROOT / repo-relative data/.
 
 seed: 42
 embed_dim: 512
@@ -24,10 +25,10 @@ official_checkpoint: null
 
 epochs: 0  # eval-only placeholder; train on EchoNet-Dynamic first
 batch_size: 8
-output_dir: E:/Projects/20260522-EchoCLIP/checkpoints/protocol/camus
+output_dir: checkpoints/protocol/camus
 
-camus_root: E:/data/CAMUS
-manifest: E:/Projects/20260522-EchoCLIP/data/camus/train.json
-test_manifest: E:/Projects/20260522-EchoCLIP/data/camus/test.json
-cal_manifest: E:/Projects/20260522-EchoCLIP/data/camus/val.json
-manifest_dir: E:/data/CAMUS
+camus_root: ${CAMUS_ROOT}
+manifest: data/camus/train.json
+test_manifest: data/camus/test.json
+cal_manifest: data/camus/val.json
+manifest_dir: ${CAMUS_ROOT}

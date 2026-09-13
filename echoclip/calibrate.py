@@ -274,3 +274,154 @@ def reliability_table(
         accs.append(float(y[mask].mean()))
         confs.append(float(p[mask].mean()))
     return np.array(centers), np.array(accs), np.array(confs)
+
+
+# ---------------------------------------------------------------------------
+# Adaptive / normalized conformal (optional)
+# Basic split conformal uses a *fixed* absolute residual quantile → constant
+# interval width. Adaptive conformal uses score |y-ŷ|/s(x) so widths vary.
+# ---------------------------------------------------------------------------
+
+
+def heuristic_uncertainty_scale(
+    predictions: ArrayLike,
+    *,
+    cal_true: Optional[ArrayLike] = None,
+    cal_pred: Optional[ArrayLike] = None,
+    floor: float = 1.0,
+) -> np.ndarray:
+    """Positive per-sample scale s(x) for normalized residuals.
+
+    Heuristic (no learned head): blend (i) distance of ŷ from mid-EF (harder
+    extremes) with (ii) global VAL residual MAD when calibration preds exist.
+    Always returns s(x) ≥ ``floor`` > 0.
+    """
+    p = _as_numpy(predictions).reshape(-1).astype(np.float64)
+    # EF typically ~15–80; mid ~50. Larger |ŷ-50| → larger scale.
+    extremity = 1.0 + np.abs(p - 50.0) / 50.0
+    base = float(floor)
+    if cal_true is not None and cal_pred is not None:
+        cy = _as_numpy(cal_true).reshape(-1).astype(np.float64)
+        cp = _as_numpy(cal_pred).reshape(-1).astype(np.float64)
+        if cy.size:
+            mad = float(np.median(np.abs(cp - cy)))
+            base = max(base, mad if mad > 1e-6 else base)
+    return np.maximum(base * extremity, floor)
+
+
+class PositiveScaleHead:
+    """Tiny positive scale head: s = softplus(a) * |ŷ - c| + softplus(b) + eps.
+
+    Fit on VAL by minimizing NLL of a Laplace residual model with scale s(x),
+    or fall back to heuristic if optimization fails / n too small.
+    """
+
+    def __init__(self, a: float = 0.0, b: float = 0.0, center: float = 50.0):
+        self.a = float(a)
+        self.b = float(b)
+        self.center = float(center)
+
+    def scale(self, predictions: ArrayLike) -> np.ndarray:
+        p = _as_numpy(predictions).reshape(-1).astype(np.float64)
+        sa = float(np.log1p(np.exp(self.a)))  # softplus
+        sb = float(np.log1p(np.exp(self.b)))
+        return np.maximum(sa * np.abs(p - self.center) + sb + 1e-3, 1e-3)
+
+    @classmethod
+    def fit(
+        cls,
+        cal_true: ArrayLike,
+        cal_pred: ArrayLike,
+        max_iter: int = 80,
+    ) -> "PositiveScaleHead":
+        y = torch.as_tensor(_as_numpy(cal_true), dtype=torch.float64).reshape(-1)
+        p = torch.as_tensor(_as_numpy(cal_pred), dtype=torch.float64).reshape(-1)
+        if y.numel() < 4:
+            return cls()
+        a = torch.nn.Parameter(torch.zeros((), dtype=torch.float64))
+        b = torch.nn.Parameter(torch.zeros((), dtype=torch.float64))
+        center = torch.tensor(50.0, dtype=torch.float64)
+        opt = torch.optim.LBFGS([a, b], lr=0.25, max_iter=max_iter, line_search_fn="strong_wolfe")
+
+        def closure():
+            opt.zero_grad()
+            sa = F.softplus(a)
+            sb = F.softplus(b)
+            s = sa * (p - center).abs() + sb + 1e-3
+            # Laplace NLL ∝ log(s) + |r|/s
+            loss = (torch.log(s) + (p - y).abs() / s).mean()
+            loss.backward()
+            return loss
+
+        try:
+            opt.step(closure)
+        except RuntimeError:
+            return cls()
+        return cls(a=float(a.detach()), b=float(b.detach()), center=50.0)
+
+
+def normalized_residuals(
+    y_true: ArrayLike,
+    y_pred: ArrayLike,
+    scale: ArrayLike,
+) -> np.ndarray:
+    y = _as_numpy(y_true).reshape(-1).astype(np.float64)
+    p = _as_numpy(y_pred).reshape(-1).astype(np.float64)
+    s = np.maximum(_as_numpy(scale).reshape(-1).astype(np.float64), 1e-6)
+    return np.abs(y - p) / s
+
+
+def adaptive_conformal_intervals(
+    predictions: ArrayLike,
+    scale: ArrayLike,
+    quantile: float,
+) -> np.ndarray:
+    """ŷ ± q · s(x) — variable-width intervals from normalized conformal."""
+    pred = _as_numpy(predictions).reshape(-1).astype(np.float64)
+    s = np.maximum(_as_numpy(scale).reshape(-1).astype(np.float64), 1e-6)
+    q = float(quantile)
+    half = q * s
+    return np.stack([pred - half, pred + half], axis=1)
+
+
+def risk_coverage_curve(
+    y_true: ArrayLike,
+    y_pred: ArrayLike,
+    uncertainty: ArrayLike,
+    n_levels: int = 20,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Selective prediction: keep lowest-uncertainty fraction → (coverage, MAE).
+
+    ``uncertainty`` high = less confident. Coverage goes from ~1/n to 1.
+    """
+    y = _as_numpy(y_true).reshape(-1).astype(np.float64)
+    p = _as_numpy(y_pred).reshape(-1).astype(np.float64)
+    u = _as_numpy(uncertainty).reshape(-1).astype(np.float64)
+    n = int(y.size)
+    if n == 0:
+        return np.array([]), np.array([])
+    order = np.argsort(u)  # most confident first
+    coverages, risks = [], []
+    for k in range(1, n_levels + 1):
+        frac = k / float(n_levels)
+        n_keep = max(1, int(np.ceil(frac * n)))
+        idx = order[:n_keep]
+        coverages.append(n_keep / float(n))
+        risks.append(float(np.mean(np.abs(p[idx] - y[idx]))))
+    return np.asarray(coverages), np.asarray(risks)
+
+
+def area_under_risk_coverage(
+    coverages: ArrayLike,
+    risks: ArrayLike,
+) -> float:
+    """AURC via trapezoid rule on the risk–coverage curve (lower is better)."""
+    c = _as_numpy(coverages).reshape(-1).astype(np.float64)
+    r = _as_numpy(risks).reshape(-1).astype(np.float64)
+    if c.size < 2:
+        return float("nan")
+    order = np.argsort(c)
+    try:
+        return float(np.trapezoid(r[order], c[order]))
+    except AttributeError:
+        return float(np.trapz(r[order], c[order]))
