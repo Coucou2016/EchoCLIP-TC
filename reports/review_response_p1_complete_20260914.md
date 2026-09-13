@@ -7,13 +7,15 @@ https://github.com/Coucou2016/EchoCLIP-TC. **No clinical MAE numbers invented.**
 
 | Field | Value |
 |-------|-------|
-| **Push** | Pending → filled after push |
+| **Push** | Succeeded (`git push origin main`) |
 
 | **Remote** | `https://github.com/Coucou2016/EchoCLIP-TC.git` |
 
 | **Branch** | `main` |
 
-| **Local SHA** | `a4a1cd277bcb21e1d64f006c71293b1cd55663a0` |
+| **Remote SHA** | `9240eab98030621a2f2d21b6cc10f9a9ce317371` |
+
+| **Range** | `7241ece..9240eab` |
 
 | **When** | 2026-09-14 |
 
