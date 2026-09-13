@@ -86,7 +86,11 @@ Table aggregate: `scripts/write_protocol_table.py` → `checkpoints/protocol/com
 
   - Incompatible with `--demo`, `--no-official`, `simple_cnn`, and `ECHOCLIP_SKIP_HUB=1`
 
-  - Still document remaining gaps (tokenizer quirks, crop zoom, dtype) — do not claim bit-exact parity
+  - Still document remaining gaps (tokenizer quirks, crop zoom / 640→224 vs direct 224, BGR vs RGB, dtype) — do not claim bit-exact parity
+
+  - Golden aggregation tests: `tests/test_official_b0_parity.py` (fixed tensors vs official utils)
+
+  - Optional AVI+hub compare: `scripts/compare_official_b0.py`
 
 
 

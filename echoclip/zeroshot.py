@@ -53,6 +53,14 @@ def compute_regression_score(
     prompt_embeddings: torch.Tensor,
     prompt_values: Sequence[float],
 ) -> torch.Tensor:
+    """Official-style EF aggregation (echonet/echo_CLIP ``compute_regression_metric``).
+
+    Rank prompts per frame by cosine similarity, mean-pool ranked EF values over
+    frames, then take the median of the top 20% of those values.
+
+    ``top_k = int(n * 0.2)`` matches upstream; when that would be 0 (coarse grids
+    with fewer than 5 candidates), fall back to ``top_k = 1``.
+    """
     video = _as_frame_batch(video_embeddings)
     prompts = _as_prompt_batch(prompt_embeddings)
     per_frame = torch.matmul(video, prompts.transpose(-1, -2))
@@ -60,7 +68,9 @@ def compute_regression_score(
     values = torch.tensor(prompt_values, device=video_embeddings.device)
     ranked_values = values[ranked]
     avg_frames = ranked_values.float().mean(dim=1)
-    top_k = max(1, int(avg_frames.shape[1] * 0.2))
+    top_k = int(avg_frames.shape[1] * 0.2)
+    if top_k < 1:
+        top_k = 1
     return avg_frames[:, :top_k].median(dim=-1).values
 
 

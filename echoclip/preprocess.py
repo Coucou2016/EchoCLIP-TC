@@ -1,4 +1,20 @@
-"""Echocardiogram-specific image/video preprocessing (EchoCLIP paper / echonet utils)."""
+"""Echocardiogram-specific image/video preprocessing (EchoCLIP paper / echonet utils).
+
+Default dataset path
+--------------------
+``read_video_frames`` → letterbox ``crop_and_scale`` to ``(640, 480)`` with
+``zoom=0.1`` → BGR→RGB → ``frames_to_tensor`` BICUBIC resize to ``image_size``
+(default 224) + OpenAI CLIP mean/std.
+
+Official ``--paper`` / hub path (when weights load)
+--------------------------------------------------
+Prefer ``open_clip`` ``preprocess_val`` on frames after crop. Official
+``zero_shot_example.py`` often crops **directly** to ``(224, 224)`` then applies
+``preprocess_val``, and selects frames with ``0:min(40, T):2``. See
+``echoclip.official_parity.PARITY_GAPS`` for remaining tokenizer/crop/dtype gaps.
+Do not claim bit-exact MAE without a side-by-side AVI + hub run
+(``scripts/compare_official_b0.py``).
+"""
 
 from pathlib import Path
 from typing import List, Optional, Tuple, Union

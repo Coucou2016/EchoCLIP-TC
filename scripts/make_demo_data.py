@@ -39,10 +39,12 @@ def synthetic_echo_image(seed: int, size: int = 256) -> Image.Image:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate demo EchoCLIP training data")
+    root = Path(__file__).resolve().parents[1]
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path(r"E:\Projects\20260522-EchoCLIP\data\demo"),
+        default=root / "data" / "demo",
+        help="Output directory (default: <repo>/data/demo)",
     )
     parser.add_argument("--num-samples", type=int, default=64)
     args = parser.parse_args()

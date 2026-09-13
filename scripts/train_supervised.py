@@ -115,7 +115,28 @@ def main() -> int:
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--ridge-alpha", type=float, default=1.0)
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="Force demo wiring: no official init, prefer simple_cnn (NOT clinical).",
+    )
+    parser.add_argument(
+        "--paper",
+        action="store_true",
+        dest="paper",
+        help="Official reproduction path: hard-fail without real EchoCLIP weights.",
+    )
+    parser.add_argument(
+        "--official-reproduction",
+        action="store_true",
+        dest="paper",
+        help=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
+
+    if args.demo and args.paper:
+        print("Error: --paper and --demo are mutually exclusive.")
+        return 1
 
     cfg = load_config(args.config)
     if args.manifest:
@@ -132,12 +153,28 @@ def main() -> int:
         cfg["video_frames"] = args.video_frames
     if args.vision_backbone:
         cfg["vision_backbone"] = args.vision_backbone
+    if args.demo:
+        cfg["init_official_echo_clip"] = False
+        cfg.setdefault("vision_backbone", "simple_cnn")
+        if not args.vision_backbone:
+            cfg["vision_backbone"] = "simple_cnn"
+    if args.paper:
+        if cfg.get("vision_backbone") == "simple_cnn" or args.no_official:
+            print(
+                "Error: --paper cannot combine with --no-official / simple_cnn. "
+                "Need official EchoCLIP weights."
+            )
+            return 1
+        cfg["init_official_echo_clip"] = True
     if args.no_official or cfg.get("vision_backbone") == "simple_cnn":
         cfg["init_official_echo_clip"] = False
 
     set_seed(cfg.get("seed", 42))
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     manifest = Path(cfg.get("manifest") or ROOT / "data" / "demo" / "manifest.json")
+    if args.demo and not args.manifest:
+        manifest = ROOT / "data" / "demo" / "manifest.json"
+        cfg["manifest"] = str(manifest)
     if not manifest.exists():
         print(f"Manifest not found: {manifest}")
         return 1
@@ -184,9 +221,22 @@ def main() -> int:
     )
 
     backbone = build_backbone(cfg).to(device)
+    if args.paper:
+        src = str(getattr(backbone, "load_source", "") or "")
+        if src.startswith("scratch") or "simple_cnn" in src.lower():
+            print(
+                "Error: --paper requires real EchoCLIP weights; got load_source="
+                f"{src!r}"
+            )
+            return 1
     dim = backbone.config.embed_dim
     head_kind = str(args.head).lower()
     epochs = int(cfg.get("epochs", 5))
+    if args.demo:
+        print(
+            "DEMO MODE — supervised head training on synthetic/demo data only; "
+            "not EchoNet / paper EF MAE."
+        )
 
     # Bundle: backbone config + head weights saved together for eval hooks.
     if head_kind in ("linear", "ridge", "s0"):

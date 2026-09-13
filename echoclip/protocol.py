@@ -516,6 +516,7 @@ def comparison_to_markdown(rows: Sequence[dict]) -> str:
     """Render a compact markdown table (primary columns only)."""
     primary = (
         "experiment_id",
+        "experiment_title",
         "mae",
         "rmse",
         "auc_ef_lt_50",
@@ -527,6 +528,21 @@ def comparison_to_markdown(rows: Sequence[dict]) -> str:
     )
     if not rows:
         return "| (empty) |\n|---|\n| No protocol metrics.json found. |\n"
+    # Enrich titles / Oracle labeling from EXPERIMENTS when missing
+    enriched = []
+    for row in rows:
+        r = dict(row)
+        exp_id = str(r.get("experiment_id", ""))
+        if exp_id in EXPERIMENTS:
+            spec = EXPERIMENTS[exp_id]
+            r.setdefault("experiment_title", spec.title)
+            r.setdefault("annotation_assisted", spec.annotation_assisted)
+            if spec.annotation_assisted and not str(r.get("experiment_title", "")).lower().startswith(
+                "oracle"
+            ):
+                r["experiment_title"] = spec.title
+        enriched.append(r)
+    rows = enriched
     headers = [h for h in primary if any(h in r for r in rows)]
     lines = [
         "| " + " | ".join(headers) + " |",
@@ -540,19 +556,27 @@ def comparison_to_markdown(rows: Sequence[dict]) -> str:
                 cells.append("")
             elif isinstance(val, float):
                 cells.append(f"{val:.4g}")
+            elif h == "annotation_assisted" and val:
+                cells.append("Oracle (annotation-assisted)")
             else:
                 cells.append(str(val))
         lines.append("| " + " | ".join(cells) + " |")
     any_demo = any(r.get("demo_is_not_clinical") for r in rows)
-    footer = (
-        "\n\n> **Honesty:** demo / `scratch_fallback` / `simple_cnn` rows are "
-        "pipeline wiring only — never report as EchoNet or Nature Medicine EF MAE. "
-        "Oracle-EDES is annotation-assisted and not a primary uniform-16 result.\n"
-        if any_demo
-        else "\n\n> State `load_source` and split (TEST vs subset_5000) next to every "
-        "table number. Oracle-EDES is annotation-assisted.\n"
-    )
-    return "\n".join(lines) + footer
+    any_oracle = any(r.get("annotation_assisted") for r in rows)
+    footer_bits = [
+        "State `load_source` and split (TEST vs subset_5000) next to every table number.",
+    ]
+    if any_oracle:
+        footer_bits.append(
+            "**Oracle-EDES** is annotation-assisted and **not** a primary uniform-16 result."
+        )
+    if any_demo:
+        footer_bits.insert(
+            0,
+            "demo / `scratch_fallback` / `simple_cnn` rows are pipeline wiring only — "
+            "never report as EchoNet or Nature Medicine EF MAE.",
+        )
+    return "\n".join(lines) + "\n\n> **Honesty:** " + " ".join(footer_bits) + "\n"
 
 
 def write_protocol_comparison(

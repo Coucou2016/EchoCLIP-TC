@@ -54,7 +54,9 @@ Template: `data/examples/manifest_template.csv`
 | Still frame | `.png`, `.jpg`, `.jpeg`, `.bmp` | Single image per step; if `video_frames>1`, the still is repeated along T |
 | Video | `.avi`, `.mp4`, `.mov`, `.mkv` | Cycle sampling (`random` / `uniform` / `ed_es` / `mixed`); default T=1 is one random frame |
 
-Videos are letterbox-cropped and resized via `echoclip.preprocess.crop_and_scale` (640×480) before CLIP normalization (224×224 default). Sampling: `echoclip.cycle_sample`.
+Videos are letterbox-cropped and resized via `echoclip.preprocess.crop_and_scale` (640×480, zoom=0.1) before CLIP normalization (224×224 default). Sampling: `echoclip.cycle_sample` (`uniform` / `official_stride` / …).
+
+**Official B0 / `--paper` path (when hub weights load):** prefer open_clip `preprocess_val`; frame indices `0:min(40,T):2` (`official_stride`). Official `zero_shot_example.py` often crops **directly** to 224×224 then applies `preprocess_val`. Remaining gaps (tokenizer, BGR vs RGB, dtype, crop resolution order) are listed in `echoclip.official_parity.PARITY_GAPS`. Side-by-side optional script: `scripts/compare_official_b0.py`. Do not claim bit-exact clinical MAE without that compare + EchoNet.
 
 `configs/default.yaml` keeps `video_frames: 1` (demo). `configs/echonet_dynamic.yaml` uses `video_frames: 16`.
 
@@ -80,9 +82,13 @@ Expected layout:
 Build manifests:
 
 ```powershell
-python E:\Projects\20260522-EchoCLIP\scripts\build_echonet_manifest.py `
-  --echonet-root E:\data\EchoNet-Dynamic `
-  --output-dir E:\Projects\20260522-EchoCLIP\data\echonet_dynamic `
+# Prefer env roots (no machine-specific paths)
+$env:ECHONET_ROOT = "<AIMI_EchoNet-Dynamic>"
+$env:ECHOCLIP_ROOT = (Get-Location).Path   # or path to this repo
+
+python scripts\build_echonet_manifest.py `
+  --echonet-root $env:ECHONET_ROOT `
+  --output-dir data\echonet_dynamic `
   --subset-5000
 ```
 
@@ -95,9 +101,9 @@ instructions above.
 ### Other public sets
 
 ```powershell
-python scripts\build_public_echo_manifest.py --dataset camus --root E:\data\CAMUS
-python scripts\build_public_echo_manifest.py --dataset echonet_pediatric --root E:\data\EchoNet-Pediatric
-python scripts\build_public_echo_manifest.py --dataset echonet_lvh --root E:\data\EchoNet-LVH
+python scripts\build_public_echo_manifest.py --dataset camus --root $env:CAMUS_ROOT
+python scripts\build_public_echo_manifest.py --dataset echonet_pediatric --root $env:ECHONET_PED_ROOT
+python scripts\build_public_echo_manifest.py --dataset echonet_lvh --root $env:ECHONET_LVH_ROOT
 ```
 
 
