@@ -13,9 +13,9 @@ https://github.com/Coucou2016/EchoCLIP-TC. **No clinical MAE numbers invented.**
 
 | **Branch** | `main` |
 
-| **Remote SHA** | `9240eab98030621a2f2d21b6cc10f9a9ce317371` |
+| **Remote SHA** | `80694c6ce6a3fd94bc59091c153c93134387f53f` |
 
-| **Range** | `7241ece..9240eab` |
+| **Range** | `7241ece..80694c6` |
 
 | **When** | 2026-09-14 |
 
