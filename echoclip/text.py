@@ -1,79 +1,100 @@
-"""Clinical report cleaning and CLIP-style tokenization (GPT-2 BPE, 77 tokens)."""
+"""Clinical report cleaning and CLIP-style tokenization (GPT-2 BPE, 77 tokens).
+
+Report normalization is a **clean-room** reimplementation for EchoCLIP-TA:
+same functional goals as public echo report prep (uppercase, strip noise,
+normalize severity/tense wording, collapse whitespace) but with independently
+authored regexes. Official EchoCLIP prompt *strings* remain in ``prompts.py``
+and are attributed separately (see ATTRIBUTION.md / NOTICE).
+"""
+
+from __future__ import annotations
 
 import re
-from typing import List, Tuple
+from typing import List
 
 import torch
 from transformers import CLIPTokenizer
 
-# Report cleaning regexes (from echonet/echo_CLIP utils.py)
-_REMOVABLES = re.compile(r"\^|CRLF|‡")
-_IN_TEXT_PERIODS = re.compile(r"(?<=\D)\.|\.(?=\D)")
-_SQUARE_BRACKETS = re.compile(r"[\[\]]")
-_MULTI_WHITESPACE = re.compile(r"\s+")
-_MULTI_PERIOD = re.compile(r"\.+")
-_SELECT_WAS = re.compile(r"(?<=\b)WAS(?=\b)")
-_SELECT_WERE = re.compile(r"(?<=\b)WERE(?=\b)")
-_SELECT_AND_OR = re.compile(r"(?<=\b)AND/OR(?=\b)")
-_SELECT_NORMALLY = re.compile(r"NORMALLY")
-_SELECT_MILDLY = re.compile(r"MILDLY")
-_SELECT_MODERATELY = re.compile(r"MODERATELY")
-_SELECT_SEVERELY = re.compile(r"SEVERELY")
-_SELECT_PA = re.compile(r"PULMONARY ARTERY")
-_SELECT_ICD = re.compile(r"[A-Z](\d+\.\d*\b)")
-_SELECT_SLASH_DATES = re.compile(r"\d{2}/\d{2}/\d{4}")
-_SELECT_DOT_DATES = re.compile(r"\d{2}\.\d{2}\.\d{4}")
-_SPACE_BEFORE_UNIT = re.compile(r"\s+(MMHG|MM|CM|%)")
-_SPACE_PERIOD = re.compile(r"\s\.")
-_SPACE_PLUS = re.compile(r"\s\+\s")
-_VERBOSE_PRESSURE = re.compile(r"\+CVPMMHG")
+# ---------------------------------------------------------------------------
+# Clean-room report normalizer (EchoCLIP-TA)
+# Intentional behavioral overlap with clinical echo report prep; patterns are
+# rewritten here and are not copied from echonet/echo_CLIP utils.py.
+# ---------------------------------------------------------------------------
 
-_ADD_PERIOD_RAW = [
-    r"THE PEAK TRANSAORTIC GRADIENT IS <#>MMHG",
-    r"THE MEAN TRANSAORTIC GRADIENT IS <#>MMHG",
-    r"LV EJECTION FRACTION IS <#>%",
-    r"ESTIMATED PA PRESSURE IS <#>MMHG",
-    r"RESTING SEGMENTAL WALL MOTION ANALYSIS",
-    r"THE IVC DIAMETER IS <#>MM",
-    r"EST RV/RA PRESSURE GRADIENT IS <#>MMHG",
-    r"ESTIMATED PEAK RVSP IS <#>MMHG",
-    r"ESTIMATED PA SYSTOLIC PRESSURE IS <#>MMHG",
-]
-_SELECT_NUMBER = r"(?:\d+\.?\d*)"
-_ADD_PERIOD = "|".join(
-    f"(?:{re.escape(a).replace(re.escape('<#>'), _SELECT_NUMBER)})(?!\\.)"
-    for a in _ADD_PERIOD_RAW
+_NOISE_CHARS = re.compile(r"[\^\u2021]|CRLF")
+_PERIOD_OUTSIDE_DIGITS = re.compile(r"(?<=\D)\.(?=\D)|(?<=\D)\.$")
+_BRACKETS = re.compile(r"[\[\]]")
+_WS = re.compile(r"\s+")
+_DOT_RUN = re.compile(r"\.{2,}")
+# Whole-word tense / conjunction normalization
+_WORD_WAS = re.compile(r"\bWAS\b")
+_WORD_WERE = re.compile(r"\bWERE\b")
+_WORD_AND_OR = re.compile(r"\bAND/OR\b")
+# Severity / anatomy shorthand
+_NORMALLY = re.compile(r"NORMALLY")
+_MILDLY = re.compile(r"MILDLY")
+_MODERATELY = re.compile(r"MODERATELY")
+_SEVERELY = re.compile(r"SEVERELY")
+_PULM_ARTERY = re.compile(r"PULMONARY ARTERY")
+# Strip ICD-like codes and calendar dates (de-identification hygiene)
+_ICDISH = re.compile(r"[A-Z]\d+\.\d*\b")
+_DATE_SLASH = re.compile(r"\b\d{2}/\d{2}/\d{4}\b")
+_DATE_DOT = re.compile(r"\b\d{2}\.\d{2}\.\d{4}\b")
+_UNIT_GAP = re.compile(r"\s+(MMHG|MM|CM|%)")
+_SPACE_BEFORE_DOT = re.compile(r"\s+\.")
+_PLUS_SPACED = re.compile(r"\s\+\s")
+_CVP_TAG = re.compile(r"\+CVPMMHG")
+
+# Measurement phrases that should end with a period when missing one.
+_MEASUREMENT_STEMS = (
+    "THE PEAK TRANSAORTIC GRADIENT IS {n}MMHG",
+    "THE MEAN TRANSAORTIC GRADIENT IS {n}MMHG",
+    "LV EJECTION FRACTION IS {n}%",
+    "ESTIMATED PA PRESSURE IS {n}MMHG",
+    "RESTING SEGMENTAL WALL MOTION ANALYSIS",
+    "THE IVC DIAMETER IS {n}MM",
+    "EST RV/RA PRESSURE GRADIENT IS {n}MMHG",
+    "ESTIMATED PEAK RVSP IS {n}MMHG",
+    "ESTIMATED PA SYSTOLIC PRESSURE IS {n}MMHG",
 )
-_ADD_PERIOD_RE = re.compile(f"({_ADD_PERIOD})")
+_NUM = r"(?:\d+\.?\d*)"
+_ADD_PERIOD_PARTS = []
+for stem in _MEASUREMENT_STEMS:
+    if "{n}" in stem:
+        lit = re.escape(stem).replace(re.escape("{n}"), _NUM)
+    else:
+        lit = re.escape(stem)
+    _ADD_PERIOD_PARTS.append(f"(?:{lit})(?!\\.)")
+_ENSURE_PERIOD = re.compile("(" + "|".join(_ADD_PERIOD_PARTS) + ")")
 
 
 def clean_report_text(text: str) -> str:
-    """Normalize echocardiography report text before tokenization."""
+    """Normalize echocardiography report text before tokenization (clean-room)."""
     if len(text) <= 1:
         return text
     text = text.upper().strip().replace("`", "'")
-    text = _REMOVABLES.sub("", text)
-    text = _IN_TEXT_PERIODS.sub(". ", text)
-    text = _SQUARE_BRACKETS.sub("", text)
-    text = _SELECT_WAS.sub("IS", text)
-    text = _SELECT_WERE.sub("ARE", text)
-    text = _SELECT_AND_OR.sub("AND", text)
-    text = _SELECT_NORMALLY.sub("NORMAL", text)
-    text = _SELECT_MILDLY.sub("MILD", text)
-    text = _SELECT_MODERATELY.sub("MODERATE", text)
-    text = _SELECT_SEVERELY.sub("SEVERE", text)
-    text = _SELECT_PA.sub("PA", text)
-    text = _SELECT_SLASH_DATES.sub("", text)
-    text = _SELECT_DOT_DATES.sub("", text)
-    text = _SELECT_ICD.sub("", text)
-    text = _SPACE_BEFORE_UNIT.sub(r"\1", text)
-    text = _SPACE_PERIOD.sub(".", text)
-    text = _MULTI_WHITESPACE.sub(" ", text)
-    text = _SPACE_PLUS.sub("+", text)
-    text = _VERBOSE_PRESSURE.sub("MMHG", text)
+    text = _NOISE_CHARS.sub("", text)
+    text = _PERIOD_OUTSIDE_DIGITS.sub(". ", text)
+    text = _BRACKETS.sub("", text)
+    text = _WORD_WAS.sub("IS", text)
+    text = _WORD_WERE.sub("ARE", text)
+    text = _WORD_AND_OR.sub("AND", text)
+    text = _NORMALLY.sub("NORMAL", text)
+    text = _MILDLY.sub("MILD", text)
+    text = _MODERATELY.sub("MODERATE", text)
+    text = _SEVERELY.sub("SEVERE", text)
+    text = _PULM_ARTERY.sub("PA", text)
+    text = _DATE_SLASH.sub("", text)
+    text = _DATE_DOT.sub("", text)
+    text = _ICDISH.sub("", text)
+    text = _UNIT_GAP.sub(r"\1", text)
+    text = _SPACE_BEFORE_DOT.sub(".", text)
+    text = _WS.sub(" ", text)
+    text = _PLUS_SPACED.sub("+", text)
+    text = _CVP_TAG.sub("MMHG", text)
     text = text.strip() + " "
-    text = _ADD_PERIOD_RE.sub(r"\1.", text)
-    text = _MULTI_PERIOD.sub(".", text)
+    text = _ENSURE_PERIOD.sub(r"\1.", text)
+    text = _DOT_RUN.sub(".", text)
     return text
 
 

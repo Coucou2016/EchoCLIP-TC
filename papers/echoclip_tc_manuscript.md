@@ -4,8 +4,6 @@
 **Honesty:** Clinical EchoNet-Dynamic EF MAE / AUC numbers are **待补充** until official weights and AIMI data are available locally. Demo / synthetic figures are labeled **DEMO** and are not clinical results.  
 **Code:** https://github.com/Coucou2016/EchoCLIP-TC  
 
-**Axes:** `task=manuscript` · `paper_type=methods` · `language=en`.
-
 **One-sentence argument.** We present EchoCLIP-TA (parameter-efficient, EF-aware temporal adaptation on frozen EchoCLIP) with validation-only calibration (temperature / affine logistic, split and optional adaptive conformal), together with a locked R0–R6 (+ R0U16, Oracle-EDES) public-data protocol for video-level ejection-fraction (EF) evaluation; clinical superiority claims remain contingent on EchoNet-Dynamic + official EchoCLIP weights (**待补充**). We do **not** claim to be “the first temporal EchoCLIP” or a cycle-aware zero-shot extension.
 
 ---
@@ -23,14 +21,6 @@
 | This work framing | Parameter-efficient / EF-aware temporal adaptation (EchoCLIP-TA) | **Not** “first temporal EchoCLIP”; **not** cycle-aware zero-shot |
 | Public data | EchoNet-Dynamic | Stanford AIMI; non-commercial |
 | Related VLMs | EchoPrime; CardiacCLIP; EchoJEPA; multiview video-CLIP | Baselines for positioning, not reimplemented here |
-
----
-
-## Title options
-
-1. **EchoCLIP-TA: EF-aware parameter-efficient temporal adaptation and calibrated evaluation on frozen EchoCLIP** (preferred)
-2. A reproducible temporal–calibration protocol for frozen EchoCLIP on public echocardiography videos
-3. From frames to calibrated video vectors: EchoCLIP-TA for EF estimation under a locked public protocol
 
 ---
 

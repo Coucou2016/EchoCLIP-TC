@@ -62,7 +62,7 @@ Videos are letterbox-cropped and resized via `echoclip.preprocess.crop_and_scale
 
 ## Text preprocessing
 
-Reports are uppercased and normalized with `echoclip.text.clean_report_text` (regex rules from [echonet/echo_CLIP](https://github.com/echonet/echo_CLIP)), then tokenized with `CLIPTokenizer` (77 tokens default).
+Reports are uppercased and normalized with `echoclip.text.clean_report_text` (**clean-room** EchoCLIP-TA normalizer; see NOTICE / ATTRIBUTION.md), then tokenized with `CLIPTokenizer` (77 tokens default). Official zero-shot prompt strings remain in `echoclip/prompts.py` (upstream-attributed); optional clean-room TA captions: `echoclip/prompts_ta.py`.
 
 ## EchoNet-Dynamic (public clinical eval)
 

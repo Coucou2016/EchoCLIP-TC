@@ -78,6 +78,10 @@ class TestCalibrationThresholds(unittest.TestCase):
         self.assertIn("r2_bootstrap_ci95", out)
         self.assertIn("adaptive_conformal_coverage", out)
         self.assertIn("aurc", out)
+        self.assertIn("adaptive_val_split", out)
+        # n_cal=40 >= 8 with default split → proper VAL-scale / VAL-cal
+        self.assertTrue(out["adaptive_val_split"])
+        self.assertFalse(out["adaptive_conformal_empirical_heuristic"])
         self.assertIn("conformal_width_note", out)
 
 

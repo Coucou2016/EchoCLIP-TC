@@ -492,6 +492,8 @@ def summarize_clinical(
 
     adaptive_scale: str = "heuristic",
 
+    adaptive_val_split: float = 0.5,
+
 ) -> Dict:
 
     """Regression + threshold AUC + optional val-fitted calibration/conformal.
@@ -513,6 +515,11 @@ def summarize_clinical(
     ``|y-ŷ|/s(x)`` (variable width) and report risk–coverage / AURC. Basic
 
     fixed-width split conformal remains the default primary interval.
+
+    When ``adaptive_val_split`` is in (0, 1) and VAL has enough points, VAL is
+    split into VAL-scale (fit s(x)) and VAL-cal (conformal quantile) so the
+    adaptive path is not an empirical same-split heuristic. Paper default
+    leaves adaptive conformal **off**; enable only via ``--adaptive-conformal``.
 
     """
 
@@ -767,13 +774,43 @@ def summarize_clinical(
 
         cp = _as_numpy(cal_pred).reshape(-1)
 
+        n_cal = int(cy.size)
+        split_frac = float(adaptive_val_split)
+        use_split = 0.0 < split_frac < 1.0 and n_cal >= 8
+        if use_split:
+            rng = np.random.default_rng(int(seed) + 17)
+            perm = rng.permutation(n_cal)
+            n_scale = max(4, int(round(n_cal * split_frac)))
+            n_scale = min(n_scale, n_cal - 4)
+            scale_idx = perm[:n_scale]
+            cal_idx = perm[n_scale:]
+            cy_scale, cp_scale = cy[scale_idx], cp[scale_idx]
+            cy_q, cp_q = cy[cal_idx], cp[cal_idx]
+            metrics["adaptive_val_split"] = True
+            metrics["adaptive_n_scale"] = int(scale_idx.size)
+            metrics["adaptive_n_cal"] = int(cal_idx.size)
+            metrics["adaptive_conformal_empirical_heuristic"] = False
+            metrics["adaptive_conformal_note"] = (
+                "VAL split into VAL-scale (fit s(x)) and VAL-cal (conformal quantile)."
+            )
+        else:
+            cy_scale, cp_scale = cy, cp
+            cy_q, cp_q = cy, cp
+            metrics["adaptive_val_split"] = False
+            metrics["adaptive_conformal_empirical_heuristic"] = True
+            metrics["adaptive_conformal_note"] = (
+                "s(x) and conformal quantile fit on the same VAL split "
+                f"(n_cal={n_cal}); empirical heuristic. Pass adaptive_val_split "
+                "in (0,1) with n_cal>=8 for a proper VAL-scale / VAL-cal split."
+            )
+
         scale_mode = str(adaptive_scale).strip().lower()
 
         if scale_mode in ("head", "learned", "positive_scale"):
 
-            head = PositiveScaleHead.fit(cy, cp)
+            head = PositiveScaleHead.fit(cy_scale, cp_scale)
 
-            s_cal = head.scale(cp)
+            s_for_q = head.scale(cp_q)
 
             s_te = head.scale(p)
 
@@ -785,13 +822,17 @@ def summarize_clinical(
 
         else:
 
-            s_cal = heuristic_uncertainty_scale(cp, cal_true=cy, cal_pred=cp)
+            s_for_q = heuristic_uncertainty_scale(
+                cp_q, cal_true=cy_scale, cal_pred=cp_scale
+            )
 
-            s_te = heuristic_uncertainty_scale(p, cal_true=cy, cal_pred=cp)
+            s_te = heuristic_uncertainty_scale(
+                p, cal_true=cy_scale, cal_pred=cp_scale
+            )
 
             metrics["adaptive_scale"] = "heuristic"
 
-        norm_r = normalized_residuals(cy, cp, s_cal)
+        norm_r = normalized_residuals(cy_q, cp_q, s_for_q)
 
         aq = split_conformal_quantile(norm_r, alpha=conformal_alpha)
 
@@ -816,13 +857,6 @@ def summarize_clinical(
         metrics["risk_coverage_mae"] = risk_c.tolist()
 
         metrics["aurc"] = area_under_risk_coverage(cov_c, risk_c)
-
-        # Same-VAL scale+quantile fit → empirical heuristic (not fully split).
-        metrics["adaptive_conformal_empirical_heuristic"] = True
-        metrics["adaptive_conformal_note"] = (
-            "s(x) and conformal quantile fit on the same VAL split; "
-            "label as empirical heuristic unless VAL-scale vs VAL-cal are split."
-        )
 
 
 

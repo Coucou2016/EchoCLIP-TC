@@ -41,6 +41,7 @@ from echoclip.protocol import (
 )
 from echoclip.text import EchoTokenizer
 from echoclip.utils import set_seed
+from echoclip.efficiency import count_parameters, timed_section
 from echoclip.zeroshot import EchoCLIPInference
 
 
@@ -509,21 +510,23 @@ def main() -> int:
     else:
         pool = "supervised_direct"
 
-    y_true, y_pred, info = _run_split(
-        engine,
-        manifest,
-        manifest_dir,
-        cfg,
-        args,
-        pool,
-        sample_strategy=sample_strategy,
-        split=split_name,
-        prediction_mode=prediction_mode,
-        backbone=model,
-        head=head,
-        head_kind=head_kind,
-        device=device,
-    )
+    eval_timer = {}
+    with timed_section(eval_timer, "eval_seconds"):
+        y_true, y_pred, info = _run_split(
+            engine,
+            manifest,
+            manifest_dir,
+            cfg,
+            args,
+            pool,
+            sample_strategy=sample_strategy,
+            split=split_name,
+            prediction_mode=prediction_mode,
+            backbone=model,
+            head=head,
+            head_kind=head_kind,
+            device=device,
+        )
     mask = np.isfinite(y_true) & np.isfinite(y_pred)
     n_eval = int(mask.sum())
     protocol_note = (
@@ -607,6 +610,33 @@ def main() -> int:
             )
         ),
     }
+    # Efficiency / timing fields for paper tables
+    try:
+        metrics.update(count_parameters(model))
+    except Exception:
+        pass
+    if eval_timer.get("eval_seconds") is not None:
+        metrics["eval_seconds"] = float(eval_timer["eval_seconds"])
+    if args.checkpoint:
+        meta_path = Path(args.checkpoint).parent / "train_meta.json"
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                for k in (
+                    "n_trainable_params",
+                    "n_total_params",
+                    "n_backbone_params",
+                    "n_temporal_params",
+                    "trainable_pct_of_backbone",
+                    "trainable_pct_of_total",
+                    "train_seconds",
+                ):
+                    if k in meta:
+                        metrics[k] = meta[k]
+                if meta.get("train_seed") is not None:
+                    metrics["train_seed"] = meta["train_seed"]
+            except Exception:
+                pass
     if args.experiment_id:
         metrics["experiment_id"] = str(args.experiment_id).upper()
         if spec is not None and spec.annotation_assisted:

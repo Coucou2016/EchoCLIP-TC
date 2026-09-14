@@ -1,4 +1,4 @@
-# EchoCLIP / EchoCLIP-TC (EchoCLIP-TA)
+# EchoCLIP-TA (repo: EchoCLIP-TC)
 
 
 
@@ -12,7 +12,7 @@ Vision-language foundation model for **echocardiogram interpretation**, implemen
 
 
 
-This repository (**https://github.com/Coucou2016/EchoCLIP-TC**) provides a **trainable PyTorch implementation** of the dual-encoder CLIP (echo frames + report text) plus **EchoCLIP-TC** (Temporal, Calibrated) / soft rename **EchoCLIP-TA** (parameter-efficient temporal adaptation of frozen EchoCLIP). The Python package name remains `echoclip`.
+This repository (**https://github.com/Coucou2016/EchoCLIP-TC**) implements **EchoCLIP-TA**: parameter-efficient, EF-aware temporal adaptation on frozen EchoCLIP, with validation-only calibration and a locked R0–R6 public-data protocol. Legacy name EchoCLIP-TC (Temporal, Calibrated) still appears in paths; the Python package remains `echoclip`.
 
 
 
@@ -59,6 +59,9 @@ echoclip/                 # Dual encoder, TC modules, zero-shot, clinical metric
   calibrate.py            # temperature, affine logistic, ECE, conformal
 
   structured_text.py      # EF prompts (primary); EDV dilation optional ablation
+  prompts_ta.py           # Clean-room TA captions (optional; official prompts for R0 parity)
+  efficiency.py           # Trainable param counts / timing hooks for metrics.json
+  cardiacclip.py          # External CardiacCLIP comparator (weights not bundled)
 
 scripts/
 
@@ -72,7 +75,11 @@ scripts/
 
   train.py                # R5 default: EF soft contrastive + EF-only captions
 
-  analyze_attention_edes.py  # Toy attention / ED–ES skeleton
+  analyze_attention_edes.py  # Attention / ED–ES figure + CSV (demo or EchoNet)
+
+  run_paper_matrix.py     # One-shot R0–R6 + ablations + mean±SD
+
+  run_label_efficiency.py # TRAIN subset curves with fixed TEST
 
 PAPER.md                  # Experiment IDs, honesty rules
 

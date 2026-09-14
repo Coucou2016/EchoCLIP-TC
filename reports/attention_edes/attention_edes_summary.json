@@ -1,0 +1,111 @@
+{
+  "mode": "demo_toy",
+  "demo_is_not_clinical": true,
+  "n_clips": 8,
+  "n_frames": 16,
+  "mean_weight_ed": 0.062476553690713595,
+  "mean_weight_es": 0.06252639248713027,
+  "mean_weight_ed_es_sum": 0.12500294617784385,
+  "mean_entropy": 2.7725811315330215,
+  "note": "Synthetic embeddings only. Real ED/ES attention on EchoNet requires VolumeTracings + trained temporal module \u2014 clinical figure \u5f85\u8865\u5145.",
+  "blocked_command": "set ECHONET_ROOT=<AIMI_root> && python scripts/build_echonet_manifest.py --echonet-root %ECHONET_ROOT% && python scripts/analyze_attention_edes.py --manifest data/echonet_dynamic/test.json --checkpoint checkpoints/protocol/R5/best.pt --output-dir reports/attention_edes",
+  "status": "demo_complete",
+  "rows": [
+    {
+      "n_frames": 16,
+      "ed_index": 1,
+      "es_index": 6,
+      "weight_ed": 0.062361571937799454,
+      "weight_es": 0.06286239624023438,
+      "weight_ed_es_sum": 0.12522396817803383,
+      "argmax_frame": 6,
+      "entropy": 2.772581832444872,
+      "clip_id": 0,
+      "seed": 0
+    },
+    {
+      "n_frames": 16,
+      "ed_index": 2,
+      "es_index": 7,
+      "weight_ed": 0.06290224916151818,
+      "weight_es": 0.0627611426161187,
+      "weight_ed_es_sum": 0.12566339177763688,
+      "argmax_frame": 2,
+      "entropy": 2.7725789804078538,
+      "clip_id": 1,
+      "seed": 1
+    },
+    {
+      "n_frames": 16,
+      "ed_index": 3,
+      "es_index": 8,
+      "weight_ed": 0.06258266442486146,
+      "weight_es": 0.062357023590643046,
+      "weight_ed_es_sum": 0.12493968801550451,
+      "argmax_frame": 7,
+      "entropy": 2.7725821082606066,
+      "clip_id": 2,
+      "seed": 2
+    },
+    {
+      "n_frames": 16,
+      "ed_index": 4,
+      "es_index": 9,
+      "weight_ed": 0.06243114196669736,
+      "weight_es": 0.06253819935969337,
+      "weight_ed_es_sum": 0.12496934132639073,
+      "argmax_frame": 10,
+      "entropy": 2.7725875910899145,
+      "clip_id": 3,
+      "seed": 3
+    },
+    {
+      "n_frames": 16,
+      "ed_index": 1,
+      "es_index": 6,
+      "weight_ed": 0.06289213708364555,
+      "weight_es": 0.06284906527849837,
+      "weight_ed_es_sum": 0.12574120236214392,
+      "argmax_frame": 10,
+      "entropy": 2.772576420293338,
+      "clip_id": 4,
+      "seed": 4
+    },
+    {
+      "n_frames": 16,
+      "ed_index": 2,
+      "es_index": 7,
+      "weight_ed": 0.06211369461523855,
+      "weight_es": 0.06249289936388694,
+      "weight_ed_es_sum": 0.12460659397912549,
+      "argmax_frame": 11,
+      "entropy": 2.772584152132636,
+      "clip_id": 5,
+      "seed": 5
+    },
+    {
+      "n_frames": 16,
+      "ed_index": 3,
+      "es_index": 8,
+      "weight_ed": 0.061869699507951736,
+      "weight_es": 0.062044039368629456,
+      "weight_ed_es_sum": 0.12391373887658119,
+      "argmax_frame": 5,
+      "entropy": 2.7725770134150203,
+      "clip_id": 6,
+      "seed": 6
+    },
+    {
+      "n_frames": 16,
+      "ed_index": 4,
+      "es_index": 9,
+      "weight_ed": 0.06265927082799647,
+      "weight_es": 0.06230637407933781,
+      "weight_ed_es_sum": 0.12496564490733428,
+      "argmax_frame": 12,
+      "entropy": 2.772580954219933,
+      "clip_id": 7,
+      "seed": 7
+    }
+  ]
+}

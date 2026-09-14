@@ -100,9 +100,18 @@ def _run(cmd: Sequence[str], cwd: Path = ROOT) -> int:
 
 
 def _resolve_manifests(args, cfg: dict, demo: bool):
+    # Explicit CLI manifests always win (needed for label-efficiency subsets).
+    # Demo defaults fill only when a path is omitted.
+    demo_manifest = ROOT / "data" / "demo" / "manifest.json"
     if demo:
-        demo_manifest = ROOT / "data" / "demo" / "manifest.json"
-        return demo_manifest, demo_manifest, demo_manifest.parent, demo_manifest
+        train = Path(args.train_manifest) if args.train_manifest else demo_manifest
+        test = Path(args.test_manifest) if args.test_manifest else demo_manifest
+        cal = Path(args.cal_manifest) if args.cal_manifest else demo_manifest
+        if args.manifest_dir:
+            mdir = Path(args.manifest_dir)
+        else:
+            mdir = demo_manifest.parent
+        return train, test, mdir, cal
     train = Path(
         args.train_manifest
         or cfg.get("manifest")

@@ -1,0 +1,33 @@
+# Third-party and dataset notices for EchoCLIP-TA (repo: EchoCLIP-TC)
+
+This NOTICE accompanies the MIT-licensed scaffold in this repository.
+It does **not** re-license third-party materials.
+
+## SPDX
+
+- Original EchoCLIP-TA scaffold code: SPDX-License-Identifier: MIT
+- See LICENSE and LICENSES/ for file-level notes.
+
+## Upstream research software (not redistributed as weights)
+
+### EchoCLIP (Nature Medicine 2024)
+- Christensen, Vukadinovic, Yuan, Ouyang.
+- Code: https://github.com/echonet/echo_CLIP
+- Hub weights: hf-hub:mkaichristensen/echo-clip (loaded at runtime; not vendored)
+- Prompt strings in echoclip/prompts.py follow published templates — attributed,
+  not claimed as original clinical IP. Clean-room TA captions: echoclip/prompts_ta.py.
+- Report-cleaning goals overlap public echo prep; echoclip/text.py is a clean-room
+  reimplementation (see ATTRIBUTION.md).
+
+### EchoNet-Dynamic / Stanford AIMI
+- Separate non-commercial terms: https://echonet.github.io/dynamic/
+- Videos / FileList / VolumeTracings are NOT redistributed in this repository.
+
+### CardiacCLIP (MICCAI 2025)
+- https://github.com/xmed-lab/CardiacCLIP — external comparator only.
+- Weights not bundled; see echoclip/cardiacclip.py download instructions.
+
+## Python dependencies
+
+Runtime packages (torch, open_clip, transformers, timm, …) retain their own
+licenses as installed from PyPI / Hugging Face. Pins: requirements-paper.lock.

@@ -32,13 +32,13 @@ EchoNet-Dynamic, if used, is licensed separately by Stanford AIMI (non-commercia
 
 |------|----------------|
 
-| `echoclip/prompts.py` | Prompt strings follow echonet/echo_CLIP `prompts_used.json` patterns |
+| `echoclip/prompts.py` | Prompt strings follow echonet/echo_CLIP `prompts_used.json` patterns (parity path) |
 
-| `echoclip/text.py` (report-cleaning regexes) | Cleaning patterns inspired by echonet/echo_CLIP `utils.py` |
+| `echoclip/text.py` | **Clean-room** report normalizer (MIT); behavioral overlap with public echo prep, not a line copy |
 
 | `echoclip/preprocess.py` | Echo-specific crop / frame IO aligned with published EchoCLIP preprocessing notes |
 
-| `echoclip/structured_text.py` | Fills **official** EF/dilation templates from EchoNet measurements; no new clinical wording |
+| `echoclip/structured_text.py` | Fills official or clean-room TA captions from measurements |
 
 | Official hub weights `hf-hub:mkaichristensen/echo-clip` | **Never redistributed** here; loaded at runtime when permitted |
 
@@ -66,11 +66,15 @@ EchoNet-Dynamic, if used, is licensed separately by Stanford AIMI (non-commercia
 
 | `echoclip/cycle_sample.py` | Cycle-aware frame sampling |
 
-| `echoclip/cardiacclip_stub.py` | Comparison interface only (external weights required) |
+| `echoclip/cardiacclip.py` (+ stub alias) | Comparison adapter + download instructions (external weights) |
 
-| `scripts/train.py`, `eval_clinical.py`, `run_protocol.py`, `run_seeds.py` | Training / eval / multi-seed protocol runners |
+| `echoclip/prompts_ta.py` | Clean-room EF/dilation captions for optional TA training |
 
-| `scripts/analyze_attention_edes.py` | Toy attention / ED–ES analysis skeleton |
+| `echoclip/efficiency.py` | Trainable param / timing helpers for metrics.json |
+
+| `scripts/train.py`, `eval_clinical.py`, `run_protocol.py`, `run_seeds.py`, `run_paper_matrix.py`, `run_label_efficiency.py` | Training / eval / matrix / label-efficiency runners |
+
+| `scripts/analyze_attention_edes.py` | Attention / ED–ES figure + CSV (demo complete; EchoNet path blocked on assets) |
 
 | `tests/` | Unit tests for protocol, calibration, fairness guards |
 

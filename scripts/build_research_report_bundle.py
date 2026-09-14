@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build self-contained HTML reports + PDF for EchoCLIP-TC dual-agent deliverables."""
+"""Build self-contained HTML reports + PDF for EchoCLIP-TA deliverables."""
 from __future__ import annotations
 
 import base64

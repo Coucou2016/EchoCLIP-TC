@@ -216,23 +216,45 @@ Paired bootstrap CIs for ΔMAE and bootstrap CIs for RMSE/R²/AUCs are emitted i
 
 
 
-## Remaining gaps (need real assets)
+## One-shot runners (software complete)
 
 
 
-| Gap | Needed |
+```powershell
 
-|-----|--------|
+# Full paper matrix (hard-fails without EchoNet + hub under --paper)
+python scripts\run_paper_matrix.py --paper --seeds 0,1,2,3,4
 
-| EchoNet-Dynamic videos + FileList | AIMI download |
+# Wiring proof only
+python scripts\run_paper_matrix.py --demo --epochs 1 --seeds 0,1 --vision-backbone simple_cnn
 
-| Official EchoCLIP weights | open_clip hub or local `.pt` |
+# Label efficiency 1/5/10/25/100% (demo falls back if no EchoNet)
+python scripts\run_label_efficiency.py --demo --epochs 1 --vision-backbone simple_cnn
 
-| CardiacCLIP comparison | external weights (`echoclip/cardiacclip_stub.py`; no invented numbers) |
+# Attention / ED–ES figure + CSV (demo toy; real path needs VolumeTracings)
+python scripts\analyze_attention_edes.py --output-dir reports\attention_edes
 
-| GPU + `convnext_base` | paper-scale R0/R5 |
+```
 
-| Environment lock | `requirements-lock.txt` + `requirements.txt` |
+
+
+## Remaining gaps (external assets only — software ready)
+
+
+
+| Gap | Exact unblock command |
+
+|-----|------------------------|
+
+| EchoNet-Dynamic videos + FileList | `set ECHONET_ROOT=<AIMI_root>` then `python scripts/build_echonet_manifest.py --echonet-root %ECHONET_ROOT% --subset-5000` then `python scripts/run_paper_matrix.py --paper` |
+
+| Official EchoCLIP weights | open_clip hub `hf-hub:mkaichristensen/echo-clip` or local `.pt` via `--official-checkpoint` |
+
+| CardiacCLIP comparison | `set CARDIACCLIP_WEIGHTS=<upstream.pt>` then paste upstream MAE into `checkpoints/protocol/cardiacclip_comparison.json` (never invent) |
+
+| GPU + `convnext_base` | same paper matrix on a CUDA host |
+
+| Environment lock | `pip install -r requirements-paper.lock` |
 
 
 

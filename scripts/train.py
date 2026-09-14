@@ -20,6 +20,7 @@ from echoclip.loss import ClipLoss, TemporalClipLoss, EFSoftContrastiveLoss
 from echoclip.text import EchoTokenizer
 from echoclip import model as model_module
 from echoclip.model import EchoCLIP
+from echoclip.efficiency import count_parameters, timed_section
 from echoclip.utils import set_seed
 
 
@@ -100,9 +101,13 @@ def apply_freeze(model: EchoCLIP, cfg: dict) -> None:
     if getattr(model, "temporal", None) is not None:
         for p in model.temporal.parameters():
             p.requires_grad = True
-    n_train = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    n_all = sum(p.numel() for p in model.parameters())
-    print(f"trainable parameters: {n_train:,} / {n_all:,}")
+    eff = count_parameters(model)
+    n_train = int(eff["n_trainable_params"])
+    n_all = int(eff["n_total_params"])
+    print(
+        f"trainable parameters: {n_train:,} / {n_all:,} "
+        f"({eff.get('trainable_pct_of_backbone')}% of backbone)"
+    )
     if n_train == 0:
         print("Warning: no trainable parameters; unfreezing logit_scale")
         model.logit_scale.requires_grad = True
@@ -381,38 +386,48 @@ def main() -> None:
     )
 
     best_val = float("inf")
-    for epoch in range(1, cfg.get("epochs", 10) + 1):
-        train_loss = train_epoch(
-            model, train_loader, optimizer, criterion, device, scaler, epoch=epoch
-        )
-        val_loss = eval_epoch(model, val_loader, criterion, device)
-        print(f"epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f}")
+    train_timer: dict = {}
+    with timed_section(train_timer, "train_seconds"):
+        for epoch in range(1, cfg.get("epochs", 10) + 1):
+            train_loss = train_epoch(
+                model, train_loader, optimizer, criterion, device, scaler, epoch=epoch
+            )
+            val_loss = eval_epoch(model, val_loader, criterion, device)
+            print(f"epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f}")
 
-        save_checkpoint(
-            out_dir / "last.pt",
-            model,
-            epoch,
-            train_cfg=cfg,
-            extra={"train_seed": train_seed},
-        )
-        if val_loss < best_val:
-            best_val = val_loss
             save_checkpoint(
-                out_dir / "best.pt",
+                out_dir / "last.pt",
                 model,
                 epoch,
                 train_cfg=cfg,
                 extra={"train_seed": train_seed},
             )
-            print(f"  saved best.pt (val_loss={val_loss:.4f})")
+            if val_loss < best_val:
+                best_val = val_loss
+                save_checkpoint(
+                    out_dir / "best.pt",
+                    model,
+                    epoch,
+                    train_cfg=cfg,
+                    extra={"train_seed": train_seed},
+                )
+                print(f"  saved best.pt (val_loss={val_loss:.4f})")
 
-    # Record train_seed for multi-seed aggregation
+    # Record train_seed + efficiency for multi-seed aggregation / metrics.json
+    eff = count_parameters(model)
     meta_path = out_dir / "train_meta.json"
-    meta_path.write_text(
-        json.dumps({"train_seed": train_seed, "best_val": best_val}, indent=2),
-        encoding="utf-8",
-    )
+    meta = {
+        "train_seed": train_seed,
+        "best_val": best_val,
+        "train_seconds": train_timer.get("train_seconds"),
+        **eff,
+    }
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
     print(f"Training complete. Checkpoints in {out_dir} (train_seed={train_seed})")
+    print(
+        f"efficiency: trainable={eff['n_trainable_params']} "
+        f"({eff.get('trainable_pct_of_backbone')}% of backbone)"
+    )
 
 
 if __name__ == "__main__":
