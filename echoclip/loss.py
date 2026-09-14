@@ -68,13 +68,17 @@ class EFSoftContrastiveLoss(nn.Module):
 
     Videos with similar EF are soft positives. Target distribution for video i
     over texts j is proportional to ``exp(-|EF_i - EF_j| / temperature_ef)``
-    (self always included). Falls back to hard diagonal InfoNCE when EF is
-    missing for the batch.
+    (self always included).
+
+    ``soft_weight`` scales the soft EF multi-positive term (1.0 = full soft
+    loss). When some EF labels are NaN/missing, those rows fall back to hard
+    diagonal InfoNCE — the whole batch is **not** dropped.
     """
 
     def __init__(self, ef_temperature: float = 5.0, soft_weight: float = 1.0):
         super().__init__()
         self.ef_temperature = float(ef_temperature)
+        # soft_weight: multiplier on the soft multi-positive KL term (not a mix ratio).
         self.soft_weight = float(soft_weight)
         self.hard = ClipLoss()
 
@@ -85,22 +89,39 @@ class EFSoftContrastiveLoss(nn.Module):
         logit_scale: torch.Tensor,
         ef: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        if ef is None or not torch.isfinite(ef).all():
+        if ef is None:
+            return self.hard(video_features, text_features, logit_scale)
+
+        finite = torch.isfinite(ef)
+        if not bool(finite.any()):
             return self.hard(video_features, text_features, logit_scale)
 
         video_features = F.normalize(video_features, dim=-1)
         text_features = F.normalize(text_features, dim=-1)
         scale = logit_scale.exp()
         logits = scale * video_features @ text_features.T  # (B, B)
+        batch_size = video_features.shape[0]
+        labels = torch.arange(batch_size, device=video_features.device)
 
-        ef = ef.float().view(-1, 1)
-        dist = torch.abs(ef - ef.T)
-        # Soft multi-positive targets from EF proximity
+        # Soft targets only among finite-EF pairs; missing EF → hard one-hot.
+        ef_f = torch.where(finite, ef.float(), torch.zeros_like(ef.float())).view(-1, 1)
+        dist = torch.abs(ef_f - ef_f.T)
         soft = torch.exp(-dist / max(self.ef_temperature, 1e-3))
-        soft = soft / soft.sum(dim=1, keepdim=True).clamp(min=1e-8)
+        # Zero out rows/cols with non-finite EF so they do not pollute soft targets
+        mask = finite.float().view(-1, 1) * finite.float().view(1, -1)
+        soft = soft * mask
+        row_sum = soft.sum(dim=1, keepdim=True).clamp(min=1e-8)
+        soft = soft / row_sum
 
         log_prob = F.log_softmax(logits, dim=1)
-        loss_i = -(soft * log_prob).sum(dim=1).mean()
+        soft_loss_i = -(soft * log_prob).sum(dim=1)
         log_prob_t = F.log_softmax(logits.T, dim=1)
-        loss_t = -(soft * log_prob_t).sum(dim=1).mean()
-        return self.soft_weight * (loss_i + loss_t) / 2.0
+        soft_loss_t = -(soft * log_prob_t).sum(dim=1)
+
+        hard_loss_i = F.cross_entropy(logits, labels, reduction="none")
+        hard_loss_t = F.cross_entropy(logits.T, labels, reduction="none")
+
+        # Finite EF → soft; missing → hard (do not drop the batch)
+        loss_i = torch.where(finite, soft_loss_i, hard_loss_i)
+        loss_t = torch.where(finite, soft_loss_t, hard_loss_t)
+        return self.soft_weight * (loss_i.mean() + loss_t.mean()) / 2.0

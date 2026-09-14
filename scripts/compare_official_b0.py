@@ -162,6 +162,9 @@ def main() -> int:
         "parity_gaps": list(PARITY_GAPS),
         "formula_smoke": _formula_smoke(),
         "clinical_mae": None,
+        "pad_to_16": False,
+        "official_stride": "0:min(40,T):2",
+        "official_reproduction_verified": False,
         "honesty": "No clinical MAE invented. Demo/missing assets ≠ EchoNet results.",
     }
 
@@ -189,7 +192,14 @@ def main() -> int:
         return 2
 
     summary["hub_run"] = _try_hub_infer(args.avi, args.hub, device)
-    summary["status"] = "ok" if summary["hub_run"].get("ok") else "blocked_hub_or_weights"
+    formula_ok = bool(summary["formula_smoke"].get("aggregation_allclose"))
+    hub_ok = bool(summary["hub_run"].get("ok"))
+    summary["official_reproduction_verified"] = bool(formula_ok and hub_ok)
+    summary["status"] = "ok" if hub_ok else "blocked_hub_or_weights"
+    if summary["official_reproduction_verified"]:
+        import os
+
+        os.environ["ECHOCLIP_OFFICIAL_PARITY_OK"] = "1"
     print(json.dumps(summary, indent=2))
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

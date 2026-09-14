@@ -16,6 +16,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 # Primary Table-1 experiment IDs (paper path).
 EXPERIMENT_IDS = (
     "R0",
+    "R0U16",
     "R1",
     "R2",
     "R3",
@@ -28,6 +29,10 @@ EXPERIMENT_IDS = (
 # Legacy aliases → primary IDs (kept so existing scripts/docs keep working).
 LEGACY_ALIASES: Dict[str, str] = {
     "B0": "R0",
+    "R0_OFFICIAL": "R0",
+    "R0-OFFICIAL": "R0",
+    "R0_U16": "R0U16",
+    "R0-U16": "R0U16",
     "M1": "R1",
     "M2": "R5",
     "M4": "R6",
@@ -66,8 +71,10 @@ class ExperimentSpec:
     video_frames: Optional[int] = None  # None → use config
     sample_strategy: Optional[str] = None  # train / default
     eval_sample_strategy: Optional[str] = None  # VAL/TEST primary (uniform unless Oracle)
+    paper_eval_sample_strategy: Optional[str] = None  # override under --paper (e.g. official_stride)
     temporal_type: Optional[str] = None
     supervised_head: Optional[str] = None  # none|linear|mlp|temporal_l1
+    prediction_mode: str = "zeroshot"  # zeroshot | direct_regression
     init_official: bool = True
     requires_checkpoint: bool = False
     annotation_assisted: bool = False
@@ -81,12 +88,39 @@ class ExperimentSpec:
 EXPERIMENTS: Dict[str, ExperimentSpec] = {
     "R0": ExperimentSpec(
         id="R0",
-        title="EchoCLIP-based zero-shot baseline",
+        title="EchoCLIP-based zero-shot baseline (official stride under --paper)",
         description=(
             "Frozen EchoCLIP towers; per-frame features + top-20% median EF. "
             "Default naming is 'EchoCLIP-based' until golden parity with official "
-            "echo_CLIP is proven. Use --paper / --official-reproduction for the "
-            "strict path (EF 0–100 step 1; no scratch fallback)."
+            "echo_CLIP is proven. Use --paper for official_stride 0:min(40,T):2 "
+            "(not padded to 16). Prefer scripts/eval_official_r0.py for parity runs. "
+            "official_reproduction_verified is true only after compare/parity OK."
+        ),
+        train=False,
+        pool="frames",
+        calibrate=False,
+        video_frames=16,
+        sample_strategy="uniform",
+        eval_sample_strategy="uniform",
+        paper_eval_sample_strategy="official_stride",
+        temporal_type="none",
+        prediction_mode="zeroshot",
+        init_official=True,
+        requires_checkpoint=False,
+        legacy_aliases=("B0", "R0_OFFICIAL", "R0-OFFICIAL"),
+        notes=(
+            "Do not invent clinical MAE. Published external ~7.1% is from Christensen "
+            "et al.; reproduce only with official weights + EchoNet seed-42 subset "
+            "and/or full TEST under --paper. See also R0U16 for fixed uniform-16."
+        ),
+    ),
+    "R0U16": ExperimentSpec(
+        id="R0U16",
+        title="Zero-shot uniform-16 frames (ablation vs official stride)",
+        description=(
+            "Same frozen towers / EF prompt ranking as R0, but VAL/TEST uses "
+            "uniform T=16 sampling (not official 0:min(40,T):2). Primary ablation "
+            "for framing differences vs the official EchoCLIP path."
         ),
         train=False,
         pool="frames",
@@ -95,14 +129,11 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         sample_strategy="uniform",
         eval_sample_strategy="uniform",
         temporal_type="none",
+        prediction_mode="zeroshot",
         init_official=True,
         requires_checkpoint=False,
-        legacy_aliases=("B0",),
-        notes=(
-            "Do not invent clinical MAE. Published external ~7.1% is from Christensen "
-            "et al.; reproduce only with official weights + EchoNet seed-42 subset "
-            "and/or full TEST under --paper."
-        ),
+        legacy_aliases=("R0_U16", "R0-U16"),
+        notes="Uniform-16 control; do not conflate with official R0 under --paper.",
     ),
     "R1": ExperimentSpec(
         id="R1",
@@ -118,6 +149,7 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         sample_strategy="uniform",
         eval_sample_strategy="uniform",
         temporal_type="none",
+        prediction_mode="zeroshot",
         init_official=True,
         requires_checkpoint=False,
         legacy_aliases=("M1",),
@@ -128,16 +160,18 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         title="S0: frozen mean + linear/ridge EF head",
         description=(
             "Supervised baseline: freeze EchoCLIP, mean-pool frame features, "
-            "fit a linear (or ridge) EF head on TRAIN EF labels."
+            "fit a linear (or ridge) EF head on TRAIN EF labels. Eval uses "
+            "direct_regression (not zero-shot prompts)."
         ),
         train=True,
         pool="supervised",
         calibrate=False,
         video_frames=16,
-        sample_strategy="mixed",
+        sample_strategy="uniform",
         eval_sample_strategy="uniform",
         temporal_type="none",
         supervised_head="linear",
+        prediction_mode="direct_regression",
         init_official=True,
         requires_checkpoint=True,
         legacy_aliases=("S0",),
@@ -148,16 +182,18 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         title="S1: frozen mean + MLP EF head",
         description=(
             "Supervised baseline: freeze EchoCLIP, mean-pool features, train a "
-            "small MLP EF head with L1/Huber on TRAIN EF labels."
+            "small MLP EF head with L1/Huber on TRAIN EF labels. Eval uses "
+            "direct_regression."
         ),
         train=True,
         pool="supervised",
         calibrate=False,
         video_frames=16,
-        sample_strategy="mixed",
+        sample_strategy="uniform",
         eval_sample_strategy="uniform",
         temporal_type="none",
         supervised_head="mlp",
+        prediction_mode="direct_regression",
         init_official=True,
         requires_checkpoint=True,
         legacy_aliases=("S1",),
@@ -168,16 +204,18 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         title="S2: temporal aggregator + direct L1/Huber EF",
         description=(
             "Train temporal aggregator with direct EF regression (L1/Huber), "
-            "not contrastive video–text loss."
+            "not contrastive video–text loss. Eval rebuilds the head from "
+            "head_state_dict / temporal_state_dict (direct_regression)."
         ),
         train=True,
         pool="supervised",
         calibrate=False,
         video_frames=16,
-        sample_strategy="mixed",
+        sample_strategy="uniform",
         eval_sample_strategy="uniform",
         temporal_type="transformer",
         supervised_head="temporal_l1",
+        prediction_mode="direct_regression",
         init_official=True,
         requires_checkpoint=True,
         legacy_aliases=("S2",),
@@ -197,13 +235,17 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         pool="temporal",
         calibrate=False,
         video_frames=16,
-        sample_strategy="mixed",
+        sample_strategy="uniform",
         eval_sample_strategy="uniform",
         temporal_type="transformer",
+        prediction_mode="zeroshot",
         init_official=True,
         requires_checkpoint=True,
         legacy_aliases=("M2",),
-        notes="Primary EchoCLIP-TA model before calibration.",
+        notes=(
+            "Primary EchoCLIP-TA model before calibration. "
+            "Optional ablation R5-EDEStrain: --sample-strategy mixed."
+        ),
     ),
     "R6": ExperimentSpec(
         id="R6",
@@ -216,13 +258,14 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         pool="temporal",
         calibrate=True,
         video_frames=16,
-        sample_strategy="mixed",
+        sample_strategy="uniform",
         eval_sample_strategy="uniform",
         temporal_type="transformer",
+        prediction_mode="zeroshot",
         init_official=True,
         requires_checkpoint=True,
         legacy_aliases=("M4",),
-        notes="Calibration never retuned on TEST.",
+        notes="Calibration never retuned on TEST. Paper default: affine_logistic.",
     ),
     "ORACLE_EDES": ExperimentSpec(
         id="ORACLE_EDES",
@@ -239,6 +282,7 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         sample_strategy="ed_es",
         eval_sample_strategy="ed_es",
         temporal_type="none",
+        prediction_mode="zeroshot",
         init_official=True,
         requires_checkpoint=False,
         annotation_assisted=True,
@@ -316,11 +360,18 @@ def resolve_eval_sample_strategy(
     cli_strategy: Optional[str] = None,
     cfg: Optional[dict] = None,
     split: str = "test",
+    paper: bool = False,
 ) -> str:
-    """VAL/TEST strategy: CLI > spec.eval_sample_strategy > cfg val_sample_strategy > uniform."""
+    """VAL/TEST strategy: CLI > paper override > spec.eval > cfg val > uniform.
+
+    Under ``--paper``, R0 uses ``paper_eval_sample_strategy`` (official_stride)
+    unless the caller explicitly passes ``cli_strategy``.
+    """
     cfg = cfg or {}
     if cli_strategy:
         strategy = str(cli_strategy)
+    elif paper and spec.paper_eval_sample_strategy:
+        strategy = str(spec.paper_eval_sample_strategy)
     elif spec.eval_sample_strategy:
         strategy = str(spec.eval_sample_strategy)
     else:
@@ -411,6 +462,7 @@ def merge_metrics_meta(
     out["experiment_title"] = experiment.title
     out["protocol_pool"] = experiment.pool
     out["protocol_calibrate"] = experiment.calibrate
+    out["protocol_prediction_mode"] = experiment.prediction_mode
     out["protocol_notes"] = experiment.notes
     out["annotation_assisted"] = bool(experiment.annotation_assisted)
     if experiment.legacy_aliases:
@@ -423,8 +475,10 @@ def merge_metrics_meta(
             "Do not report as EchoNet / paper EF MAE."
         )
     if paper:
-        out["official_reproduction"] = True
         out["paper_mode"] = True
+        out["official_reproduction"] = True
+        # Verified only when eval already set the flag (parity OK); else false.
+        out.setdefault("official_reproduction_verified", False)
     if extra:
         out.update(extra)
     return out

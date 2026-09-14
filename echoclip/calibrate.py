@@ -280,6 +280,11 @@ def reliability_table(
 # Adaptive / normalized conformal (optional)
 # Basic split conformal uses a *fixed* absolute residual quantile → constant
 # interval width. Adaptive conformal uses score |y-ŷ|/s(x) so widths vary.
+#
+# Honesty: when s(x) and the conformal quantile are both estimated on the same
+# VAL split (no VAL-scale vs VAL-cal holdout), treat results as an **empirical
+# heuristic** — not a fully split conformal guarantee. Prefer splitting VAL
+# when sample size allows; metrics should record this caveat.
 # ---------------------------------------------------------------------------
 
 

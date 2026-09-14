@@ -38,6 +38,16 @@ class TestEFSoftContrastive(unittest.TestCase):
         loss = EFSoftContrastiveLoss()(v, t, scale, ef=None)
         self.assertTrue(torch.isfinite(loss))
 
+    def test_partial_nan_ef_keeps_batch(self):
+        b, d = 4, 16
+        v = torch.nn.functional.normalize(torch.randn(b, d), dim=-1)
+        t = torch.nn.functional.normalize(torch.randn(b, d), dim=-1)
+        scale = torch.tensor(2.0)
+        ef = torch.tensor([30.0, float("nan"), 60.0, 62.0])
+        loss = EFSoftContrastiveLoss(ef_temperature=5.0)(v, t, scale, ef=ef)
+        self.assertTrue(torch.isfinite(loss))
+        self.assertGreater(float(loss), 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

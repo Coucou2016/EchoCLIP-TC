@@ -54,7 +54,7 @@ temporal_max_frames: 64
 
 video_frames: 16
 
-sample_strategy: mixed          # TRAIN only
+sample_strategy: uniform         # TRAIN primary (mixed = R5-EDEStrain ablation only)
 
 val_sample_strategy: uniform    # VAL/TEST primary (ed_es/mixed hard-fail)
 

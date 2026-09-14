@@ -2,6 +2,8 @@ MIT License
 
 Copyright (c) 2026 EchoCLIP-TC / EchoCLIP-TA contributors
 
+SPDX-License-Identifier: MIT
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -21,7 +23,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-NOTE: See ATTRIBUTION.md for provenance risk. MIT applies to original scaffold
-code in this repository; it does not re-license upstream EchoCLIP prompts,
-official weights, or Stanford AIMI / EchoNet dataset terms. TODO: complete
-Academic Software License audit for upstream-derived materials.
+SPDX / provenance boundary
+- This MIT license applies to original scaffold code in this repository
+  (see ATTRIBUTION.md “Clean-room / original scaffold”).
+- It does **not** re-license: EchoCLIP prompts/patterns, official hub weights
+  (`hf-hub:mkaichristensen/echo-clip`), Stanford AIMI / EchoNet dataset terms,
+  or third-party packages listed in requirements*.
+- File-level provenance: ATTRIBUTION.md

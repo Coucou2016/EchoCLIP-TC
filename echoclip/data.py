@@ -190,6 +190,7 @@ class EchoCLIPDataset(Dataset):
             idx = sample_frame_indices(
                 n_total, n_want, seed=seed, strategy=self.sample_strategy
             )
+            idx = pad_or_trim_indices(idx, n_want, n_total)
         else:
             idx = sample_cycle_indices(
                 n_total,
@@ -199,9 +200,16 @@ class EchoCLIPDataset(Dataset):
                 es_index=es_i,
                 seed=seed,
             )
-        idx = pad_or_trim_indices(idx, n_want, n_total)
+            # Official EchoCLIP path: keep 0:min(40,T):2 length — do NOT pad/trim to 16.
+            strat = str(self.sample_strategy).strip().lower()
+            if strat not in ("official_stride", "official", "echo_clip_stride"):
+                idx = pad_or_trim_indices(idx, n_want, n_total)
         clip = frames_to_tensor(frames, idx, self.image_size)
-        if n_want == 1:
+        if n_want == 1 and str(self.sample_strategy).strip().lower() not in (
+            "official_stride",
+            "official",
+            "echo_clip_stride",
+        ):
             return clip[0]
         if self.frame_pool == "mean":
             return clip.mean(dim=0)
@@ -250,11 +258,43 @@ class EchoCLIPDataset(Dataset):
 
 
 def collate_batch(batch: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
-    images = torch.stack([b["image"] for b in batch])
+    """Stack images; pad variable-T clips (e.g. official_stride) to max T in batch."""
+    imgs = [b["image"] for b in batch]
+    if imgs[0].dim() == 4:  # (T,C,H,W) — may differ in T
+        max_t = max(im.shape[0] for im in imgs)
+        padded = []
+        for im in imgs:
+            if im.shape[0] == max_t:
+                padded.append(im)
+            elif im.shape[0] > max_t:
+                padded.append(im[:max_t])
+            else:
+                # Repeat last frame (same convention as pad_or_trim_indices)
+                pad_n = max_t - im.shape[0]
+                last = im[-1:].expand(pad_n, -1, -1, -1)
+                padded.append(torch.cat([im, last], dim=0))
+        images = torch.stack(padded)
+    else:
+        images = torch.stack(imgs)
     texts = torch.stack([b["text"] for b in batch])
     out: Dict[str, torch.Tensor] = {"image": images, "text": texts}
     if "image_2" in batch[0]:
-        out["image_2"] = torch.stack([b["image_2"] for b in batch])
+        imgs2 = [b["image_2"] for b in batch]
+        if imgs2[0].dim() == 4:
+            max_t = max(im.shape[0] for im in imgs2)
+            padded2 = []
+            for im in imgs2:
+                if im.shape[0] == max_t:
+                    padded2.append(im)
+                elif im.shape[0] > max_t:
+                    padded2.append(im[:max_t])
+                else:
+                    pad_n = max_t - im.shape[0]
+                    last = im[-1:].expand(pad_n, -1, -1, -1)
+                    padded2.append(torch.cat([im, last], dim=0))
+            out["image_2"] = torch.stack(padded2)
+        else:
+            out["image_2"] = torch.stack(imgs2)
     efs = [b.get("ef") for b in batch]
     if any(v is not None for v in efs):
         out["ef"] = torch.tensor(

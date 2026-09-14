@@ -173,6 +173,12 @@ def main() -> None:
     parser.add_argument("--no-official", action="store_true")
     parser.add_argument("--sample-strategy", type=str, default=None)
     parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Override cfg seed; stored as train_seed in checkpoints/metrics",
+    )
+    parser.add_argument(
         "--ef-soft-contrastive",
         action="store_true",
         default=None,
@@ -224,6 +230,12 @@ def main() -> None:
         cfg["init_open_clip"] = False
     if args.sample_strategy:
         cfg["sample_strategy"] = args.sample_strategy
+    if args.seed is not None:
+        cfg["seed"] = int(args.seed)
+    # Primary train sampling defaults to uniform (mixed is R5-EDEStrain ablation only)
+    if str(cfg.get("sample_strategy", "uniform")).lower() == "mixed" and not args.sample_strategy:
+        # Config may still say mixed historically; prefer uniform unless CLI asked for mixed
+        cfg["sample_strategy"] = "uniform"
     if args.use_edv_captions:
         cfg["use_edv_captions"] = True
     paper = bool(getattr(args, "paper", False))
@@ -249,7 +261,9 @@ def main() -> None:
         cfg["init_official_echo_clip"] = False
         cfg["init_open_clip"] = False
 
-    set_seed(cfg.get("seed", 42))
+    train_seed = int(cfg.get("seed", 42))
+    cfg["seed"] = train_seed
+    set_seed(train_seed)
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     manifest = Path(cfg["manifest"])
     if not manifest.exists():
@@ -265,7 +279,7 @@ def main() -> None:
         for err in manifest_errors[:15]:
             print(f"  - {err}")
         sys.exit(1)
-    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), cfg.get("seed", 42))
+    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), train_seed)
     out_dir = Path(cfg["output_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -288,7 +302,7 @@ def main() -> None:
         context_length=context_length,
         video_frames=cfg.get("video_frames", 1),
         tokenizer=tokenizer,
-        sample_strategy=cfg.get("sample_strategy", "random"),
+        sample_strategy=cfg.get("sample_strategy", "uniform"),
         frame_pool=cfg.get("frame_pool", "stack"),
         two_views=float(cfg.get("view_weight", 0.0)) > 0,
         caption_mode=cfg.get("caption_mode", "random"),
@@ -296,7 +310,7 @@ def main() -> None:
     )
     train_ds = EchoCLIPDataset(
         train_manifest,
-        seed=cfg.get("seed", 42),
+        seed=train_seed,
         **ds_kwargs,
     )
     val_ds = EchoCLIPDataset(
@@ -374,13 +388,31 @@ def main() -> None:
         val_loss = eval_epoch(model, val_loader, criterion, device)
         print(f"epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f}")
 
-        save_checkpoint(out_dir / "last.pt", model, epoch, train_cfg=cfg)
+        save_checkpoint(
+            out_dir / "last.pt",
+            model,
+            epoch,
+            train_cfg=cfg,
+            extra={"train_seed": train_seed},
+        )
         if val_loss < best_val:
             best_val = val_loss
-            save_checkpoint(out_dir / "best.pt", model, epoch, train_cfg=cfg)
+            save_checkpoint(
+                out_dir / "best.pt",
+                model,
+                epoch,
+                train_cfg=cfg,
+                extra={"train_seed": train_seed},
+            )
             print(f"  saved best.pt (val_loss={val_loss:.4f})")
 
-    print(f"Training complete. Checkpoints in {out_dir}")
+    # Record train_seed for multi-seed aggregation
+    meta_path = out_dir / "train_meta.json"
+    meta_path.write_text(
+        json.dumps({"train_seed": train_seed, "best_val": best_val}, indent=2),
+        encoding="utf-8",
+    )
+    print(f"Training complete. Checkpoints in {out_dir} (train_seed={train_seed})")
 
 
 if __name__ == "__main__":

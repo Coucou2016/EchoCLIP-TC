@@ -11,10 +11,11 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
+import torch.nn as nn
 import yaml
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -22,7 +23,12 @@ from tqdm import tqdm
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from echoclip.checkpoint import load_checkpoint
+from echoclip.checkpoint import (
+    is_supervised_ef_checkpoint,
+    load_checkpoint,
+    load_supervised_ef_checkpoint,
+    predict_direct_ef,
+)
 from echoclip.clinical import parse_ef_from_text, summarize_clinical
 from echoclip.data import EchoCLIPDataset, collate_batch, load_manifest, validate_manifest
 from echoclip.model import EchoCLIP
@@ -72,7 +78,7 @@ def predict_ef(
     loader: DataLoader,
     pool: str,
 ) -> np.ndarray:
-    """pool: frames (official per-frame) | mean | temporal."""
+    """Zero-shot EF via prompt pack. pool: frames | mean | temporal."""
     from echoclip.temporal import pool_frame_features
 
     preds: List[torch.Tensor] = []
@@ -103,6 +109,26 @@ def predict_ef(
             batch_pred = engine.zero_shot_ef_batch(
                 feats, prompt_embeddings=prompt_emb, prompt_values=prompt_values
             )
+        preds.append(batch_pred.detach().cpu())
+    if not preds:
+        return np.zeros((0,), dtype=np.float64)
+    return torch.cat(preds).numpy().reshape(-1)
+
+
+@torch.no_grad()
+def predict_ef_direct(
+    backbone: EchoCLIP,
+    head: nn.Module,
+    loader: DataLoader,
+    *,
+    head_kind: str,
+    device: str,
+) -> np.ndarray:
+    """Direct EF regression — does NOT call zero-shot prompt pack."""
+    preds: List[torch.Tensor] = []
+    for batch in tqdm(loader, desc="clinical-ef-direct"):
+        images = batch["image"].to(device)
+        batch_pred = predict_direct_ef(backbone, head, images, head_kind=head_kind)
         preds.append(batch_pred.detach().cpu())
     if not preds:
         return np.zeros((0,), dtype=np.float64)
@@ -140,7 +166,7 @@ def _infer_split_name(manifest: Path, cfg: dict) -> str:
 
 
 def _run_split(
-    engine: EchoCLIPInference,
+    engine: Optional[EchoCLIPInference],
     manifest: Path,
     manifest_dir: Path,
     cfg: dict,
@@ -149,6 +175,11 @@ def _run_split(
     *,
     sample_strategy: str,
     split: str = "test",
+    prediction_mode: str = "zeroshot",
+    backbone: Optional[EchoCLIP] = None,
+    head: Optional[nn.Module] = None,
+    head_kind: Optional[str] = None,
+    device: str = "cpu",
 ) -> Tuple[np.ndarray, np.ndarray, dict]:
     assert_primary_eval_sampling(
         split=split,
@@ -158,13 +189,28 @@ def _run_split(
             getattr(args, "allow_annotation_assisted", False)
         ),
     )
+    image_size = (
+        engine.model.config.image_size
+        if engine is not None
+        else backbone.config.image_size  # type: ignore[union-attr]
+    )
+    context_length = (
+        engine.model.config.context_length
+        if engine is not None
+        else backbone.config.context_length  # type: ignore[union-attr]
+    )
+    # Official stride keeps variable T (do not force pad to 16).
+    vf = args.video_frames or cfg.get("video_frames", 1)
+    if str(sample_strategy).lower() in ("official_stride", "official", "echo_clip_stride"):
+        # Upper bound for dataset; actual count comes from stride (no pad-to-16).
+        vf = max(int(vf or 20), 20)
     ds = EchoCLIPDataset(
         manifest,
         manifest_dir=manifest_dir,
-        image_size=engine.model.config.image_size,
-        context_length=engine.model.config.context_length,
-        tokenizer=EchoTokenizer(context_length=engine.model.config.context_length),
-        video_frames=args.video_frames or cfg.get("video_frames", 1),
+        image_size=image_size,
+        context_length=context_length,
+        tokenizer=EchoTokenizer(context_length=context_length),
+        video_frames=vf,
         sample_strategy=sample_strategy,
         seed=args.seed,
     )
@@ -176,7 +222,16 @@ def _run_split(
         collate_fn=collate_batch,
     )
     y_true, source, n_missing = _collect_ef_labels(ds)
-    y_pred = predict_ef(engine, loader, pool=pool)
+    if prediction_mode == "direct_regression":
+        if backbone is None or head is None or head_kind is None:
+            raise RuntimeError("direct_regression requires loaded backbone+head")
+        y_pred = predict_ef_direct(
+            backbone, head, loader, head_kind=head_kind, device=device
+        )
+    else:
+        if engine is None:
+            raise RuntimeError("zeroshot prediction requires EchoCLIPInference engine")
+        y_pred = predict_ef(engine, loader, pool=pool)
     info = {
         "n": len(ds),
         "ef_source": source,
@@ -185,6 +240,7 @@ def _run_split(
         "pool": pool,
         "sample_strategy": sample_strategy,
         "split": split,
+        "prediction_mode": prediction_mode,
     }
     return y_true, y_pred, info
 
@@ -245,6 +301,13 @@ def main() -> int:
         choices=["heuristic", "head"],
         default="heuristic",
         help="Scale s(x) for adaptive conformal (heuristic or learned PositiveScaleHead)",
+    )
+    parser.add_argument(
+        "--prediction-mode",
+        choices=["zeroshot", "direct_regression", "auto"],
+        default="auto",
+        help="zeroshot=EF prompt pack; direct_regression=supervised head (R2–R4); "
+        "auto=infer from experiment / checkpoint",
     )
     parser.add_argument(
         "--split",
@@ -314,6 +377,7 @@ def main() -> int:
             cli_strategy=args.sample_strategy,
             cfg=cfg,
             split=split_name,
+            paper=paper,
         )
     else:
         sample_strategy = args.sample_strategy or cfg.get(
@@ -325,28 +389,75 @@ def main() -> int:
             experiment_id=args.experiment_id,
             allow_annotation_assisted=args.allow_annotation_assisted,
         )
-
-    # Paper mode: prefer official stride frame selection when not overridden
-    if paper and args.sample_strategy is None and (
-        spec is None or not spec.annotation_assisted
-    ):
-        if sample_strategy == "uniform":
+        # Paper + no experiment: prefer official stride when CLI left unset
+        if paper and args.sample_strategy is None and sample_strategy == "uniform":
             sample_strategy = "official_stride"
 
+    # Resolve prediction mode
+    prediction_mode = args.prediction_mode
+    if prediction_mode == "auto":
+        if spec is not None and getattr(spec, "prediction_mode", None):
+            prediction_mode = spec.prediction_mode
+        elif spec is not None and spec.pool == "supervised":
+            prediction_mode = "direct_regression"
+        else:
+            prediction_mode = "zeroshot"
+
+    engine: Optional[EchoCLIPInference] = None
+    model: Optional[EchoCLIP] = None
+    head: Optional[nn.Module] = None
+    head_kind: Optional[str] = None
+    ckpt: dict = {}
+    ckpt_epoch = None
+    load_source = "unknown"
+    train_seed = None
+
     if args.checkpoint and args.checkpoint.exists():
-        model, ckpt = load_checkpoint(args.checkpoint, device=device)
-        ckpt_epoch = ckpt.get("epoch", "?")
-        load_source = getattr(model, "load_source", "checkpoint")
-        if paper and str(load_source).startswith("scratch"):
-            print(
-                "Error: --paper requires real EchoCLIP weights; checkpoint load_source="
-                f"{load_source}"
+        try:
+            raw = torch.load(args.checkpoint, map_location=device, weights_only=False)
+        except TypeError:
+            raw = torch.load(args.checkpoint, map_location=device)
+        if prediction_mode == "direct_regression" or is_supervised_ef_checkpoint(raw):
+            prediction_mode = "direct_regression"
+            model, head, ckpt = load_supervised_ef_checkpoint(
+                args.checkpoint,
+                device=device,
+                allow_scratch_fallback=not paper,
             )
-            return 1
+            head_kind = str(ckpt.get("head_kind") or "linear")
+            ckpt_epoch = ckpt.get("epoch", "?")
+            load_source = (
+                ckpt.get("backbone_load_source")
+                or getattr(model, "load_source", "supervised_checkpoint")
+            )
+            train_seed = ckpt.get("train_seed")
+            if paper and str(load_source).startswith("scratch"):
+                print(
+                    "Error: --paper requires real EchoCLIP weights; checkpoint load_source="
+                    f"{load_source}"
+                )
+                return 1
+        else:
+            model, ckpt = load_checkpoint(args.checkpoint, device=device)
+            ckpt_epoch = ckpt.get("epoch", "?")
+            load_source = getattr(model, "load_source", "checkpoint")
+            train_seed = ckpt.get("train_seed") or (ckpt.get("config") or {}).get("seed")
+            if paper and str(load_source).startswith("scratch"):
+                print(
+                    "Error: --paper requires real EchoCLIP weights; checkpoint load_source="
+                    f"{load_source}"
+                )
+                return 1
     elif args.init_official:
         from echoclip.config import EchoCLIPConfig
         from echoclip.utils import config_from_dict
 
+        if prediction_mode == "direct_regression":
+            print(
+                "Error: --prediction-mode direct_regression requires --checkpoint "
+                "with a supervised EF head (R2–R4)."
+            )
+            return 1
         model_cfg = config_from_dict(cfg) if cfg else EchoCLIPConfig()
         model_cfg.pretrained_vision = False
         if model_module_needs_simple_cnn() and not paper:
@@ -379,20 +490,24 @@ def main() -> int:
         return 1
 
     ef_values = list(OFFICIAL_EF_VALUES) if paper else list(DEFAULT_EF_VALUES)
-    engine = EchoCLIPInference(
-        model,
-        device=device,
-        official_reproduction=paper,
-        ef_values=ef_values,
-    )
-    pool = resolve_pool(args.pool, model)
-    if pool == "temporal" and getattr(model, "temporal", None) is None:
-        print(
-            "Error: --pool temporal requires an attached temporal aggregator, "
-            "but this model has temporal=None (would silently mean-pool).\n"
-            "Train R5/M2 first, load a TC checkpoint, or use --pool mean|frames."
+    pool = "mean"
+    if prediction_mode == "zeroshot":
+        engine = EchoCLIPInference(
+            model,
+            device=device,
+            official_reproduction=paper,
+            ef_values=ef_values,
         )
-        return 1
+        pool = resolve_pool(args.pool, model)
+        if pool == "temporal" and getattr(model, "temporal", None) is None:
+            print(
+                "Error: --pool temporal requires an attached temporal aggregator, "
+                "but this model has temporal=None (would silently mean-pool).\n"
+                "Train R5/M2 first, load a TC checkpoint, or use --pool mean|frames."
+            )
+            return 1
+    else:
+        pool = "supervised_direct"
 
     y_true, y_pred, info = _run_split(
         engine,
@@ -403,6 +518,11 @@ def main() -> int:
         pool,
         sample_strategy=sample_strategy,
         split=split_name,
+        prediction_mode=prediction_mode,
+        backbone=model,
+        head=head,
+        head_kind=head_kind,
+        device=device,
     )
     mask = np.isfinite(y_true) & np.isfinite(y_pred)
     n_eval = int(mask.sum())
@@ -426,9 +546,30 @@ def main() -> int:
             pool,
             sample_strategy=sample_strategy,
             split="val",
+            prediction_mode=prediction_mode,
+            backbone=model,
+            head=head,
+            head_kind=head_kind,
+            device=device,
         )
         cmask = np.isfinite(cy) & np.isfinite(cp)
         cal_true, cal_pred = cy[cmask], cp[cmask]
+
+    # official_reproduction_verified: only true after parity evidence; paper alone ≠ verified
+    official_verified = False
+    if paper and str(sample_strategy).lower() in (
+        "official_stride",
+        "official",
+        "echo_clip_stride",
+    ):
+        # Verified only when caller/env marks parity (compare_official_b0 / eval_official_r0).
+        import os
+
+        official_verified = os.environ.get("ECHOCLIP_OFFICIAL_PARITY_OK", "").strip() in (
+            "1",
+            "true",
+            "yes",
+        )
 
     metrics = {
         "task": "clinical_ef",
@@ -440,20 +581,29 @@ def main() -> int:
         "checkpoint_epoch": ckpt_epoch,
         "load_source": load_source,
         "pool": pool,
+        "prediction_mode": prediction_mode,
+        "head_kind": head_kind,
         "use_temporal": pool == "temporal",
         "video_frames": args.video_frames or cfg.get("video_frames", 1),
         "sample_strategy": sample_strategy,
         "seed": args.seed,
+        "train_seed": train_seed,
         "note": protocol_note,
         "paper_primary": True,
         "demo_is_not_clinical": info["ef_source"] != "manifest",
         "official_reproduction": paper,
+        "paper_mode": paper,
+        "official_reproduction_verified": official_verified,
         "ef_grid": "0_100_step1" if paper else "15_80_step5",
         "ef_grid_n": len(ef_values),
         "baseline_name": (
             "Official EchoCLIP zero-shot (reproduction path)"
-            if paper
-            else "EchoCLIP-based zero-shot baseline"
+            if paper and prediction_mode == "zeroshot"
+            else (
+                "Supervised EF regression (direct head)"
+                if prediction_mode == "direct_regression"
+                else "EchoCLIP-based zero-shot baseline"
+            )
         ),
     }
     if args.experiment_id:
@@ -461,13 +611,19 @@ def main() -> int:
         if spec is not None and spec.annotation_assisted:
             metrics["annotation_assisted"] = True
     if n_eval >= 2:
+        # Paper default calibration: affine_logistic when calibrate path used
+        cal_method = args.calibration_method
+        if paper and cal_method == "temperature" and args.cal_manifest:
+            # Prefer affine_logistic for paper unless user overrode via CLI default —
+            # keep CLI explicit; protocol passes affine_logistic under --paper.
+            cal_method = args.calibration_method
         clinical = summarize_clinical(
             y_true[mask],
             y_pred[mask],
             cal_true=cal_true,
             cal_pred=cal_pred,
             seed=args.seed,
-            calibration_method=args.calibration_method,
+            calibration_method=cal_method,
             adaptive_conformal=bool(args.adaptive_conformal),
             adaptive_scale=args.adaptive_scale,
         )

@@ -71,8 +71,8 @@ def _print_catalog() -> None:
 
 def _parse_experiments(raw: Optional[str]) -> List[str]:
     if not raw or raw.strip().lower() in ("all", "*"):
-        # Default "all" = primary matrix without Oracle (opt-in)
-        return [i for i in EXPERIMENT_IDS if i != "ORACLE_EDES"]
+        # Default "all" = primary matrix without Oracle / R0U16 ablation
+        return [i for i in EXPERIMENT_IDS if i not in ("ORACLE_EDES", "R0U16")]
     out: List[str] = []
     for part in raw.split(","):
         part = part.strip()
@@ -152,6 +152,8 @@ def _train_m2(args, cfg: dict, train_manifest: Path, manifest_dir: Path, out_dir
         "--temporal-type",
         args.temporal_type or cfg.get("temporal_type", "transformer"),
         "--freeze-backbone",
+        "--seed",
+        str(args.seed),
     ]
     if args.video_frames is not None:
         cmd.extend(["--video-frames", str(args.video_frames)])
@@ -163,8 +165,9 @@ def _train_m2(args, cfg: dict, train_manifest: Path, manifest_dir: Path, out_dir
         cmd.extend(["--vision-backbone", args.vision_backbone])
     if args.no_official or (args.vision_backbone == "simple_cnn"):
         cmd.append("--no-official")
-    if args.sample_strategy:
-        cmd.extend(["--sample-strategy", args.sample_strategy])
+    # Primary train sampling: uniform unless CLI overrides (mixed = R5-EDEStrain ablation)
+    ss = args.sample_strategy or "uniform"
+    cmd.extend(["--sample-strategy", ss])
     if args.device:
         cmd.extend(["--device", args.device])
     # R5 default train path: EF soft contrastive ON (train.py default for temporal).
@@ -203,6 +206,8 @@ def _train_supervised(
         str(out_dir),
         "--head",
         spec.supervised_head or "linear",
+        "--seed",
+        str(args.seed),
     ]
     if args.video_frames is not None:
         cmd.extend(["--video-frames", str(args.video_frames)])
@@ -214,8 +219,14 @@ def _train_supervised(
         cmd.extend(["--vision-backbone", args.vision_backbone])
     if args.no_official or args.vision_backbone == "simple_cnn" or args.demo:
         cmd.append("--no-official")
+    if args.demo:
+        cmd.append("--demo")
+    ss = args.sample_strategy or spec.sample_strategy or "uniform"
+    cmd.extend(["--sample-strategy", ss])
     if args.device:
         cmd.extend(["--device", args.device])
+    if getattr(args, "paper", False):
+        cmd.append("--paper")
     return _run(cmd)
 
 
@@ -231,6 +242,11 @@ def _eval_experiment(
     demo: bool,
     paper: bool,
 ) -> int:
+    pred_mode = getattr(spec, "prediction_mode", None) or (
+        "direct_regression" if spec.pool == "supervised" else "zeroshot"
+    )
+    # Pool for zeroshot path only; supervised uses direct_regression (ignore mean remap).
+    pool_arg = spec.pool if spec.pool != "supervised" else "mean"
     cmd = [
         sys.executable,
         str(ROOT / "scripts" / "eval_clinical.py"),
@@ -241,7 +257,9 @@ def _eval_experiment(
         "--manifest-dir",
         str(manifest_dir),
         "--pool",
-        "mean" if spec.pool == "supervised" else spec.pool,
+        pool_arg,
+        "--prediction-mode",
+        pred_mode,
         "--seed",
         str(args.seed),
         "--output",
@@ -273,8 +291,11 @@ def _eval_experiment(
                 "(pipeline smoke only — not clinical)."
             )
         cmd.extend(["--cal-manifest", str(cal_manifest)])
-        if getattr(args, "calibration_method", None):
-            cmd.extend(["--calibration-method", args.calibration_method])
+        # Paper default calibration: affine_logistic
+        cal_method = getattr(args, "calibration_method", None)
+        if cal_method is None:
+            cal_method = "affine_logistic" if paper else "temperature"
+        cmd.extend(["--calibration-method", cal_method])
         if getattr(args, "adaptive_conformal", False):
             cmd.append("--adaptive-conformal")
     elif spec.calibrate and not demo:
@@ -290,7 +311,7 @@ def _eval_experiment(
     if vf is not None:
         cmd.extend(["--video-frames", str(vf)])
 
-    # Honor val_sample_strategy / forced uniform primary; Oracle keeps ed_es.
+    # Honor paper official_stride for R0; do NOT force uniform that blocks paper path.
     cfg = _load_cfg(args.config)
     try:
         ss = resolve_eval_sample_strategy(
@@ -298,6 +319,7 @@ def _eval_experiment(
             cli_strategy=args.sample_strategy,
             cfg=cfg,
             split="test",
+            paper=paper,
         )
     except ValueError as exc:
         print(f"Error: {exc}")
@@ -312,6 +334,12 @@ def _eval_experiment(
     if checkpoint and checkpoint.exists():
         cmd.extend(["--checkpoint", str(checkpoint)])
     else:
+        if pred_mode == "direct_regression":
+            print(
+                f"Error: {spec.id} requires a supervised checkpoint for "
+                "direct_regression eval."
+            )
+            return 1
         cmd.append("--init-official")
         if args.official_checkpoint:
             cmd.extend(["--official-checkpoint", str(args.official_checkpoint)])
@@ -338,12 +366,15 @@ def _eval_experiment(
             paper=paper,
             extra={
                 "protocol_output": str(out_metrics.parent),
+                "train_seed": metrics.get("train_seed", args.seed),
                 "b0_reproduce_hint": (
                     "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
                     "(see subset_5000_ids.json) AND/OR full TEST; "
                     "load_source must be hf-hub:mkaichristensen/echo-clip "
-                    "(not scratch_fallback / simple_cnn). Use --paper."
-                    if spec.id == "R0"
+                    "(not scratch_fallback / simple_cnn). Use --paper + "
+                    "scripts/eval_official_r0.py; set ECHOCLIP_OFFICIAL_PARITY_OK=1 "
+                    "only after compare_official_b0 parity."
+                    if spec.id in ("R0", "R0U16")
                     else None
                 ),
             },
@@ -403,7 +434,8 @@ def main() -> int:
     parser.add_argument(
         "--calibration-method",
         choices=["temperature", "affine_logistic"],
-        default="temperature",
+        default=None,
+        help="VAL calibration method (default: affine_logistic under --paper, else temperature)",
     )
     parser.add_argument(
         "--ef-soft-contrastive",

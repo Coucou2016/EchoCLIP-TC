@@ -19,7 +19,7 @@ from tqdm import tqdm
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from echoclip.checkpoint import save_checkpoint
+from echoclip.checkpoint import model_config_dict, save_supervised_ef_checkpoint
 from echoclip.config import EchoCLIPConfig
 from echoclip.data import EchoCLIPDataset, collate_batch, load_manifest, split_manifest, validate_manifest
 from echoclip.model import EchoCLIP
@@ -116,6 +116,18 @@ def main() -> int:
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--ridge-alpha", type=float, default=1.0)
     parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Override cfg seed (also written as train_seed in checkpoint)",
+    )
+    parser.add_argument(
+        "--sample-strategy",
+        type=str,
+        default=None,
+        help="Train sampling (default uniform; use mixed only for R5-EDEStrain ablation)",
+    )
+    parser.add_argument(
         "--demo",
         action="store_true",
         help="Force demo wiring: no official init, prefer simple_cnn (NOT clinical).",
@@ -168,8 +180,16 @@ def main() -> int:
         cfg["init_official_echo_clip"] = True
     if args.no_official or cfg.get("vision_backbone") == "simple_cnn":
         cfg["init_official_echo_clip"] = False
+    if args.seed is not None:
+        cfg["seed"] = int(args.seed)
+    if args.sample_strategy:
+        cfg["sample_strategy"] = args.sample_strategy
+    # Primary supervised train sampling: uniform/random (not mixed). Mixed is ablation-only.
+    if str(cfg.get("sample_strategy", "uniform")).lower() == "mixed":
+        cfg["sample_strategy"] = "uniform"
 
-    set_seed(cfg.get("seed", 42))
+    train_seed = int(cfg.get("seed", 42))
+    set_seed(train_seed)
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     manifest = Path(cfg.get("manifest") or ROOT / "data" / "demo" / "manifest.json")
     if args.demo and not args.manifest:
@@ -186,7 +206,7 @@ def main() -> int:
             print(e)
         return 1
 
-    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), cfg.get("seed", 42))
+    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), train_seed)
     out_dir = Path(cfg.get("output_dir", ROOT / "checkpoints" / "supervised"))
     out_dir.mkdir(parents=True, exist_ok=True)
     split_dir = out_dir / "splits"
@@ -203,8 +223,8 @@ def main() -> int:
         context_length=cfg.get("context_length", 77),
         video_frames=cfg.get("video_frames", 16),
         tokenizer=tokenizer,
-        sample_strategy=cfg.get("sample_strategy", "mixed"),
-        seed=cfg.get("seed", 42),
+        sample_strategy=cfg.get("sample_strategy", "uniform"),
+        seed=train_seed,
     )
     train_ds = EchoCLIPDataset(train_m, **ds_kwargs)
     val_ds = EchoCLIPDataset(
@@ -267,21 +287,19 @@ def main() -> int:
                 total += loss.item()
                 n += 1
             print(f"epoch {epoch}: train_l1={total / max(n, 1):.4f}")
-        payload = {"head_kind": "linear", "ridge_alpha": args.ridge_alpha}
-        torch.save(
-            {
-                "epoch": epochs,
-                "head_state_dict": head.state_dict(),
-                "head_kind": "linear",
-                "embed_dim": dim,
-                "train_cfg": cfg,
-                "meta": payload,
-                "model_config": backbone.config.__dict__,
-            },
+        save_supervised_ef_checkpoint(
             out_dir / "best.pt",
+            head_kind="linear",
+            head=head.cpu(),
+            model_config=model_config_dict(backbone),
+            train_seed=train_seed,
+            epoch=epochs,
+            embed_dim=dim,
+            train_cfg={**cfg, "seed": train_seed},
+            meta={"ridge_alpha": args.ridge_alpha, "head_kind": "linear"},
+            backbone_load_source=getattr(backbone, "load_source", None),
         )
-        # Also attach a thin EchoCLIP wrapper for load_checkpoint compatibility when possible
-        print(f"Saved linear/ridge head → {out_dir / 'best.pt'}")
+        print(f"Saved linear/ridge head → {out_dir / 'best.pt'} (train_seed={train_seed})")
         return 0
 
     if head_kind in ("mlp", "s1"):
@@ -327,18 +345,19 @@ def main() -> int:
             print(f"epoch {epoch}: train={total / max(n, 1):.4f} val_l1={val_l1:.4f}")
             if val_l1 < best:
                 best = val_l1
-                torch.save(
-                    {
-                        "epoch": epoch,
-                        "head_state_dict": head.state_dict(),
-                        "head_kind": "mlp",
-                        "embed_dim": dim,
-                        "train_cfg": cfg,
-                        "model_config": backbone.config.__dict__,
-                    },
+                save_supervised_ef_checkpoint(
                     out_dir / "best.pt",
+                    head_kind="mlp",
+                    head=head,
+                    model_config=model_config_dict(backbone),
+                    train_seed=train_seed,
+                    epoch=epoch,
+                    embed_dim=dim,
+                    train_cfg={**cfg, "seed": train_seed},
+                    meta={"head_kind": "mlp"},
+                    backbone_load_source=getattr(backbone, "load_source", None),
                 )
-        print(f"Saved MLP head → {out_dir / 'best.pt'}")
+        print(f"Saved MLP head → {out_dir / 'best.pt'} (train_seed={train_seed})")
         return 0
 
     if head_kind in ("temporal_l1", "temporal_huber", "s2"):
@@ -384,21 +403,28 @@ def main() -> int:
             print(f"epoch {epoch}: train={total / max(n, 1):.4f} val_l1={val_l1:.4f}")
             if val_l1 < best:
                 best = val_l1
-                # Attach temporal to a backbone clone for zero-shot-style eval fallback
-                backbone.attach_temporal(
-                    "transformer",
-                    n_layers=cfg.get("temporal_layers", 2),
-                    n_heads=cfg.get("temporal_heads", 8),
-                    max_frames=max(cfg.get("temporal_max_frames", 64), cfg.get("video_frames", 16)),
-                )
-                backbone.temporal.load_state_dict(reg.aggregator.state_dict())
-                save_checkpoint(
+                save_supervised_ef_checkpoint(
                     out_dir / "best.pt",
-                    backbone,
-                    epoch,
-                    train_cfg={**cfg, "supervised_head": "temporal_l1", "head_state": reg.head.state_dict()},
+                    head_kind="temporal_l1",
+                    head=reg,
+                    model_config={
+                        **model_config_dict(backbone),
+                        "temporal_type": "transformer",
+                        "temporal_layers": cfg.get("temporal_layers", 2),
+                        "temporal_heads": cfg.get("temporal_heads", 8),
+                        "temporal_max_frames": max(
+                            cfg.get("temporal_max_frames", 64), cfg.get("video_frames", 16)
+                        ),
+                    },
+                    train_seed=train_seed,
+                    epoch=epoch,
+                    embed_dim=dim,
+                    temporal_state_dict=reg.aggregator.state_dict(),
+                    train_cfg={**cfg, "seed": train_seed, "supervised_head": "temporal_l1"},
+                    meta={"head_kind": "temporal_l1"},
+                    backbone_load_source=getattr(backbone, "load_source", None),
                 )
-        print(f"Saved temporal L1 model → {out_dir / 'best.pt'}")
+        print(f"Saved temporal L1 model → {out_dir / 'best.pt'} (train_seed={train_seed})")
         return 0
 
     print(f"Unknown head {args.head!r}")

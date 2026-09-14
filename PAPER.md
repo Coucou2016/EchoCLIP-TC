@@ -1,41 +1,24 @@
 # EchoCLIP-TC / EchoCLIP-TA paper protocol
 
-
-
 This document locks the experiment IDs, commands, and honesty rules for the
-
-EchoCLIP-TC (Temporal, Calibrated) / EchoCLIP-TA (parameter-efficient temporal
-
-adaptation) paper path in this repository. The Python package remains `echoclip`.
-
-
+**EchoCLIP-TA** (EF-aware parameter-efficient temporal adaptation) paper path
+in this repository (repo / package name remains EchoCLIP-TC / `echoclip`).
 
 **Demo ≠ clinical.** Numbers from `data/demo/` or `--demo` must never be
-
 reported as EchoNet or Nature Medicine EF MAE. Do **not** invent clinical MAE.
-
-
 
 ## Cite
 
-
-
 - Christensen, Vukadinovic, Yuan, Ouyang. *Vision–language foundation model for echocardiogram interpretation.* Nature Medicine (2024).
-
 - Official inference / prompts: [echonet/echo_CLIP](https://github.com/echonet/echo_CLIP)
-
 - EchoNet-Dynamic (and related AIMI sets): Stanford AIMI **non-commercial** terms — obtain separately.
-
+- EchoJEPA preprint: arXiv:2602.02603; multiview video-CLIP: arXiv:2504.18800
 - This repo: https://github.com/Coucou2016/EchoCLIP-TC
 
+## Experiment matrix (R0 / R0U16 / R1–R6 + Oracle-EDES)
 
-
-## Experiment matrix (R0–R6 + Oracle-EDES)
-
-
-
-Primary VAL/TEST sampling is **uniform-16** (or `val_sample_strategy` from config).
-
+Primary VAL/TEST sampling is **uniform-16** (or `val_sample_strategy` from config),
+except **R0 under `--paper`** which uses `official_stride` (`0:min(40,T):2`) **without pad-to-16**.
 `ed_es` / `mixed` on VAL/TEST hard-fail unless the experiment is **Oracle-EDES**.
 
 
@@ -44,21 +27,23 @@ Primary VAL/TEST sampling is **uniform-16** (or `val_sample_strategy` from confi
 
 |----|-------|------|-------|------|-------------|-----------|
 
-| **R0** | B0 | EchoCLIP-based zero-shot (frames → top-20% median EF). Use `--paper` for official reproduction path | No | `frames` | uniform / official_stride (`--paper`) | No |
+| **R0** | B0 | EchoCLIP-based zero-shot (frames → top-20% median EF). Under `--paper`: `official_stride` **without pad-to-16**; prefer `scripts/eval_official_r0.py`. `official_reproduction_verified` only after parity | No | `frames` | uniform / **official_stride (`--paper`)** | No | zeroshot |
 
-| **R1** | M1 | Uniform-16 mean pool (no extra params) | No | `mean` | **uniform** | No |
+| **R0U16** | R0-U16 | Uniform-16 zero-shot ablation vs official R0 | No | `frames` | **uniform** | No | zeroshot |
 
-| **R2** | S0 | Frozen mean + linear/ridge EF head | Yes | supervised | **uniform** | No |
+| **R1** | M1 | Uniform-16 mean pool (no extra params) | No | `mean` | **uniform** | No | zeroshot |
 
-| **R3** | S1 | Frozen mean + MLP EF head | Yes | supervised | **uniform** | No |
+| **R2** | S0 | Frozen mean + linear/ridge EF head | Yes | supervised | **uniform** | No | **direct_regression** |
 
-| **R4** | S2 | Temporal aggregator + direct L1/Huber EF | Yes | supervised | **uniform** | No |
+| **R3** | S1 | Frozen mean + MLP EF head | Yes | supervised | **uniform** | No | **direct_regression** |
 
-| **R5** | M2 | EF-label-supervised temporal adaptation (contrastive) of **frozen** EchoCLIP — **not** a zero-shot temporal extension | Yes | `temporal` | **uniform** | No |
+| **R4** | S2 | Temporal aggregator + direct L1/Huber EF | Yes | supervised | **uniform** | No | **direct_regression** |
 
-| **R6** | M4 | R5 + val-fit temperature / conformal (or `--calibration-method affine_logistic`) | Yes (reuse R5) | `temporal` | **uniform** | Yes (VAL only) |
+| **R5** | M2 | EF-label-supervised temporal adaptation (contrastive) of **frozen** EchoCLIP — **not** a zero-shot temporal extension | Yes | `temporal` | **uniform** (mixed = EDES ablation) | No | zeroshot |
 
-| **ORACLE_EDES** | Oracle-EDES | Annotation-assisted upper bound (ED/ES indices) — **label clearly; not primary** | No | `mean` | **ed_es** | No |
+| **R6** | M4 | R5 + val-fit affine_logistic / conformal (paper default) | Yes (reuse R5) | `temporal` | **uniform** | Yes (VAL only) | zeroshot |
+
+| **ORACLE_EDES** | Oracle-EDES | Annotation-assisted upper bound (ED/ES indices) — **label clearly; not primary** | No | `mean` | **ed_es** | No | zeroshot |
 
 
 
@@ -86,11 +71,13 @@ Table aggregate: `scripts/write_protocol_table.py` → `checkpoints/protocol/com
 
   - Incompatible with `--demo`, `--no-official`, `simple_cnn`, and `ECHOCLIP_SKIP_HUB=1`
 
+  - Prefer `scripts/eval_official_r0.py` for the dedicated official path
+  - `official_reproduction_verified=true` only when formula parity + hub load OK
+    (set `ECHOCLIP_OFFICIAL_PARITY_OK=1`); otherwise `paper_mode=true`, verified=false
   - Still document remaining gaps (tokenizer quirks, crop zoom / 640→224 vs direct 224, BGR vs RGB, dtype) — do not claim bit-exact parity
-
   - Golden aggregation tests: `tests/test_official_b0_parity.py` (fixed tensors vs official utils)
-
   - Optional AVI+hub compare: `scripts/compare_official_b0.py`
+  - **R0U16**: uniform-16 control ablation (never conflate with official stride R0)
 
 
 

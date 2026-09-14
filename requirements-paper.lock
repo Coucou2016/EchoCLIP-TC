@@ -1,0 +1,19 @@
+# Pinned paper / official-reproduction environment
+
+# Prefer this lock for `--paper` runs. Flexible installs: requirements.txt
+# Demo / Windows _lzma: requirements-minimal.txt + simple_cnn (NOT clinical).
+#
+# Conflict note (2026-09): requirements-lock.txt had transformers==5.9.0 while
+# requirements.txt constrains transformers>=4.30,<5. This paper lock follows
+# requirements.txt (transformers 4.x) and pins open-clip-torch for hub EchoCLIP.
+
+torch==2.4.1
+torchvision==0.19.1
+numpy==1.26.4
+Pillow==10.4.0
+PyYAML==6.0.2
+tqdm==4.66.5
+timm==1.0.9
+transformers==4.44.2
+opencv-python-headless==4.10.0.84
+open-clip-torch==2.26.1
