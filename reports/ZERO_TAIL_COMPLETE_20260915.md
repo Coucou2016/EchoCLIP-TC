@@ -3,6 +3,19 @@
 **Product name:** EchoCLIP-TA (repo / remote: Coucou2016/EchoCLIP-TC; package: `echoclip`)  
 **No clinical MAE/AUC invented.**
 
+## Push status
+
+| Field | Value |
+|-------|-------|
+| **Push** | Succeeded via GitHub git Data API (`git push` HTTPS :443 unreachable) |
+| **Remote** | https://github.com/Coucou2016/EchoCLIP-TC |
+| **Branch** | `main` |
+| **Local content SHA** | `92fa2697b722653e663546804f021ffae3fa72f4` |
+| **Remote tip SHA** | `6f26b841a76249a6bdebe506c6abc496375d601f` |
+| **When** | 2026-09-15 |
+
+Live tip: `gh api repos/Coucou2016/EchoCLIP-TC/commits/main --jq .sha`
+
 ## A. Engineering closure
 
 | Item | Status | Evidence |
