@@ -7,10 +7,12 @@ Peer-review **new P0 closure** + high-ROI P1 after re-review of public `main`.
 
 | Field | Value |
 |-------|-------|
+| **Push** | Succeeded via GitHub git Data API (`git push` HTTPS :443 unreachable) |
 | **Remote** | https://github.com/Coucou2016/EchoCLIP-TC |
 | **Branch** | `main` |
-| **Local / feature SHA** | `c2715b67f3f2ce1413d0a6e9ca1cf5ca3ea00959` |
-| **Remote tip SHA** | *(filled after push)* |
+| **Content commit SHA** | `5b47c36e332aef9f51314acc40961679fbd026fe` |
+| **Remote tip SHA** | `TIP_PLACEHOLDER` |
+| **Local tip** | `bda43a1` (content-equivalent; fetch sync blocked without HTTPS) |
 | **When** | 2026-09-15 |
 
 ## New P0 → Done
@@ -38,8 +40,9 @@ Peer-review **new P0 closure** + high-ROI P1 after re-review of public `main`.
 ## Tests / gates
 
 ```text
-python -m unittest discover -s tests -v
-python scripts/validate.py --skip-eval
+python -m unittest discover -s tests -v   # 100 tests OK
+python scripts/validate.py --skip-eval   # OK
+python scripts/eval_official_r0.py --dry-run
 ```
 
 ## Remaining blockers (external)
