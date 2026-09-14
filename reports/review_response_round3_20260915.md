@@ -11,9 +11,10 @@ Peer-review **new P0 closure** + high-ROI P1 after re-review of public `main`.
 | **Remote** | https://github.com/Coucou2016/EchoCLIP-TC |
 | **Branch** | `main` |
 | **Content commit SHA** | `5b47c36e332aef9f51314acc40961679fbd026fe` |
-| **Remote tip SHA** | `TIP_PLACEHOLDER` |
-| **Local tip** | `bda43a1` (content-equivalent; fetch sync blocked without HTTPS) |
 | **When** | 2026-09-15 |
+
+After checklist-only follow-up commits, read the live tip with:
+`gh api repos/Coucou2016/EchoCLIP-TC/commits/main --jq .sha`
 
 ## New P0 → Done
 
