@@ -71,8 +71,12 @@ def _print_catalog() -> None:
 
 def _parse_experiments(raw: Optional[str]) -> List[str]:
     if not raw or raw.strip().lower() in ("all", "*"):
-        # Default "all" = primary matrix without Oracle / R0U16 ablation
-        return [i for i in EXPERIMENT_IDS if i not in ("ORACLE_EDES", "R0U16")]
+        # Default "all" = primary matrix without Oracle / ablation-only IDs
+        return [
+            i
+            for i in EXPERIMENT_IDS
+            if i not in ("ORACLE_EDES", "R0U16", "R5_EDESTRAIN")
+        ]
     out: List[str] = []
     for part in raw.split(","):
         part = part.strip()
@@ -137,7 +141,15 @@ def _missing_data_help(path: Path) -> str:
     )
 
 
-def _train_m2(args, cfg: dict, train_manifest: Path, manifest_dir: Path, out_dir: Path) -> int:
+def _train_m2(
+    args,
+    cfg: dict,
+    train_manifest: Path,
+    manifest_dir: Path,
+    out_dir: Path,
+    *,
+    train_sample_strategy: Optional[str] = None,
+) -> int:
     cmd = [
         sys.executable,
         str(ROOT / "scripts" / "train.py"),
@@ -165,8 +177,8 @@ def _train_m2(args, cfg: dict, train_manifest: Path, manifest_dir: Path, out_dir
         cmd.extend(["--vision-backbone", args.vision_backbone])
     if args.no_official or (args.vision_backbone == "simple_cnn"):
         cmd.append("--no-official")
-    # Primary train sampling: uniform unless CLI overrides (mixed = R5-EDEStrain ablation)
-    ss = args.sample_strategy or "uniform"
+    # Primary TRAIN: uniform; R5_EDESTRAIN uses mixed; CLI overrides either
+    ss = args.sample_strategy or train_sample_strategy or "uniform"
     cmd.extend(["--sample-strategy", ss])
     if args.device:
         cmd.extend(["--device", args.device])
@@ -230,6 +242,37 @@ def _train_supervised(
     return _run(cmd)
 
 
+def _eval_official_r0(
+    args,
+    *,
+    test_manifest: Path,
+    manifest_dir: Path,
+    out_metrics: Path,
+    demo: bool,
+    paper: bool,
+) -> int:
+    """Bypass generic Dataset eval for paper R0 — prefer scripts/eval_official_r0.py."""
+    cmd = [
+        sys.executable,
+        str(ROOT / "scripts" / "eval_official_r0.py"),
+        "--manifest",
+        str(test_manifest),
+        "--seed",
+        str(args.seed),
+        "--output",
+        str(out_metrics),
+    ]
+    if manifest_dir:
+        cmd.extend(["--manifest-dir", str(manifest_dir)])
+    if demo:
+        cmd.append("--demo")
+    elif paper:
+        cmd.append("--paper")
+    if args.device:
+        cmd.extend(["--device", args.device])
+    return _run(cmd)
+
+
 def _eval_experiment(
     args,
     spec,
@@ -242,6 +285,43 @@ def _eval_experiment(
     demo: bool,
     paper: bool,
 ) -> int:
+    # Paper / official R0: prefer dedicated open_clip path (no pad-to-16 Dataset).
+    if spec.id == "R0" and (paper or demo) and args.sample_strategy is None:
+        code = _eval_official_r0(
+            args,
+            test_manifest=test_manifest,
+            manifest_dir=manifest_dir,
+            out_metrics=out_metrics,
+            demo=demo,
+            paper=paper,
+        )
+        if code != 0:
+            return code
+        if out_metrics.exists():
+            metrics = json.loads(out_metrics.read_text(encoding="utf-8"))
+            metrics = merge_metrics_meta(
+                metrics,
+                experiment=spec,
+                demo=demo,
+                paper=paper,
+                extra={
+                    "protocol_output": str(out_metrics.parent),
+                    "eval_seed": args.seed,
+                    "train_seed": metrics.get("train_seed"),
+                    "official_r0_script": "scripts/eval_official_r0.py",
+                    "b0_reproduce_hint": (
+                        "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
+                        "AND/OR full TEST; load_source must be "
+                        "hf-hub:mkaichristensen/echo-clip. "
+                        "Set ECHOCLIP_OFFICIAL_PARITY_OK=1 only after "
+                        "compare_official_b0 parity."
+                    ),
+                },
+            )
+            out_metrics.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+            print(f"Updated {out_metrics} with protocol metadata")
+        return 0
+
     pred_mode = getattr(spec, "prediction_mode", None) or (
         "direct_regression" if spec.pool == "supervised" else "zeroshot"
     )
@@ -367,6 +447,7 @@ def _eval_experiment(
             extra={
                 "protocol_output": str(out_metrics.parent),
                 "train_seed": metrics.get("train_seed", args.seed),
+                "eval_seed": args.seed,
                 "b0_reproduce_hint": (
                     "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
                     "(see subset_5000_ids.json) AND/OR full TEST; "
@@ -564,11 +645,23 @@ def main() -> int:
                     results[spec.id] = "missing_checkpoint"
                     continue
             else:
-                # R5/R6 contrastive temporal
-                train_out = r5_dir
-                train_out.mkdir(parents=True, exist_ok=True)
-                ckpt = shared_ckpt if shared_ckpt and shared_ckpt.exists() else train_out / "best.pt"
-                if not args.skip_train and (spec.id == "R5" or not ckpt.exists()):
+                # R5 / R6 share protocol/R5; R5_EDESTRAIN keeps its own dir
+                if spec.id == "R5_EDESTRAIN":
+                    train_out = out_dir
+                    ckpt = train_out / "best.pt"
+                    should_train = not args.skip_train and not ckpt.exists()
+                else:
+                    train_out = r5_dir
+                    train_out.mkdir(parents=True, exist_ok=True)
+                    ckpt = (
+                        shared_ckpt
+                        if shared_ckpt and shared_ckpt.exists()
+                        else train_out / "best.pt"
+                    )
+                    should_train = not args.skip_train and (
+                        spec.id == "R5" or not ckpt.exists()
+                    )
+                if should_train:
                     if not train_m.exists() and not args.demo:
                         print(_missing_data_help(train_m))
                         return 1
@@ -578,12 +671,20 @@ def main() -> int:
                         args.video_frames = min(4, spec.video_frames or 4)
                     if args.demo and args.vision_backbone is None:
                         args.vision_backbone = "simple_cnn"
-                    code = _train_m2(args, cfg, train_m, mdir, train_out)
+                    code = _train_m2(
+                        args,
+                        cfg,
+                        train_m,
+                        mdir,
+                        train_out,
+                        train_sample_strategy=spec.sample_strategy,
+                    )
                     if code != 0:
                         results[spec.id] = f"train_failed:{code}"
                         continue
                     ckpt = train_out / "best.pt"
-                    shared_ckpt = ckpt
+                    if spec.id == "R5":
+                        shared_ckpt = ckpt
                 elif not ckpt.exists():
                     print(
                         f"{spec.id} needs a temporal checkpoint. Train R5/M2 first or pass --checkpoint."

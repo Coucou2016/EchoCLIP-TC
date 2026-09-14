@@ -4,7 +4,7 @@
 **Honesty:** Clinical EchoNet-Dynamic EF MAE / AUC numbers are **待补充** until official weights and AIMI data are available locally. Demo / synthetic figures are labeled **DEMO** and are not clinical results.  
 **Code:** https://github.com/Coucou2016/EchoCLIP-TC  
 
-**Axes:** `task=manuscript` · `paper_type=methods` · `language=en` · `journal=nature-family` (methods / Nat Commun–style framing).
+**Axes:** `task=manuscript` · `paper_type=methods` · `language=en`.
 
 **One-sentence argument.** We present EchoCLIP-TA (parameter-efficient, EF-aware temporal adaptation on frozen EchoCLIP) with validation-only calibration (temperature / affine logistic, split and optional adaptive conformal), together with a locked R0–R6 (+ R0U16, Oracle-EDES) public-data protocol for video-level ejection-fraction (EF) evaluation; clinical superiority claims remain contingent on EchoNet-Dynamic + official EchoCLIP weights (**待补充**). We do **not** claim to be “the first temporal EchoCLIP” or a cycle-aware zero-shot extension.
 
@@ -208,7 +208,7 @@ Local `checkpoints/protocol/*/metrics.json` (synthetic demo, \(T=4\), scratch we
 
 ## 7. Conclusions
 
-EchoCLIP-TA provides a parameter-efficient temporal and calibration layer—and a locked evaluation protocol—on top of EchoCLIP for public echocardiography videos. Completing EchoNet-Dynamic evaluation with official weights is required before any clinical performance claim. Until then, this manuscript documents methods, ablations, and honesty boundaries suitable for a methods / Nature-family follow-on paper.
+EchoCLIP-TA provides a parameter-efficient temporal and calibration layer—and a locked evaluation protocol—on top of EchoCLIP for public echocardiography videos. Completing EchoNet-Dynamic evaluation with official weights is required before any clinical performance claim. Until then, this manuscript documents methods, ablations, and honesty boundaries for a methods-focused submission.
 
 ---
 

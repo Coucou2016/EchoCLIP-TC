@@ -17,6 +17,8 @@ reported as EchoNet or Nature Medicine EF MAE. Do **not** invent clinical MAE.
 
 ## Experiment matrix (R0 / R0U16 / R1–R6 + Oracle-EDES)
 
+Primary **TRAIN** sampling is **uniform** (not mixed ED/ES); use experiment `R5_EDESTRAIN` for the mixed-train ablation.
+
 Primary VAL/TEST sampling is **uniform-16** (or `val_sample_strategy` from config),
 except **R0 under `--paper`** which uses `official_stride` (`0:min(40,T):2`) **without pad-to-16**.
 `ed_es` / `mixed` on VAL/TEST hard-fail unless the experiment is **Oracle-EDES**.
@@ -39,7 +41,8 @@ except **R0 under `--paper`** which uses `official_stride` (`0:min(40,T):2`) **w
 
 | **R4** | S2 | Temporal aggregator + direct L1/Huber EF | Yes | supervised | **uniform** | No | **direct_regression** |
 
-| **R5** | M2 | EF-label-supervised temporal adaptation (contrastive) of **frozen** EchoCLIP — **not** a zero-shot temporal extension | Yes | `temporal` | **uniform** (mixed = EDES ablation) | No | zeroshot |
+| **R5** | M2 | EF-label-supervised temporal adaptation (contrastive) of **frozen** EchoCLIP — **not** a zero-shot temporal extension | Yes | `temporal` | **uniform** | No | zeroshot |
+| **R5_EDESTRAIN** | R5-EDEStrain | Ablation: R5 train with mixed ED/ES; VAL/TEST still uniform | Yes | `temporal` | **uniform** | No | zeroshot |
 
 | **R6** | M4 | R5 + val-fit affine_logistic / conformal (paper default) | Yes (reuse R5) | `temporal` | **uniform** | Yes (VAL only) | zeroshot |
 

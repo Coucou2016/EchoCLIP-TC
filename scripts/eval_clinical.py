@@ -587,6 +587,7 @@ def main() -> int:
         "video_frames": args.video_frames or cfg.get("video_frames", 1),
         "sample_strategy": sample_strategy,
         "seed": args.seed,
+        "eval_seed": args.seed,
         "train_seed": train_seed,
         "note": protocol_note,
         "paper_primary": True,

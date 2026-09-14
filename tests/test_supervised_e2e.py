@@ -238,6 +238,14 @@ class TestProtocolPredictionMode(unittest.TestCase):
             resolve_eval_sample_strategy(spec=r0u, paper=True), "uniform"
         )
 
+    def test_r5_edestrain_ablation(self):
+        from echoclip.protocol import get_experiment, resolve_experiment_id
+
+        spec = get_experiment("R5_EDESTRAIN")
+        self.assertEqual(spec.sample_strategy, "mixed")
+        self.assertEqual(spec.eval_sample_strategy, "uniform")
+        self.assertEqual(resolve_experiment_id("R5-EDEStrain"), "R5_EDESTRAIN")
+
 
 if __name__ == "__main__":
     unittest.main()

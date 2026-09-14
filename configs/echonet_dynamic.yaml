@@ -62,7 +62,7 @@ frame_pool: stack
 
 caption_mode: random
 
-view_weight: 0.5
+view_weight: 0.0  # default off; set >0 only for real two-view consistency
 
 clip_weight: 1.0
 

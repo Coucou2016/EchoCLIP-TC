@@ -22,6 +22,7 @@ EXPERIMENT_IDS = (
     "R3",
     "R4",
     "R5",
+    "R5_EDESTRAIN",
     "R6",
     "ORACLE_EDES",
 )
@@ -39,6 +40,9 @@ LEGACY_ALIASES: Dict[str, str] = {
     "S0": "R2",
     "S1": "R3",
     "S2": "R4",
+    "R5-EDESTRAIN": "R5_EDESTRAIN",
+    "R5_EDES": "R5_EDESTRAIN",
+    "R5-EDES": "R5_EDESTRAIN",
     "ORACLE-EDES": "ORACLE_EDES",
     "ORACLE": "ORACLE_EDES",
 }
@@ -244,8 +248,30 @@ EXPERIMENTS: Dict[str, ExperimentSpec] = {
         legacy_aliases=("M2",),
         notes=(
             "Primary EchoCLIP-TA model before calibration. "
-            "Optional ablation R5-EDEStrain: --sample-strategy mixed."
+            "Train sampling is uniform/random (not mixed ED/ES). "
+            "See R5_EDESTRAIN for the mixed ED/ES train ablation."
         ),
+    ),
+    "R5_EDESTRAIN": ExperimentSpec(
+        id="R5_EDESTRAIN",
+        title="R5 ablation: mixed ED/ES train sampling",
+        description=(
+            "Same architecture and contrastive objective as R5, but TRAIN uses "
+            "mixed ED/ES cycle sampling. VAL/TEST remain uniform (primary). "
+            "Not part of the default primary matrix."
+        ),
+        train=True,
+        pool="temporal",
+        calibrate=False,
+        video_frames=16,
+        sample_strategy="mixed",
+        eval_sample_strategy="uniform",
+        temporal_type="transformer",
+        prediction_mode="zeroshot",
+        init_official=True,
+        requires_checkpoint=True,
+        legacy_aliases=("R5-EDESTRAIN", "R5_EDES", "R5-EDES"),
+        notes="Ablation only; do not substitute for primary R5 without labeling.",
     ),
     "R6": ExperimentSpec(
         id="R6",
