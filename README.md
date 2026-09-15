@@ -143,13 +143,17 @@ python scripts\run_protocol.py --demo --experiments R0,R1 --vision-backbone simp
 
 
 
-EchoNet-Dynamic is **not** in this repo (Stanford AIMI non-commercial):
+EchoNet-Dynamic is **not** in this repo (Stanford AIMI non-commercial). Full obtain guide: [docs/OBTAIN_DATA_AND_WEIGHTS.md](docs/OBTAIN_DATA_AND_WEIGHTS.md).
 
 
 
 - https://echonet.github.io/dynamic/
 
 - https://stanfordaimi.azurewebsites.net/
+
+- https://stanford.redivis.com/datasets/66s1-2hsmzj5rn
+
+- Weights: https://huggingface.co/mkaichristensen/echo-clip (`hf-hub:mkaichristensen/echo-clip`)
 
 
 

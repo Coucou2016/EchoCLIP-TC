@@ -68,8 +68,12 @@ Reports are uppercased and normalized with `echoclip.text.clean_report_text` (**
 
 **License:** Stanford AIMI **non-commercial** research use. You must request the data; it is not redistributed here.
 
+Step-by-step bilingual HOWTO (registration, weights, env vars, paper commands): [docs/OBTAIN_DATA_AND_WEIGHTS.md](docs/OBTAIN_DATA_AND_WEIGHTS.md).
+
 - Project page: https://echonet.github.io/dynamic/
 - AIMI download: https://stanfordaimi.azurewebsites.net/
+- AIMI Redivis (zip ≈ 7 GB): https://stanford.redivis.com/datasets/66s1-2hsmzj5rn
+- Dataset card: https://aimi.stanford.edu/datasets/echonet-dynamic-cardiac-ultrasound
 
 Expected layout:
 

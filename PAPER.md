@@ -246,9 +246,9 @@ python scripts\analyze_attention_edes.py --output-dir reports\attention_edes
 
 |-----|------------------------|
 
-| EchoNet-Dynamic videos + FileList | `set ECHONET_ROOT=<AIMI_root>` then `python scripts/build_echonet_manifest.py --echonet-root %ECHONET_ROOT% --subset-5000` then `python scripts/run_paper_matrix.py --paper` |
+| EchoNet-Dynamic videos + FileList | `set ECHONET_ROOT=<AIMI_root>` then `python scripts/build_echonet_manifest.py --echonet-root %ECHONET_ROOT% --subset-5000` then `python scripts/run_paper_matrix.py --paper` — see [docs/OBTAIN_DATA_AND_WEIGHTS.md](docs/OBTAIN_DATA_AND_WEIGHTS.md) |
 
-| Official EchoCLIP weights | open_clip hub `hf-hub:mkaichristensen/echo-clip` or local `.pt` via `--official-checkpoint` |
+| Official EchoCLIP weights | open_clip hub `hf-hub:mkaichristensen/echo-clip` or local `.pt` via `--official-checkpoint` — same HOWTO |
 
 | CardiacCLIP comparison | `set CARDIACCLIP_WEIGHTS=<upstream.pt>` then paste upstream MAE into `checkpoints/protocol/cardiacclip_comparison.json` (never invent) |
 
