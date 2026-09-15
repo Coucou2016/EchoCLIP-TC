@@ -30,16 +30,23 @@ secrets/
 credentials.json
 **/service-account*.json
 
-# Model weights / checkpoints
+# Model weights / checkpoints (never commit local hubs / dumps)
+models/
 *.pt
 *.pth
 *.ckpt
 *.bin
 *.safetensors
+*.onnx
+*.h5
+*.hdf5
 checkpoints/
 runs/
 wandb/
 **/metrics.json
+
+# Large archives (EchoNet zip, staging bundles, etc.)
+*.zip
 
 # Large / sensitive data (patient videos, local AIMI roots)
 data/demo/images/
@@ -55,9 +62,6 @@ data/camus*/
 *.dcm
 *.nii
 *.nii.gz
-
-# Staging / local dual-agent bundles (may include large zips)
-_dual_agent_staging/*.zip
 
 # OS / IDE
 .DS_Store

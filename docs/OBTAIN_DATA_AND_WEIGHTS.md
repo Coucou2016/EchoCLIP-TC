@@ -124,11 +124,16 @@ python scripts\run_protocol.py --paper --experiments R0 --official-checkpoint E:
 | `ECHOCLIP_SKIP_HUB=1` | Skip hub; **incompatible with `--paper`** |
 | `ECHOCLIP_OFFICIAL_PARITY_OK=1` | Set only after you verify parity (see PAPER.md); marks `official_reproduction_verified` |
 | `HF_HOME` / `HUGGINGFACE_HUB_CACHE` | Optional cache location for downloaded weights |
+| `HF_ENDPOINT` | Optional hub endpoint (e.g. `https://hf-mirror.com` if `huggingface.co` times out) |
 | `ECHONET_ROOT` | EchoNet-Dynamic root (`FileList.csv` + `Videos/`) |
 | `ECHOCLIP_ROOT` | This repository root (optional convenience) |
 | `CARDIACCLIP_WEIGHTS` | Optional comparator only — not EchoCLIP |
+| `AIMI_DOWNLOAD_URL` | Optional personal signed zip URL for `scripts/obtain_echonet_zip.py` |
 
 Unset `ECHOCLIP_SKIP_HUB` for paper runs. Do not invent clinical MAE if hub load fails.
+
+Helpers: `scripts/obtain_echo_clip_weights.py`, `scripts/obtain_echonet_zip.py`.  
+Latest local machine notes: [OBTAIN_STATUS.md](OBTAIN_STATUS.md).
 
 ---
 
