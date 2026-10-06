@@ -26,10 +26,6 @@ data/demo/images/
 data/EchoNet*/
 data/echonet*/
 
-# Local build scratch (the flat_name -> original_path map is embedded in
-# FLAT_LAYOUT_MANIFEST.json, so this file does not need to be committed)
-_flat_map.json
-
 .DS_Store
 Thumbs.db
 .idea/
