@@ -1,0 +1,28 @@
+{
+  "pairs": [
+    {
+      "image": "images/echo_0033.png",
+      "text": "THE INFERIOR VENA CAVA DEMONSTRATES LESS THAN 50% COLLAPSE CONSISTENT WITH ELEVATED RIGHT ATRIAL PRESSURE (8MMHG)."
+    },
+    {
+      "image": "images/echo_0007.png",
+      "text": "MILDLY DILATED LEFT VENTRICLE. LV EJECTION FRACTION IS 45%. NO SIGNIFICANT VALVULAR ABNORMALITY."
+    },
+    {
+      "image": "images/echo_0045.png",
+      "text": "THE INFERIOR VENA CAVA DEMONSTRATES LESS THAN 50% COLLAPSE CONSISTENT WITH ELEVATED RIGHT ATRIAL PRESSURE (8MMHG)."
+    },
+    {
+      "image": "images/echo_0022.png",
+      "text": "SEVERE DILATED LEFT VENTRICLE. LV EJECTION FRACTION IS 30%. MODERATE MITRAL REGURGITATION."
+    },
+    {
+      "image": "images/echo_0023.png",
+      "text": "A BIOPROSTHETIC STENT-VALVE IS PRESENT IN THE AORTIC POSITION. NORMAL RIGHT VENTRICULAR SIZE."
+    },
+    {
+      "image": "images/echo_0025.png",
+      "text": "MILDLY DILATED LEFT VENTRICLE. LV EJECTION FRACTION IS 45%. NO SIGNIFICANT VALVULAR ABNORMALITY."
+    }
+  ]
+}

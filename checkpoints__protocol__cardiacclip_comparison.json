@@ -1,0 +1,26 @@
+{
+  "table": "external_comparator",
+  "rows": [
+    {
+      "method": "CardiacCLIP",
+      "available": false,
+      "mae": "\u5f85\u8865\u5145",
+      "rmse": "\u5f85\u8865\u5145",
+      "note": "External CardiacCLIP checkpoint + EchoNet-Dynamic (or matching eval set). Weights are not bundled in EchoCLIP-TA. Set CARDIACCLIP_WEIGHTS or pass weights_path to load_cardiacclip_interface().",
+      "load_source": "missing_weights",
+      "extra": {
+        "download": "CardiacCLIP weights are external (Academic / upstream license) \u2014 not bundled.\n\n1. Clone upstream:\n     git clone https://github.com/xmed-lab/CardiacCLIP.git\n2. Follow their README to download checkpoints (HF / Google Drive as published).\n3. Point EchoCLIP-TA at the weights:\n     set CARDIACCLIP_WEIGHTS=C:\\path\\to\\cardiacclip.pt\n   or:\n     python -c \"from echoclip.cardiacclip import load_cardiacclip_interface; \\\n       print(load_cardiacclip_interface(r'C:\\\\path\\\\to\\\\cardiacclip.pt').to_dict())\"\n4. Run upstream eval on the **same** EchoNet TEST split as this repo's manifests,\n   then paste MAE/RMSE into the comparison table (do not invent numbers).\n\nPaper mode hard-fails invented numbers: clinical fields stay \u5f85\u8865\u5145 until filled."
+      },
+      "clinical_numbers": "\u5f85\u8865\u5145",
+      "download_instructions": "CardiacCLIP weights are external (Academic / upstream license) \u2014 not bundled.\n\n1. Clone upstream:\n     git clone https://github.com/xmed-lab/CardiacCLIP.git\n2. Follow their README to download checkpoints (HF / Google Drive as published).\n3. Point EchoCLIP-TA at the weights:\n     set CARDIACCLIP_WEIGHTS=C:\\path\\to\\cardiacclip.pt\n   or:\n     python -c \"from echoclip.cardiacclip import load_cardiacclip_interface; \\\n       print(load_cardiacclip_interface(r'C:\\\\path\\\\to\\\\cardiacclip.pt').to_dict())\"\n4. Run upstream eval on the **same** EchoNet TEST split as this repo's manifests,\n   then paste MAE/RMSE into the comparison table (do not invent numbers).\n\nPaper mode hard-fails invented numbers: clinical fields stay \u5f85\u8865\u5145 until filled.",
+      "protocol_note": "CardiacCLIP is a literature / external-weights comparator, not R0\u2013R6."
+    }
+  ],
+  "gaps": [
+    "CardiacCLIP weights not redistributed (Academic / upstream license).",
+    "Few-shot protocol differs from EchoCLIP-TA locked R0\u2013R6 matrix.",
+    "No invented \u0394MAE vs CardiacCLIP without both running on the same EchoNet split.",
+    "CardiacCLIP weights are external (Academic / upstream license) \u2014 not bundled.\n\n1. Clone upstream:\n     git clone https://github.com/xmed-lab/CardiacCLIP.git\n2. Follow their README to download checkpoints (HF / Google Drive as published).\n3. Point EchoCLIP-TA at the weights:\n     set CARDIACCLIP_WEIGHTS=C:\\path\\to\\cardiacclip.pt\n   or:\n     python -c \"from echoclip.cardiacclip import load_cardiacclip_interface; \\\n       print(load_cardiacclip_interface(r'C:\\\\path\\\\to\\\\cardiacclip.pt').to_dict())\"\n4. Run upstream eval on the **same** EchoNet TEST split as this repo's manifests,\n   then paste MAE/RMSE into the comparison table (do not invent numbers).\n\nPaper mode hard-fails invented numbers: clinical fields stay \u5f85\u8865\u5145 until filled."
+  ],
+  "paper_rule": "Under --paper, leave MAE/RMSE as \u5f85\u8865\u5145 unless upstream metrics were pasted from a real EchoNet run on the same split."
+}

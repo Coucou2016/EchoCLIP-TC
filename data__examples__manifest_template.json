@@ -1,0 +1,16 @@
+{
+  "pairs": [
+    {
+      "image": "videos/study_001_parasternal.avi",
+      "text": "LEFT VENTRICULAR EJECTION FRACTION IS ESTIMATED TO BE 60%. NORMAL LEFT VENTRICULAR SIZE."
+    },
+    {
+      "image": "frames/study_002_apical4.png",
+      "text": "MILD DILATED LEFT VENTRICLE. NO SIGNIFICANT VALVULAR DISEASE."
+    },
+    {
+      "image": "frames/study_003_subcostal.png",
+      "text": "THE INFERIOR VENA CAVA SHOWS NORMAL RESPIRATORY COLLAPSE."
+    }
+  ]
+}

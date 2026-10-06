@@ -1,37 +1,15 @@
-# Python
+# Flat-repository .gitignore
+# The project tree is intentionally flat; this file only keeps the local clone clean.
+# It is NOT part of the original project and mirrors the exclusions documented in FLAT_LAYOUT.md.
+
 __pycache__/
 *.py[cod]
-*$py.class
-*.egg-info/
-.eggs/
-dist/
-build/
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-
-# Virtual environments
-venv/
 .venv/
-env/
-ENV/
+venv/
 
-# Secrets / credentials (never commit)
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-secrets/
-credentials.json
-**/service-account*.json
-
-# Model weights / checkpoints (never commit local hubs / dumps)
 models/
+checkpoints/
 *.pt
 *.pth
 *.ckpt
@@ -40,36 +18,19 @@ models/
 *.onnx
 *.h5
 *.hdf5
-checkpoints/
-runs/
-wandb/
-**/metrics.json
-
-# Large archives (EchoNet zip, staging bundles, etc.)
 *.zip
+*.avi
+*.mp4
 
-# Large / sensitive data (patient videos, local AIMI roots)
 data/demo/images/
 data/EchoNet*/
 data/echonet*/
-data/AIMI*/
-data/camus*/
-**/train_split.json
-**/val_split.json
-**/splits/
-*.avi
-*.mp4
-*.dcm
-*.nii
-*.nii.gz
 
-# OS / IDE
+# Local build scratch (the flat_name -> original_path map is embedded in
+# FLAT_LAYOUT_MANIFEST.json, so this file does not need to be committed)
+_flat_map.json
+
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
-*.swp
-*~
-
-# PDF build scratch
-reports/_pdf_build_status.txt

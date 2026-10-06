@@ -1,0 +1,85 @@
+{
+  "protocol": "label_efficiency",
+  "fractions": [
+    0.25,
+    1.0
+  ],
+  "methods": [
+    "R2",
+    "R4",
+    "R5_soft",
+    "R5_hard"
+  ],
+  "n_train_full": 64,
+  "n_test_fixed": 64,
+  "test_manifest": "E:\\Projects\\20260522-EchoCLIP\\data\\demo\\manifest.json",
+  "demo": true,
+  "paper": false,
+  "seed": 42,
+  "rows": [
+    {
+      "fraction": 0.25,
+      "n_train": 16,
+      "methods": {
+        "R2": {
+          "experiment": "R2",
+          "label": "R2",
+          "exit_code": 0,
+          "dry_run": true
+        },
+        "R4": {
+          "experiment": "R4",
+          "label": "R4",
+          "exit_code": 0,
+          "dry_run": true
+        },
+        "R5_soft": {
+          "experiment": "R5",
+          "label": "R5_soft",
+          "exit_code": 0,
+          "dry_run": true
+        },
+        "R5_hard": {
+          "experiment": "R5",
+          "label": "R5_hard",
+          "exit_code": 0,
+          "dry_run": true
+        }
+      }
+    },
+    {
+      "fraction": 1.0,
+      "n_train": 64,
+      "methods": {
+        "R2": {
+          "experiment": "R2",
+          "label": "R2",
+          "exit_code": 0,
+          "dry_run": true
+        },
+        "R4": {
+          "experiment": "R4",
+          "label": "R4",
+          "exit_code": 0,
+          "dry_run": true
+        },
+        "R5_soft": {
+          "experiment": "R5",
+          "label": "R5_soft",
+          "exit_code": 0,
+          "dry_run": true
+        },
+        "R5_hard": {
+          "experiment": "R5",
+          "label": "R5_hard",
+          "exit_code": 0,
+          "dry_run": true
+        }
+      }
+    }
+  ],
+  "note": "DEMO \u2014 not clinical.",
+  "clinical_numbers": "\u5f85\u8865\u5145",
+  "demo_limitation": "run_protocol --demo uses the fixed demo manifest for all fractions; fraction rows still exercise each method end-to-end. Real label curves require EchoNet TRAIN/TEST (see blocked_command).",
+  "blocked_command": "set ECHONET_ROOT=<AIMI_root> && python scripts/build_echonet_manifest.py --echonet-root %ECHONET_ROOT% --subset-5000 && python scripts/run_label_efficiency.py --paper"
+}

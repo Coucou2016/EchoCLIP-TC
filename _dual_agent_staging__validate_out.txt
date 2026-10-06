@@ -1,0 +1,73 @@
+imports OK
+forward/backward OK, loss=1.3863
+zeroshot shapes OK
+temporal forward OK
+video_frames stack OK, image=(2, 4, 3, 64, 64)
+calibration helpers OK, ece=0.0000 conformal_q=1.500
+test_abstention_improves_or_keeps_mae (test_calibration.TestCalibration.test_abstention_improves_or_keeps_mae) ... ok
+test_brier_range (test_calibration.TestCalibration.test_brier_range) ... ok
+test_conformal_coverage_monotonic_in_alpha (test_calibration.TestCalibration.test_conformal_coverage_monotonic_in_alpha) ... ok
+test_ece_perfect_is_zero (test_calibration.TestCalibration.test_ece_perfect_is_zero) ... ok
+test_fit_temperature_positive (test_calibration.TestCalibration.test_fit_temperature_positive) ... ok
+test_temperature_softens_probabilities (test_calibration.TestCalibration.test_temperature_softens_probabilities) ... ok
+test_config_from_dict_ignores_unknown (test_checkpoint.TestCheckpointConfig.test_config_from_dict_ignores_unknown) ... ok
+test_auc_perfect_threshold (test_clinical.TestClinicalMetrics.test_auc_perfect_threshold) ... ok
+test_mae_rmse (test_clinical.TestClinicalMetrics.test_mae_rmse) ... ok
+test_parse_ef_from_demo_text (test_clinical.TestClinicalMetrics.test_parse_ef_from_demo_text) ... ok
+test_perfect_regression (test_clinical.TestClinicalMetrics.test_perfect_regression) ... ok
+test_roc_auc_nan_single_class (test_clinical.TestClinicalMetrics.test_roc_auc_nan_single_class) ... ok
+test_summarize_clinical_toy (test_clinical.TestClinicalMetrics.test_summarize_clinical_toy) ... ok
+test_matches_clip_without_second_view (test_clinical.TestTemporalClipLoss.test_matches_clip_without_second_view) ... ok
+test_second_view_changes_loss (test_clinical.TestTemporalClipLoss.test_second_view_changes_loss) ... ok
+test_ed_es_falls_back_without_indices (test_cycle_sample.TestCycleSample.test_ed_es_falls_back_without_indices) ... ok
+test_ed_es_includes_phase_frames (test_cycle_sample.TestCycleSample.test_ed_es_includes_phase_frames) ... ok
+test_mixed_only_uses_known_strategies (test_cycle_sample.TestCycleSample.test_mixed_only_uses_known_strategies) ... ok
+test_pad_or_trim (test_cycle_sample.TestCycleSample.test_pad_or_trim) ... ok
+test_random_deterministic (test_cycle_sample.TestCycleSample.test_random_deterministic) ... ok
+test_uniform_length_and_bounds (test_cycle_sample.TestCycleSample.test_uniform_length_and_bounds) ... ok
+test_unknown_strategy (test_cycle_sample.TestCycleSample.test_unknown_strategy) ... ok
+test_load_json_pairs (test_data.TestManifest.test_load_json_pairs) ... ok
+test_split_keeps_train_nonempty (test_data.TestManifest.test_split_keeps_train_nonempty) ... ok
+test_validate_missing_file (test_data.TestManifest.test_validate_missing_file) ... ok
+test_filelist_parse_via_script (test_echonet_builder.TestEchoNetBuilderHelpers.test_filelist_parse_via_script) ... ok
+test_pair_record_manifest_roundtrip (test_echonet_builder.TestEchoNetBuilderHelpers.test_pair_record_manifest_roundtrip) ... ok
+test_demo_labels (test_eval.TestEvalMetrics.test_demo_labels) ... ok
+test_perfect_retrieval (test_eval.TestEvalMetrics.test_perfect_retrieval) ... ok
+test_perfect_alignment_lower_loss (test_loss.TestClipLoss.test_perfect_alignment_lower_loss) ... ok
+test_symmetric_loss_zero_on_identical (test_loss.TestClipLoss.test_symmetric_loss_zero_on_identical) ... ok
+test_catalog_complete (test_protocol.TestProtocolSpecs.test_catalog_complete) ... ok
+test_merge_metrics_demo_flag (test_protocol.TestProtocolSpecs.test_merge_metrics_demo_flag) ... ok
+test_subset_ids_samples_when_oversized (test_protocol.TestProtocolSpecs.test_subset_ids_samples_when_oversized) ... ok
+test_subset_ids_writer (test_protocol.TestProtocolSpecs.test_subset_ids_writer) ... ok
+test_unknown_raises (test_protocol.TestProtocolSpecs.test_unknown_raises) ... ok
+test_camus_mock_layout (test_protocol.TestPublicEchoBuilders.test_camus_mock_layout) ... ok
+test_echonet_subset_ids_in_builder (test_protocol.TestPublicEchoBuilders.test_echonet_subset_ids_in_builder) ... ok
+test_missing_root_fails_clearly (test_protocol.TestPublicEchoBuilders.test_missing_root_fails_clearly) ... ok
+test_pediatric_filelist_via_adapter (test_protocol.TestPublicEchoBuilders.test_pediatric_filelist_via_adapter) ... ok
+test_edv_maps_to_official_dilation_prompts (test_structured_text.TestStructuredText.test_edv_maps_to_official_dilation_prompts) ... ok
+test_ef_uses_official_templates_only (test_structured_text.TestStructuredText.test_ef_uses_official_templates_only) ... ok
+test_no_invented_esv_language (test_structured_text.TestStructuredText.test_no_invented_esv_language) ... ok
+test_pair_record_requires_ef (test_structured_text.TestStructuredText.test_pair_record_requires_ef) ... ok
+test_attention_pool_shape (test_temporal.TestTemporalShapes.test_attention_pool_shape) ... ok
+test_build_mean_is_none (test_temporal.TestTemporalShapes.test_build_mean_is_none) ... ok
+test_echo_clip_encode_video (test_temporal.TestTemporalShapes.test_echo_clip_encode_video) ... ok
+test_pool_frame_features_normalize (test_temporal.TestTemporalShapes.test_pool_frame_features_normalize) ... ok
+test_transformer_shape_and_grad (test_temporal.TestTemporalShapes.test_transformer_shape_and_grad) ... ok
+test_1d_frame_embedding (test_zeroshot.TestZeroshotShapes.test_1d_frame_embedding) ... ok
+test_2d_frame_embeddings (test_zeroshot.TestZeroshotShapes.test_2d_frame_embeddings) ... ok
+test_batch_helpers (test_zeroshot.TestZeroshotShapes.test_batch_helpers) ... ok
+
+----------------------------------------------------------------------
+Ran 52 tests in 4.326s
+
+OK
+== 1/4 Smoke test ==
+
+== 2/4 Manifest validation ==
+  OK: 64 pairs, files exist
+
+== 3/4 Unit tests ==
+
+== 4/4 Checkpoint eval (skipped) ==
+
+All validation steps passed.

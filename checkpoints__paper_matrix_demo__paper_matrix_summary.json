@@ -1,0 +1,319 @@
+{
+  "protocol": "EchoCLIP-TA paper_matrix",
+  "demo": true,
+  "paper": false,
+  "seeds": [
+    0
+  ],
+  "experiments": {
+    "R0": {
+      "title": "EchoCLIP-based zero-shot baseline (official stride under --paper)",
+      "prediction_mode": "zeroshot",
+      "aggregate": {
+        "seeds": [
+          "0"
+        ],
+        "mae": {
+          "mean": 18.75,
+          "sd": 0.0,
+          "n": 1
+        },
+        "rmse": {
+          "mean": 21.323402636539974,
+          "sd": 0.0,
+          "n": 1
+        },
+        "r2": {
+          "mean": -3.409090909090909,
+          "sd": 0.0,
+          "n": 1
+        },
+        "auc_ef_lt_50": {
+          "mean": 0.5,
+          "sd": 0.0,
+          "n": 1
+        },
+        "auc_ef_lt_40": {
+          "mean": 0.5,
+          "sd": 0.0,
+          "n": 1
+        },
+        "ece_ef_lt_50": {
+          "mean": 0.343749999986112,
+          "sd": 0.0,
+          "n": 1
+        },
+        "n_trainable_params": {
+          "mean": 69926977.0,
+          "sd": 0.0,
+          "n": 1
+        },
+        "trainable_pct_of_backbone": {
+          "mean": 109.96987736185186,
+          "sd": 0.0,
+          "n": 1
+        },
+        "per_seed": {
+          "0": {
+            "task": "clinical_ef",
+            "n_eval": 32,
+            "n_manifest": 64,
+            "ef_source": "text_parse_demo_only",
+            "n_missing_ef": 32,
+            "checkpoint": null,
+            "checkpoint_epoch": null,
+            "load_source": "scratch_fallback",
+            "pool": "frames",
+            "prediction_mode": "zeroshot",
+            "head_kind": null,
+            "use_temporal": false,
+            "video_frames": 20,
+            "sample_strategy": "official_stride",
+            "seed": 0,
+            "eval_seed": 0,
+            "train_seed": null,
+            "note": "DEMO MODE: metrics measure pipeline wiring only. Do not report as EchoNet / paper EF MAE.",
+            "paper_primary": true,
+            "demo_is_not_clinical": true,
+            "official_reproduction": false,
+            "paper_mode": false,
+            "official_reproduction_verified": false,
+            "ef_grid": "15_80_step5",
+            "ef_grid_n": 14,
+            "baseline_name": "EchoCLIP-based zero-shot baseline",
+            "n_trainable_params": 69926977,
+            "n_total_params": 69926977,
+            "n_backbone_params": 63587392,
+            "n_temporal_params": 6339584,
+            "trainable_pct_of_backbone": 109.96987736185186,
+            "trainable_pct_of_total": 100.0,
+            "eval_seconds": 11.065416300087236,
+            "experiment_id": "R0",
+            "mae": 18.75,
+            "rmse": 21.323402636539974,
+            "r2": -3.409090909090909,
+            "n": 32,
+            "auc_ef_lt_50": 0.5,
+            "auc_ef_lt_40": 0.5,
+            "auc_ef_lt_30": null,
+            "mae_bootstrap_ci95": [
+              15.0,
+              22.035156249999996
+            ],
+            "rmse_bootstrap_ci95": [
+              18.264548995253072,
+              24.076700355322778
+            ],
+            "r2_bootstrap_ci95": [
+              -6.4770365403955745,
+              -2.1502913174347387
+            ],
+            "auc_ef_lt_50_bootstrap_ci95": [
+              0.5,
+              0.5
+            ],
+            "auc_ef_lt_40_bootstrap_ci95": [
+              0.5,
+              0.5
+            ],
+            "auc_ef_lt_30_bootstrap_ci95": [
+              null,
+              null
+            ],
+            "calibration_score_note": "EF threshold scores use pseudo-logit (threshold - pred_EF), not true classifier logits; temperature scaling is limited. Prefer affine_logistic.",
+            "temperature_ef_lt_50": 1.0,
+            "ece_ef_lt_50": 0.343749999986112,
+            "brier_ef_lt_50": 0.34374999999045197,
+            "temperature_ef_lt_40": 1.0,
+            "ece_ef_lt_40": 0.687499694097773,
+            "brier_ef_lt_40": 0.6874995793845314,
+            "temperature_ef_lt_30": 1.0,
+            "ece_ef_lt_30": 0.9933071490757153,
+            "brier_ef_lt_30": 0.9866590924049252,
+            "aggregation_formula_parity": true,
+            "pad_to_16": false,
+            "experiment_title": "EchoCLIP-based zero-shot baseline (official stride under --paper)",
+            "protocol_pool": "frames",
+            "protocol_calibrate": false,
+            "protocol_prediction_mode": "zeroshot",
+            "protocol_notes": "Do not invent clinical MAE. Published external ~7.1% is from Christensen et al.; reproduce only with official weights + EchoNet seed-42 subset and/or full TEST under --paper. See also R0U16 for fixed uniform-16.",
+            "annotation_assisted": false,
+            "legacy_aliases": [
+              "B0",
+              "R0_OFFICIAL",
+              "R0-OFFICIAL"
+            ],
+            "demo_mode": true,
+            "protocol_output": "checkpoints\\paper_matrix_demo\\seed_0\\checkpoints\\protocol\\R0",
+            "official_r0_script": "scripts/eval_official_r0.py",
+            "b0_reproduce_hint": "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 AND/OR full TEST; load_source must be hf-hub:mkaichristensen/echo-clip. Set ECHOCLIP_OFFICIAL_PARITY_OK=1 only after compare_official_b0 parity."
+          }
+        }
+      }
+    },
+    "R1": {
+      "title": "Uniform-16 mean pool (no extra params)",
+      "prediction_mode": "zeroshot",
+      "aggregate": {
+        "seeds": [
+          "0"
+        ],
+        "mae": {
+          "mean": 18.75,
+          "sd": 0.0,
+          "n": 1
+        },
+        "rmse": {
+          "mean": 21.323402636539974,
+          "sd": 0.0,
+          "n": 1
+        },
+        "r2": {
+          "mean": -3.409090909090909,
+          "sd": 0.0,
+          "n": 1
+        },
+        "auc_ef_lt_50": {
+          "mean": 0.5,
+          "sd": 0.0,
+          "n": 1
+        },
+        "auc_ef_lt_40": {
+          "mean": 0.5,
+          "sd": 0.0,
+          "n": 1
+        },
+        "ece_ef_lt_50": {
+          "mean": 0.343749999986112,
+          "sd": 0.0,
+          "n": 1
+        },
+        "n_trainable_params": {
+          "mean": 69926977.0,
+          "sd": 0.0,
+          "n": 1
+        },
+        "trainable_pct_of_backbone": {
+          "mean": 109.96987736185186,
+          "sd": 0.0,
+          "n": 1
+        },
+        "per_seed": {
+          "0": {
+            "task": "clinical_ef",
+            "n_eval": 32,
+            "n_manifest": 64,
+            "ef_source": "text_parse_demo_only",
+            "n_missing_ef": 32,
+            "checkpoint": null,
+            "checkpoint_epoch": null,
+            "load_source": "scratch_fallback",
+            "pool": "mean",
+            "prediction_mode": "zeroshot",
+            "head_kind": null,
+            "use_temporal": false,
+            "video_frames": 4,
+            "sample_strategy": "uniform",
+            "seed": 0,
+            "eval_seed": 0,
+            "train_seed": null,
+            "note": "DEMO MODE: metrics measure pipeline wiring only. Do not report as EchoNet / paper EF MAE.",
+            "paper_primary": true,
+            "demo_is_not_clinical": true,
+            "official_reproduction": false,
+            "paper_mode": false,
+            "official_reproduction_verified": false,
+            "ef_grid": "15_80_step5",
+            "ef_grid_n": 14,
+            "baseline_name": "EchoCLIP-based zero-shot baseline",
+            "n_trainable_params": 69926977,
+            "n_total_params": 69926977,
+            "n_backbone_params": 63587392,
+            "n_temporal_params": 6339584,
+            "trainable_pct_of_backbone": 109.96987736185186,
+            "trainable_pct_of_total": 100.0,
+            "eval_seconds": 4.7682201999705285,
+            "experiment_id": "R1",
+            "mae": 18.75,
+            "rmse": 21.323402636539974,
+            "r2": -3.409090909090909,
+            "n": 32,
+            "auc_ef_lt_50": 0.5,
+            "auc_ef_lt_40": 0.5,
+            "auc_ef_lt_30": null,
+            "mae_bootstrap_ci95": [
+              15.0,
+              22.035156249999996
+            ],
+            "rmse_bootstrap_ci95": [
+              18.264548995253072,
+              24.076700355322778
+            ],
+            "r2_bootstrap_ci95": [
+              -6.4770365403955745,
+              -2.1502913174347387
+            ],
+            "auc_ef_lt_50_bootstrap_ci95": [
+              0.5,
+              0.5
+            ],
+            "auc_ef_lt_40_bootstrap_ci95": [
+              0.5,
+              0.5
+            ],
+            "auc_ef_lt_30_bootstrap_ci95": [
+              null,
+              null
+            ],
+            "calibration_score_note": "EF threshold scores use pseudo-logit (threshold - pred_EF), not true classifier logits; temperature scaling is limited. Prefer affine_logistic.",
+            "temperature_ef_lt_50": 1.0,
+            "ece_ef_lt_50": 0.343749999986112,
+            "brier_ef_lt_50": 0.34374999999045197,
+            "temperature_ef_lt_40": 1.0,
+            "ece_ef_lt_40": 0.687499694097773,
+            "brier_ef_lt_40": 0.6874995793845314,
+            "temperature_ef_lt_30": 1.0,
+            "ece_ef_lt_30": 0.9933071490757153,
+            "brier_ef_lt_30": 0.9866590924049252,
+            "experiment_title": "Uniform-16 mean pool (no extra params)",
+            "protocol_pool": "mean",
+            "protocol_calibrate": false,
+            "protocol_prediction_mode": "zeroshot",
+            "protocol_notes": "Primary ablation: temporal aggregation without a learned module.",
+            "annotation_assisted": false,
+            "legacy_aliases": [
+              "M1"
+            ],
+            "demo_mode": true,
+            "protocol_output": "checkpoints\\paper_matrix_demo\\seed_0\\checkpoints\\protocol\\R1"
+          }
+        }
+      }
+    }
+  },
+  "r5_hard": null,
+  "r5_soft": null,
+  "aggregate": {},
+  "paired_delta_vs_R0": {
+    "R1": {
+      "delta_mae_vs_R0": 0.0,
+      "note": "Point \u0394MAE from aggregated means; paired bootstrap requires same-split preds."
+    }
+  },
+  "cardiacclip": {
+    "method": "CardiacCLIP",
+    "available": false,
+    "mae": "\u5f85\u8865\u5145",
+    "rmse": "\u5f85\u8865\u5145",
+    "note": "External CardiacCLIP checkpoint + EchoNet-Dynamic (or matching eval set). Weights are not bundled in EchoCLIP-TA. Set CARDIACCLIP_WEIGHTS or pass weights_path to load_cardiacclip_interface().",
+    "load_source": "missing_weights",
+    "extra": {
+      "download": "CardiacCLIP weights are external (Academic / upstream license) \u2014 not bundled.\n\n1. Clone upstream:\n     git clone https://github.com/xmed-lab/CardiacCLIP.git\n2. Follow their README to download checkpoints (HF / Google Drive as published).\n3. Point EchoCLIP-TA at the weights:\n     set CARDIACCLIP_WEIGHTS=C:\\path\\to\\cardiacclip.pt\n   or:\n     python -c \"from echoclip.cardiacclip import load_cardiacclip_interface; \\\n       print(load_cardiacclip_interface(r'C:\\\\path\\\\to\\\\cardiacclip.pt').to_dict())\"\n4. Run upstream eval on the **same** EchoNet TEST split as this repo's manifests,\n   then paste MAE/RMSE into the comparison table (do not invent numbers).\n\nPaper mode hard-fails invented numbers: clinical fields stay \u5f85\u8865\u5145 until filled."
+    },
+    "clinical_numbers": "\u5f85\u8865\u5145",
+    "download_instructions": "CardiacCLIP weights are external (Academic / upstream license) \u2014 not bundled.\n\n1. Clone upstream:\n     git clone https://github.com/xmed-lab/CardiacCLIP.git\n2. Follow their README to download checkpoints (HF / Google Drive as published).\n3. Point EchoCLIP-TA at the weights:\n     set CARDIACCLIP_WEIGHTS=C:\\path\\to\\cardiacclip.pt\n   or:\n     python -c \"from echoclip.cardiacclip import load_cardiacclip_interface; \\\n       print(load_cardiacclip_interface(r'C:\\\\path\\\\to\\\\cardiacclip.pt').to_dict())\"\n4. Run upstream eval on the **same** EchoNet TEST split as this repo's manifests,\n   then paste MAE/RMSE into the comparison table (do not invent numbers).\n\nPaper mode hard-fails invented numbers: clinical fields stay \u5f85\u8865\u5145 until filled.",
+    "protocol_note": "CardiacCLIP is a literature / external-weights comparator, not R0\u2013R6."
+  },
+  "note": "DEMO \u2014 not clinical.",
+  "clinical_numbers": "\u5f85\u8865\u5145"
+}

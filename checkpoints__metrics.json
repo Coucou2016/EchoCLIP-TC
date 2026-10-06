@@ -1,0 +1,17 @@
+{
+  "i2t_r1": 1.5625,
+  "i2t_r5": 7.8125,
+  "i2t_median_rank": 32.0,
+  "i2t_mean_rank": 32.65625,
+  "t2i_r1": 1.5625,
+  "t2i_r5": 7.8125,
+  "t2i_median_rank": 32.0,
+  "t2i_mean_rank": 32.390625,
+  "mean_matched_cosine": 0.10597696155309677,
+  "mean_diagonal_logit": 1.5133510828018188,
+  "n_pairs": 64,
+  "checkpoint_epoch": 1,
+  "demo_accuracy_percent": 17.1875,
+  "demo_n_samples": 64,
+  "demo_note": "Labels are keyword heuristics on demo text only."
+}

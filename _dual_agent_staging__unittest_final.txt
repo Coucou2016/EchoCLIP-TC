@@ -1,0 +1,32 @@
+...........................................................................................................
+----------------------------------------------------------------------
+Ran 107 tests in 45.461s
+
+OK
+DEMO MODE — results are pipeline smoke only, not EchoNet / paper EF MAE.
+
+
+===== R0: EchoCLIP-based zero-shot baseline (official stride under --paper) =====
+{
+  "id": "R0",
+  "train": false,
+  "pool": "frames",
+  "calibrate": false,
+  "eval_sample_strategy": "uniform",
+  "annotation_assisted": false,
+  "test": "D:\\CursorTemp\\tmps0pia6a9\\manifest.json",
+  "cal": null,
+  "metrics": "D:\\CursorTemp\\tmps0pia6a9\\checkpoints\\protocol\\R0\\metrics.json",
+  "paper": false
+}
+
+Dry-run complete — summary.json / comparison.* left unchanged.
+{
+  "experiments": {
+    "R0": "dry-run"
+  },
+  "dry_run": true
+}
+Error: R6 calibration leak — cal_manifest equals test_manifest:
+  D:\CursorTemp\tmp3yduupfy\test.json
+Fit temperature / conformal on VAL only; never retune on TEST.

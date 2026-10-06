@@ -1,0 +1,31 @@
+{
+  "task": "clinical_ef",
+  "n_eval": 32,
+  "n_manifest": 64,
+  "ef_source": "text_parse_demo_only",
+  "n_missing_ef": 32,
+  "checkpoint": "E:\\Projects\\20260522-EchoCLIP\\checkpoints\\tc_smoke\\best.pt",
+  "checkpoint_epoch": 1,
+  "load_source": "scratch",
+  "use_temporal": true,
+  "video_frames": 4,
+  "sample_strategy": "uniform",
+  "seed": 42,
+  "note": "Labels parsed from report text on demo data are NOT clinical ground truth. Do not report these numbers as EchoNet / paper EF MAE.",
+  "paper_primary": true,
+  "demo_is_not_clinical": true,
+  "mae": 8.125,
+  "rmse": 10.231690964840562,
+  "r2": -0.015151515151515138,
+  "n": 32,
+  "auc_ef_lt_50": 0.5,
+  "auc_ef_lt_40": 0.5,
+  "auc_ef_lt_30": NaN,
+  "mae_bootstrap_ci95": [
+    5.9375,
+    10.15625
+  ],
+  "temperature_ef_lt_50": 1.0,
+  "ece_ef_lt_50": 0.33705714907571527,
+  "brier_ef_lt_50": 0.3391934592430489
+}

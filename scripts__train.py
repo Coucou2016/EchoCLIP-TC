@@ -1,0 +1,434 @@
+"""Train EchoCLIP with CLIP contrastive loss on image-report pairs."""
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+import torch
+import yaml
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from echoclip.checkpoint import save_checkpoint
+from echoclip.config import EchoCLIPConfig
+from echoclip.data import EchoCLIPDataset, collate_batch, split_manifest, load_manifest, validate_manifest
+from echoclip.loss import ClipLoss, TemporalClipLoss, EFSoftContrastiveLoss
+from echoclip.text import EchoTokenizer
+from echoclip import model as model_module
+from echoclip.model import EchoCLIP
+from echoclip.efficiency import count_parameters, timed_section
+from echoclip.utils import set_seed
+
+
+def load_config(path: Path) -> dict:
+    with path.open(encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def build_model(cfg: dict) -> EchoCLIP:
+    backbone = cfg.get("vision_backbone", "resnet18")
+    pretrained = cfg.get("pretrained_vision", True)
+    if model_module.timm is None and backbone != "simple_cnn":
+        print("timm unavailable; falling back to vision_backbone=simple_cnn")
+        backbone = "simple_cnn"
+        pretrained = False
+        cfg["init_open_clip"] = False
+        cfg["init_official_echo_clip"] = False
+    model_cfg = EchoCLIPConfig(
+        embed_dim=cfg.get("embed_dim", 512),
+        image_size=cfg.get("image_size", 224),
+        context_length=cfg.get("context_length", 77),
+        vision_backbone=backbone,
+        text_layers=cfg.get("text_layers", 12),
+        text_heads=cfg.get("text_heads", 8),
+        text_width=cfg.get("text_width", 512),
+        pretrained_vision=pretrained,
+        open_clip_tag=cfg.get("open_clip_tag"),
+        open_clip_model=cfg.get("open_clip_model", "convnext_base_w_320"),
+        temporal_type=cfg.get("temporal_type", "none"),
+        temporal_layers=cfg.get("temporal_layers", 2),
+        temporal_heads=cfg.get("temporal_heads", 8),
+        temporal_max_frames=max(
+            cfg.get("temporal_max_frames", 64), cfg.get("video_frames", 16)
+        ),
+    )
+    if cfg.get("init_official_echo_clip"):
+        allow_scratch = bool(cfg.get("allow_scratch_fallback", True))
+        model = EchoCLIP.from_official_echo_clip(
+            model_cfg,
+            checkpoint_path=cfg.get("official_checkpoint"),
+            allow_scratch_fallback=allow_scratch,
+        )
+        print(f"pretrained source: {model.load_source}")
+    elif cfg.get("init_open_clip"):
+        model = EchoCLIP.from_open_clip(model_cfg)
+        print(f"pretrained source: {model.load_source}")
+    else:
+        model = EchoCLIP(model_cfg)
+    temporal_type = cfg.get("temporal_type", "none")
+    if temporal_type and str(temporal_type).lower() not in ("none", "mean", ""):
+        if model.temporal is None:
+            model.attach_temporal(
+                temporal_type,
+                n_layers=cfg.get("temporal_layers", 2),
+                n_heads=cfg.get("temporal_heads", 8),
+                max_frames=max(
+                    cfg.get("temporal_max_frames", 64), cfg.get("video_frames", 16)
+                ),
+            )
+    apply_freeze(model, cfg)
+    return model
+
+
+def apply_freeze(model: EchoCLIP, cfg: dict) -> None:
+    freeze_backbone = bool(cfg.get("freeze_backbone", False))
+    freeze_text = bool(cfg.get("freeze_text", freeze_backbone))
+    if freeze_backbone:
+        for p in model.visual.parameters():
+            p.requires_grad = False
+        if getattr(model, "external_clip", None) is not None:
+            for p in model.external_clip.parameters():
+                p.requires_grad = False
+    if freeze_text:
+        for p in model.textual.parameters():
+            p.requires_grad = False
+    if not cfg.get("train_logit_scale", True):
+        model.logit_scale.requires_grad = False
+    if getattr(model, "temporal", None) is not None:
+        for p in model.temporal.parameters():
+            p.requires_grad = True
+    eff = count_parameters(model)
+    n_train = int(eff["n_trainable_params"])
+    n_all = int(eff["n_total_params"])
+    print(
+        f"trainable parameters: {n_train:,} / {n_all:,} "
+        f"({eff.get('trainable_pct_of_backbone')}% of backbone)"
+    )
+    if n_train == 0:
+        print("Warning: no trainable parameters; unfreezing logit_scale")
+        model.logit_scale.requires_grad = True
+
+
+def train_epoch(model, loader, optimizer, criterion, device, scaler=None, epoch: int = 1):
+    model.train()
+    if hasattr(loader, "dataset") and hasattr(loader.dataset, "set_epoch"):
+        loader.dataset.set_epoch(epoch)
+    total_loss = 0.0
+    for batch in tqdm(loader, desc="train", leave=False):
+        images = batch["image"].to(device)
+        texts = batch["text"].to(device)
+        optimizer.zero_grad(set_to_none=True)
+        with torch.amp.autocast("cuda", enabled=scaler is not None):
+            img_f, txt_f, scale = model(images, texts)
+            if isinstance(criterion, EFSoftContrastiveLoss):
+                ef = batch.get("ef")
+                loss = criterion(
+                    img_f, txt_f, scale, ef=ef.to(device) if ef is not None else None
+                )
+            elif isinstance(criterion, TemporalClipLoss) and "image_2" in batch:
+                img_f2 = model.encode_image(batch["image_2"].to(device))
+                loss = criterion(img_f, txt_f, scale, video_features_2=img_f2)
+            else:
+                loss = criterion(img_f, txt_f, scale)
+        if scaler:
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
+        total_loss += loss.item()
+    return total_loss / max(len(loader), 1)
+
+
+@torch.no_grad()
+def eval_epoch(model, loader, criterion, device):
+    model.eval()
+    if hasattr(loader, "dataset") and hasattr(loader.dataset, "set_epoch"):
+        loader.dataset.set_epoch(0)
+    total_loss = 0.0
+    for batch in loader:
+        images = batch["image"].to(device)
+        texts = batch["text"].to(device)
+        img_f, txt_f, scale = model(images, texts)
+        if isinstance(criterion, EFSoftContrastiveLoss) and batch.get("ef") is not None:
+            total_loss += criterion(img_f, txt_f, scale, ef=batch["ef"].to(device)).item()
+        else:
+            total_loss += criterion(img_f, txt_f, scale).item()
+    return total_loss / max(len(loader), 1)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=Path, default=ROOT / "configs" / "default.yaml")
+    parser.add_argument("--manifest", type=Path, default=None)
+    parser.add_argument("--manifest-dir", type=Path, default=None)
+    parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--epochs", type=int, default=None)
+    parser.add_argument("--batch-size", type=int, default=None)
+    parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--vision-backbone", type=str, default=None)
+    parser.add_argument("--video-frames", type=int, default=None)
+    parser.add_argument("--temporal-type", type=str, default=None)
+    parser.add_argument("--freeze-backbone", action="store_true")
+    parser.add_argument("--no-official", action="store_true")
+    parser.add_argument("--sample-strategy", type=str, default=None)
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Override cfg seed; stored as train_seed in checkpoints/metrics",
+    )
+    parser.add_argument(
+        "--ef-soft-contrastive",
+        action="store_true",
+        default=None,
+        help="EF-aware soft multi-positive contrastive (default ON for temporal/R5)",
+    )
+    parser.add_argument(
+        "--no-ef-soft-contrastive",
+        action="store_true",
+        help="Disable EF soft contrastive; use hard InfoNCE / TemporalClipLoss",
+    )
+    parser.add_argument(
+        "--use-edv-captions",
+        action="store_true",
+        help="Opt-in: allow EDV dilation captions (default is EF-only captions)",
+    )
+    parser.add_argument(
+        "--paper",
+        "--official-reproduction",
+        dest="paper",
+        action="store_true",
+        help="Strict paper path: refuse scratch / simple_cnn / SKIP_HUB",
+    )
+    args = parser.parse_args()
+
+    cfg = load_config(args.config)
+    if args.manifest:
+        cfg["manifest"] = str(args.manifest)
+        if args.manifest_dir is None:
+            cfg["manifest_dir"] = str(Path(args.manifest).parent)
+    if args.manifest_dir:
+        cfg["manifest_dir"] = str(args.manifest_dir)
+    if args.output_dir:
+        cfg["output_dir"] = str(args.output_dir)
+    if args.epochs is not None:
+        cfg["epochs"] = args.epochs
+    if args.batch_size is not None:
+        cfg["batch_size"] = args.batch_size
+    if args.vision_backbone:
+        cfg["vision_backbone"] = args.vision_backbone
+    if args.video_frames is not None:
+        cfg["video_frames"] = args.video_frames
+    if args.temporal_type:
+        cfg["temporal_type"] = args.temporal_type
+    if args.freeze_backbone:
+        cfg["freeze_backbone"] = True
+        cfg["freeze_text"] = True
+    if args.no_official:
+        cfg["init_official_echo_clip"] = False
+        cfg["init_open_clip"] = False
+    if args.sample_strategy:
+        cfg["sample_strategy"] = args.sample_strategy
+    if args.seed is not None:
+        cfg["seed"] = int(args.seed)
+    # Primary train sampling defaults to uniform (mixed is R5-EDEStrain ablation only)
+    if str(cfg.get("sample_strategy", "uniform")).lower() == "mixed" and not args.sample_strategy:
+        # Config may still say mixed historically; prefer uniform unless CLI asked for mixed
+        cfg["sample_strategy"] = "uniform"
+    if args.use_edv_captions:
+        cfg["use_edv_captions"] = True
+    paper = bool(getattr(args, "paper", False))
+    if paper:
+        import os
+
+        if os.environ.get("ECHOCLIP_SKIP_HUB", "").strip() in ("1", "true", "yes"):
+            print(
+                "Error: --paper/--official-reproduction cannot run with ECHOCLIP_SKIP_HUB=1."
+            )
+            sys.exit(1)
+        if args.no_official or cfg.get("vision_backbone") == "simple_cnn":
+            print(
+                "Error: --paper cannot combine with --no-official / simple_cnn. "
+                "Provide official EchoCLIP weights."
+            )
+            sys.exit(1)
+        cfg["allow_scratch_fallback"] = False
+    if cfg.get("vision_backbone") == "simple_cnn":
+        if paper:
+            print("Error: --paper refused vision_backbone=simple_cnn.")
+            sys.exit(1)
+        cfg["init_official_echo_clip"] = False
+        cfg["init_open_clip"] = False
+
+    train_seed = int(cfg.get("seed", 42))
+    cfg["seed"] = train_seed
+    set_seed(train_seed)
+    device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
+    manifest = Path(cfg["manifest"])
+    if not manifest.exists():
+        print(f"Manifest not found: {manifest}")
+        print("Run: python scripts/make_demo_data.py")
+        sys.exit(1)
+
+    pairs = load_manifest(manifest)
+    manifest_dir = Path(cfg.get("manifest_dir", manifest.parent))
+    manifest_errors = validate_manifest(pairs, manifest_dir)
+    if manifest_errors:
+        print("Manifest validation failed:")
+        for err in manifest_errors[:15]:
+            print(f"  - {err}")
+        sys.exit(1)
+    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), train_seed)
+    out_dir = Path(cfg["output_dir"])
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    split_dir = out_dir / "splits"
+    split_dir.mkdir(parents=True, exist_ok=True)
+
+    def write_split(name, data):
+        p = split_dir / f"{name}.json"
+        p.write_text(json.dumps({"pairs": data}, indent=2), encoding="utf-8")
+        return p
+
+    train_manifest = write_split("train_split", train_pairs)
+    val_manifest = write_split("val_split", val_pairs)
+
+    context_length = cfg.get("context_length", 77)
+    tokenizer = EchoTokenizer(context_length=context_length)
+    ds_kwargs = dict(
+        manifest_dir=manifest_dir,
+        image_size=cfg.get("image_size", 224),
+        context_length=context_length,
+        video_frames=cfg.get("video_frames", 1),
+        tokenizer=tokenizer,
+        sample_strategy=cfg.get("sample_strategy", "uniform"),
+        frame_pool=cfg.get("frame_pool", "stack"),
+        two_views=float(cfg.get("view_weight", 0.0)) > 0,
+        caption_mode=cfg.get("caption_mode", "random"),
+        use_edv_captions=bool(cfg.get("use_edv_captions", False)),
+    )
+    train_ds = EchoCLIPDataset(
+        train_manifest,
+        seed=train_seed,
+        **ds_kwargs,
+    )
+    val_ds = EchoCLIPDataset(
+        val_manifest,
+        **{**ds_kwargs, "sample_strategy": cfg.get("val_sample_strategy", "uniform")},
+    )
+
+    model = build_model(cfg).to(device)
+    if paper and str(getattr(model, "load_source", "")).startswith("scratch"):
+        print(
+            "Error: --paper requires real EchoCLIP weights; got load_source="
+            f"{model.load_source}"
+        )
+        sys.exit(1)
+    view_weight = float(cfg.get("view_weight", 0.0))
+    temporal = str(cfg.get("temporal_type", "none")).lower()
+    is_temporal = temporal not in ("none", "mean", "")
+    # R5 default: EF soft contrastive ON unless explicitly disabled.
+    use_ef_soft = False
+    if args.no_ef_soft_contrastive:
+        use_ef_soft = False
+    elif args.ef_soft_contrastive is True:
+        use_ef_soft = True
+    elif cfg.get("ef_soft_contrastive") is not None:
+        use_ef_soft = bool(cfg.get("ef_soft_contrastive"))
+    else:
+        use_ef_soft = is_temporal  # default for temporal / R5 train path
+    if use_ef_soft:
+        criterion = EFSoftContrastiveLoss(
+            ef_temperature=float(cfg.get("ef_soft_temperature", 5.0)),
+        )
+        print(
+            "loss=EFSoftContrastiveLoss "
+            f"(use_edv_captions={bool(cfg.get('use_edv_captions', False))})"
+        )
+    elif cfg.get("video_frames", 1) > 1 or view_weight > 0:
+        criterion = TemporalClipLoss(
+            clip_weight=cfg.get("clip_weight", 1.0),
+            view_weight=view_weight,
+        )
+    else:
+        criterion = ClipLoss()
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.AdamW(
+        trainable if trainable else model.parameters(),
+        lr=cfg.get("lr", 5e-5),
+        weight_decay=cfg.get("weight_decay", 0.2),
+    )
+    scaler = torch.amp.GradScaler("cuda") if device.startswith("cuda") else None
+
+    batch_size = min(cfg.get("batch_size", 32), len(train_ds))
+    val_batch_size = min(cfg.get("batch_size", 32), len(val_ds))
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=cfg.get("num_workers", 0),
+        collate_fn=collate_batch,
+        pin_memory=device.startswith("cuda"),
+        drop_last=len(train_ds) > batch_size,
+    )
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=val_batch_size,
+        shuffle=False,
+        num_workers=cfg.get("num_workers", 0),
+        collate_fn=collate_batch,
+    )
+
+    best_val = float("inf")
+    train_timer: dict = {}
+    with timed_section(train_timer, "train_seconds"):
+        for epoch in range(1, cfg.get("epochs", 10) + 1):
+            train_loss = train_epoch(
+                model, train_loader, optimizer, criterion, device, scaler, epoch=epoch
+            )
+            val_loss = eval_epoch(model, val_loader, criterion, device)
+            print(f"epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f}")
+
+            save_checkpoint(
+                out_dir / "last.pt",
+                model,
+                epoch,
+                train_cfg=cfg,
+                extra={"train_seed": train_seed},
+            )
+            if val_loss < best_val:
+                best_val = val_loss
+                save_checkpoint(
+                    out_dir / "best.pt",
+                    model,
+                    epoch,
+                    train_cfg=cfg,
+                    extra={"train_seed": train_seed},
+                )
+                print(f"  saved best.pt (val_loss={val_loss:.4f})")
+
+    # Record train_seed + efficiency for multi-seed aggregation / metrics.json
+    eff = count_parameters(model)
+    meta_path = out_dir / "train_meta.json"
+    meta = {
+        "train_seed": train_seed,
+        "best_val": best_val,
+        "train_seconds": train_timer.get("train_seconds"),
+        **eff,
+    }
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    print(f"Training complete. Checkpoints in {out_dir} (train_seed={train_seed})")
+    print(
+        f"efficiency: trainable={eff['n_trainable_params']} "
+        f"({eff.get('trainable_pct_of_backbone')}% of backbone)"
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,9 @@
+{
+  "experiments": {
+    "R1": "ok"
+  },
+  "demo": true,
+  "paper": false,
+  "seed": 0,
+  "note": "Demo protocol run \u2014 not clinical."
+}

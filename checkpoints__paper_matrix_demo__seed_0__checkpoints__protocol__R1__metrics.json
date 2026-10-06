@@ -1,0 +1,88 @@
+{
+  "task": "clinical_ef",
+  "n_eval": 32,
+  "n_manifest": 64,
+  "ef_source": "text_parse_demo_only",
+  "n_missing_ef": 32,
+  "checkpoint": null,
+  "checkpoint_epoch": null,
+  "load_source": "scratch_fallback",
+  "pool": "mean",
+  "prediction_mode": "zeroshot",
+  "head_kind": null,
+  "use_temporal": false,
+  "video_frames": 4,
+  "sample_strategy": "uniform",
+  "seed": 0,
+  "eval_seed": 0,
+  "train_seed": null,
+  "note": "DEMO MODE: metrics measure pipeline wiring only. Do not report as EchoNet / paper EF MAE.",
+  "paper_primary": true,
+  "demo_is_not_clinical": true,
+  "official_reproduction": false,
+  "paper_mode": false,
+  "official_reproduction_verified": false,
+  "ef_grid": "15_80_step5",
+  "ef_grid_n": 14,
+  "baseline_name": "EchoCLIP-based zero-shot baseline",
+  "n_trainable_params": 69926977,
+  "n_total_params": 69926977,
+  "n_backbone_params": 63587392,
+  "n_temporal_params": 6339584,
+  "trainable_pct_of_backbone": 109.96987736185186,
+  "trainable_pct_of_total": 100.0,
+  "eval_seconds": 4.7682201999705285,
+  "experiment_id": "R1",
+  "mae": 18.75,
+  "rmse": 21.323402636539974,
+  "r2": -3.409090909090909,
+  "n": 32,
+  "auc_ef_lt_50": 0.5,
+  "auc_ef_lt_40": 0.5,
+  "auc_ef_lt_30": null,
+  "mae_bootstrap_ci95": [
+    15.0,
+    22.035156249999996
+  ],
+  "rmse_bootstrap_ci95": [
+    18.264548995253072,
+    24.076700355322778
+  ],
+  "r2_bootstrap_ci95": [
+    -6.4770365403955745,
+    -2.1502913174347387
+  ],
+  "auc_ef_lt_50_bootstrap_ci95": [
+    0.5,
+    0.5
+  ],
+  "auc_ef_lt_40_bootstrap_ci95": [
+    0.5,
+    0.5
+  ],
+  "auc_ef_lt_30_bootstrap_ci95": [
+    null,
+    null
+  ],
+  "calibration_score_note": "EF threshold scores use pseudo-logit (threshold - pred_EF), not true classifier logits; temperature scaling is limited. Prefer affine_logistic.",
+  "temperature_ef_lt_50": 1.0,
+  "ece_ef_lt_50": 0.343749999986112,
+  "brier_ef_lt_50": 0.34374999999045197,
+  "temperature_ef_lt_40": 1.0,
+  "ece_ef_lt_40": 0.687499694097773,
+  "brier_ef_lt_40": 0.6874995793845314,
+  "temperature_ef_lt_30": 1.0,
+  "ece_ef_lt_30": 0.9933071490757153,
+  "brier_ef_lt_30": 0.9866590924049252,
+  "experiment_title": "Uniform-16 mean pool (no extra params)",
+  "protocol_pool": "mean",
+  "protocol_calibrate": false,
+  "protocol_prediction_mode": "zeroshot",
+  "protocol_notes": "Primary ablation: temporal aggregation without a learned module.",
+  "annotation_assisted": false,
+  "legacy_aliases": [
+    "M1"
+  ],
+  "demo_mode": true,
+  "protocol_output": "checkpoints\\paper_matrix_demo\\seed_0\\checkpoints\\protocol\\R1"
+}

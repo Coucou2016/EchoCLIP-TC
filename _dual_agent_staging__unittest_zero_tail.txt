@@ -1,0 +1,55 @@
+..................................................E................................................E.......
+======================================================================
+ERROR: test_toy_runs (test_p1_protocol.TestAttentionSkeleton.test_toy_runs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\Projects\20260522-EchoCLIP\tests\test_p1_protocol.py", line 98, in test_toy_runs
+    out = mod.run_toy_analysis(seed=1, n_frames=12)
+          ^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'analyze_attention_edes' has no attribute 'run_toy_analysis'. Did you mean: 'run_analysis'?
+
+======================================================================
+ERROR: test_train_seed_differs_and_affects_init (test_zero_tail.TestSeedPropagationE2E.test_train_seed_differs_and_affects_init)
+Different seeds → different train_seed metadata and init noise.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\Projects\20260522-EchoCLIP\tests\test_zero_tail.py", line 122, in test_train_seed_differs_and_affects_init
+    head.linear.weight.add_(torch.randn_like(head.linear.weight) * 0.01)
+    ^^^^^^^^^^^
+  File "E:\Miniconda3\Lib\site-packages\torch\nn\modules\module.py", line 1967, in __getattr__
+    raise AttributeError(
+        f"'{type(self).__name__}' object has no attribute '{name}'"
+    )
+AttributeError: 'LinearEFHead' object has no attribute 'linear'
+
+----------------------------------------------------------------------
+Ran 107 tests in 81.253s
+
+FAILED (errors=2)
+DEMO MODE — results are pipeline smoke only, not EchoNet / paper EF MAE.
+
+
+===== R0: EchoCLIP-based zero-shot baseline (official stride under --paper) =====
+{
+  "id": "R0",
+  "train": false,
+  "pool": "frames",
+  "calibrate": false,
+  "eval_sample_strategy": "uniform",
+  "annotation_assisted": false,
+  "test": "D:\\CursorTemp\\tmp86rbkyxa\\manifest.json",
+  "cal": null,
+  "metrics": "D:\\CursorTemp\\tmp86rbkyxa\\checkpoints\\protocol\\R0\\metrics.json",
+  "paper": false
+}
+
+Dry-run complete — summary.json / comparison.* left unchanged.
+{
+  "experiments": {
+    "R0": "dry-run"
+  },
+  "dry_run": true
+}
+Error: R6 calibration leak — cal_manifest equals test_manifest:
+  D:\CursorTemp\tmpjxfkedpj\test.json
+Fit temperature / conformal on VAL only; never retune on TEST.

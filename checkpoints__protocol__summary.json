@@ -1,0 +1,11 @@
+{
+  "experiments": {
+    "B0": "ok",
+    "M1": "ok",
+    "M2": "ok",
+    "M4": "ok"
+  },
+  "demo": true,
+  "seed": 42,
+  "note": "Demo protocol run — not clinical. Restored after dry-run overwrite during dual-agent audit (2026-08-15); prior metrics.json under checkpoints/protocol/<ID>/ remain the demo smoke artifacts."
+}

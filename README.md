@@ -1,214 +1,192 @@
-# EchoCLIP-TA (repo: EchoCLIP-TC)
+# EchoCLIP-TC — Flat Repository (no subfolders, by design)
 
+**This repository intentionally has no directory hierarchy.**
+Every file — source code, documentation, manuscript, figures, results data, reports — sits in the
+**repository root**, flat.
 
+**This file (`README.md`) is the only entry point you need**, plus the machine-readable index
+`FLAT_LAYOUT_MANIFEST.json` and the human-readable rationale `FLAT_LAYOUT.md`.
 
-Vision-language foundation model for **echocardiogram interpretation**, implementing the contrastive CLIP-style architecture described in:
+---
 
+## Why is everything flat?
 
+The goal of this repository is **complete, unobstructed, cross-agent reading**:
 
-> Christensen et al., *Vision–language foundation model for echocardiogram interpretation*, Nature Medicine (2024).  
+1. **Full-context ingestion by LLM agents.** ChatGPT / Claude / Cursor / any other agent that
+   lists a repository, crawls a sitemap, or batch-downloads a tarball gets **100% of the
+   project content in one flat namespace** — no directory recursion, no missed subtrees, no
+   "I only read `src/`" partial views.
+2. **Cross-review between independent agents.** A second agent can audit the manuscript against
+   the actual code, the reported numbers against the raw JSON, and the review-response letters
+   against the tests, without needing any external context about where things live.
+3. **No hidden content.** With a flat layout, a reviewer can enumerate the entire repository in
+   one request and verify that the count of files matches the manifest. Nothing can hide in a
+   deep folder.
+4. **Durable, link-stable paths.** Every file has a single, unique, top-level name, so any
+   external note, issue, or prompt can reference it unambiguously.
 
-> [Paper](https://www.nature.com/articles/s41591-024-02959-y) · [Official inference repo](https://github.com/echonet/echo_CLIP)
+---
 
+## How the flat names are formed
 
-
-This repository (**https://github.com/Coucou2016/EchoCLIP-TC**) implements **EchoCLIP-TA**: parameter-efficient, EF-aware temporal adaptation on frozen EchoCLIP, with validation-only calibration and a locked R0–R6 public-data protocol. Legacy name EchoCLIP-TC (Temporal, Calibrated) still appears in paths; the Python package remains `echoclip`.
-
-
-
-## Architecture
-
-
-
-| Component | Paper (EchoCLIP) | This implementation |
-
-|-----------|------------------|---------------------|
-
-| Image encoder | ConvNeXt-Base | `timm` backbone (`convnext_base` or `resnet18` for demos); `simple_cnn` if timm fails |
-
-| Text encoder | CLIP decoder-only transformer (77 tokens) | 12-layer transformer + `CLIPTokenizer` (GPT-2 BPE) |
-
-| Objective | Symmetric InfoNCE / CLIP loss | `ClipLoss` + `TemporalClipLoss` + **default** `EFSoftContrastiveLoss` for R5 |
-
-| Pretraining | LAION-400M CLIP → echo finetune | Optional `init_open_clip` or official `hf-hub:mkaichristensen/echo-clip` |
-
-| Temporal (TC/TA) | None (frame encoder + mean) | `echoclip/temporal.py` — attention pool / Temporal Transformer `(B,T,D)→(B,D)` |
-
-| Supervised baselines | — | S0/S1/S2 (`echoclip/supervised.py`): linear/ridge, MLP, temporal L1/Huber |
-
-| Calibration (TC) | Uncalibrated cosine | Temperature **or** affine logistic @50/40/30, ECE, Brier, split + optional adaptive conformal / AURC, bootstrap CIs |
-
-
-
-## Project layout
-
-
+Original path separators become a **double underscore** `__`:
 
 ```
-
-echoclip/                 # Dual encoder, TC modules, zero-shot, clinical metrics
-
-  protocol.py             # R0–R6 + Oracle-EDES matrix (aliases B0/M1/M2/M4)
-
-  temporal.py             # Temporal Transformer / attention pooling
-
-  supervised.py           # S0/S1/S2 EF heads
-
-  cycle_sample.py         # random / uniform / ED-ES / mixed / official_stride
-
-  calibrate.py            # temperature, affine logistic, ECE, conformal
-
-  structured_text.py      # EF prompts (primary); EDV dilation optional ablation
-  prompts_ta.py           # Clean-room TA captions (optional; official prompts for R0 parity)
-  efficiency.py           # Trainable param counts / timing hooks for metrics.json
-  cardiacclip.py          # External CardiacCLIP comparator (weights not bundled)
-
-scripts/
-
-  run_protocol.py         # --demo vs --paper protocol runner
-
-  run_seeds.py            # Multi-seed helper → mean±SD JSON (paper: 5 seeds)
-
-  eval_clinical.py        # Paper primary: EF + calibration → metrics.json
-
-  train_supervised.py     # R2–R4 supervised baselines
-
-  train.py                # R5 default: EF soft contrastive + EF-only captions
-
-  analyze_attention_edes.py  # Attention / ED–ES figure + CSV (demo or EchoNet)
-
-  run_paper_matrix.py     # One-shot R0–R6 + ablations + mean±SD
-
-  run_label_efficiency.py # TRAIN subset curves with fixed TEST
-
-PAPER.md                  # Experiment IDs, honesty rules
-
-DATA.md                   # Manifest format + EchoNet-Dynamic
-
-requirements-lock.txt     # Pinned working env note
-
-ATTRIBUTION.md            # File-level upstream vs clean-room + ASL risk
-
+papers/echoclip_tc_manuscript.md        ->  papers__echoclip_tc_manuscript.md
+echoclip/model.py                       ->  echoclip__model.py
+checkpoints/protocol/M2/metrics.json    ->  checkpoints__protocol__M2__metrics.json
+reports/figures/fig1_....png            ->  reports__figures__fig1_....png
 ```
 
+Files that were already at the repository root keep their original name
+(the only exception is the pre-existing root `README.md`, renamed
+`README_project_original.md`; **this** file takes the `README.md` slot).
+
+The original project `README.md` is still available as `README_project_original.md`; the
+`.gitignore` in this repository is a regenerated flat-repo version, not the original one.
+
+**Prefix legend**
+
+| Prefix | Original location | Content |
+|---|---|---|
+| *(none)* | repo root | license, citation, top-level docs, report bundle |
+| `PAPER.md`, `DATA.md` | repo root | manuscript pointer / dataset protocol |
+| `papers__` | `papers/` | **full manuscript** (MD + HTML) |
+| `reports__` | `reports/` | **research report, review responses, collaboration logs, figures** |
+| `figures__` | `figures/` | publication figures (PNG + PDF) |
+| `echoclip__` | `echoclip/` | library source |
+| `scripts__` | `scripts/` | experiment / evaluation CLI entry points |
+| `tests__` | `tests/` | unit + end-to-end tests |
+| `configs__` | `configs/` | YAML configs |
+| `checkpoints__` | `checkpoints/` | **core result data** (metrics JSON, splits) |
+| `docs__` | `docs/` | data/weights acquisition HOWTO |
+| `data__` | `data/` | demo manifests/templates (no patient videos) |
+| `notes__` | `notes/` | process notes |
+| `LICENSES__` | `LICENSES/` | third-party license notes |
+| `_dual_agent_staging__` | `_dual_agent_staging/` | Cursor↔ChatGPT collaboration records |
+| `.github__workflows__ci.yml` | `.github/workflows/ci.yml` | CI workflow |
+
+---
+
+## Start here (recommended reading order)
+
+### 1. Paper & reports
+| File | What it is |
+|---|---|
+| `PAPER.md` | Manuscript entry point / claims index |
+| `papers__echoclip_tc_manuscript.md` | **Full manuscript (source of truth, editable)** |
+| `papers__echoclip_tc_manuscript.html` | Manuscript, rendered |
+| `reports__research_report.md` | **Self-contained research report** |
+| `reports__research_report.html` | Research report, rendered |
+| `reports__research_report.pdf` | Research report, PDF |
+| `report.html` | Root-level report bundle (rendered snapshot) |
+| `README_project_original.md` | The original (pre-flattening) project README |
+
+> The numeric filenames below are **stable**; if a regenerated report has no date yet, use the
+> newest file whose name starts with the given prefix.
+
+### 2. Core result data
+| File | What it is |
+|---|---|
+| `checkpoints__paper_matrix__paper_matrix_summary.json` | Paper matrix aggregate summary |
+| `checkpoints__paper_matrix_demo__paper_matrix_summary.json` | Demo matrix per-seed detail |
+| `checkpoints__protocol__summary.json` | Protocol summary (M1/M2/M4/B0) |
+| `checkpoints__protocol__cardiacclip_comparison.json` | CardiacCLIP baseline comparison |
+| `checkpoints__label_efficiency__label_efficiency_table.json` | Label-efficiency table |
+| `checkpoints__tc_smoke__clinical_metrics.json` | Clinical smoke metrics |
+| `reports__attention_edes__attention_edes_summary.json` | Attention/ED-ES analysis |
+| `reports__attention_edes__attention_edes.csv` | Attention analysis table |
+
+### 3. Audit trail
+| File | What it is |
+|---|---|
+| `reports__ZERO_TAIL_COMPLETE_20260915.md` | Final "zero-tail" closure record |
+| `reports__review_response_p0_20260913.md` | P0 review response |
+| `reports__review_response_p1_complete_20260914.md` | P1 review response |
+| `reports__review_response_round2_20260914.md` | Round-2 response |
+| `reports__review_response_round3_20260915.md` | Round-3 response |
+| `reports__review_response_complete_20260914.md` | Aggregate response |
+| `reports__echoclip_tc_five_round_collab_20260816.md` | Five-round collaboration log |
+| `_dual_agent_staging__chatgpt_task_brief.md` | Task brief handed to the reviewer agent |
+
+### 4. Data & weights
+| File | What it is |
+|---|---|
+| `docs__OBTAIN_DATA_AND_WEIGHTS.md` | How to obtain EchoNet-Dynamic **and** the official EchoCLIP weights |
+| `docs__OBTAIN_STATUS.md` | Acquisition status template |
+| `DATA.md` | Dataset protocol / licensing |
+| `DATA.md`, `data__examples__manifest_template.csv` | Manifest formats |
+
+### 5. Code
+* Library: `echoclip__*.py` — model, loss, data, zeroshot, temporal, cycle sampling,
+  calibration, clinical metrics, protocol, checkpointing, structured text, prompts.
+* Entry points: `scripts__*.py` — `scripts__train.py`, `scripts__train_supervised.py`,
+  `scripts__eval_clinical.py`, `scripts__eval_official_r0.py`, `scripts__run_protocol.py`,
+  `scripts__run_paper_matrix.py`, `scripts__run_seeds.py`, `scripts__run_label_efficiency.py`,
+  `scripts__build_echonet_manifest.py`, `scripts__build_research_report_bundle.py`, …
+* Tests: `tests__test_*.py` (protocol, calibration, zero-tail, official parity, e2e, …).
+
+---
+
+## Running the code from this flat repository
+
+The flat layout is optimized for **reading and review**, not for `import echoclip` directly.
+Python resolves `import echoclip` from the *directory* `echoclip/`, which does not exist here.
+
+Two supported options:
+
+1. **Rehydrate the original tree** (one command):
+
+   ```powershell
+   pwsh -File restore_flat_to_tree.ps1 -Destination ..\EchoCLIP-TC-tree
+   ```
 
+   This reconstructs `echoclip/`, `scripts/`, `tests/`, `papers/`, … from the `__`-flattened
+   names, so `python -m pytest tests -q` and the CLI scripts work as documented.
 
-## Install
+2. **Read-only use**: treat `X__Y__Z.py` as `X/Y/Z.py` and read/normalize the import paths
+   accordingly.
 
+> The canonical, directly runnable repository layout lives in the main working copy; this flat
+> repository is the **audit surface** for cross-agent review.
 
+---
 
-```powershell
+## Excluded from this repository (by design)
 
-cd $env:ECHOCLIP_ROOT   # or: cd <path-to-EchoCLIP-TC>
+Large binaries are **not** stored here, because GitHub rejects files > 100 MB:
 
-python -m venv .venv
+* model checkpoints `*.pt` (≈254–280 MB each)
+* official EchoCLIP weights `open_clip_pytorch_model.bin` (≈606 MB) — obtain via
+  `docs__OBTAIN_DATA_AND_WEIGHTS.md`
+* EchoNet-Dynamic videos `*.avi` (license-gated clinical data)
+* `*.zip` staging bundles, Python bytecode, caches
 
-.\.venv\Scripts\Activate.ps1
+Regenerable demo images (`data/demo/images/*.png`) are also omitted; recreate with
+`scripts__make_demo_data.py`.
 
-pip install -r requirements.txt
+See `FLAT_LAYOUT.md` for the full inclusion/exclusion policy.
 
-# Windows CPU without timm/torchvision:
+---
 
-pip install -r requirements-minimal.txt
+## Machine-readable index
 
-```
+`FLAT_LAYOUT_MANIFEST.json` lists **every file** in this repository with:
 
+* `flat_name` — the name in this flat repository
+* `original_path` — its path in the original tree
+* `category` — paper / report / code / test / result / doc / …
+* `size_bytes`, `sha256`
 
+Use it to enumerate the repository deterministically or to verify that an agent has read
+everything.
 
-GPU recommended for `convnext_base` training; CPU works for demo/`resnet18`/`simple_cnn`.
+---
 
+## Status of the scientific claims
 
-
-**Windows note:** If `import timm` or `torchvision` fails with `_lzma` DLL errors, use `vision_backbone: simple_cnn`. Official EchoCLIP hub weights may fail to download; loaders fall back to `simple_cnn` **unless** `--paper` / `--official-reproduction` is set (then they **RuntimeError**).
-
-
-
-## Quick start (demo — not clinical)
-
-
-
-```powershell
-
-python scripts\make_demo_data.py
-
-python scripts\validate.py --skip-eval
-
-python scripts\run_protocol.py --demo --experiments R0,R1 --vision-backbone simple_cnn
-
-```
-
-
-
-## EchoNet + paper path
-
-
-
-EchoNet-Dynamic is **not** in this repo (Stanford AIMI non-commercial). Full obtain guide: [docs/OBTAIN_DATA_AND_WEIGHTS.md](docs/OBTAIN_DATA_AND_WEIGHTS.md).
-
-
-
-- https://echonet.github.io/dynamic/
-
-- https://stanfordaimi.azurewebsites.net/
-
-- https://stanford.redivis.com/datasets/66s1-2hsmzj5rn
-
-- Weights: https://huggingface.co/mkaichristensen/echo-clip (`hf-hub:mkaichristensen/echo-clip`)
-
-
-
-```powershell
-
-$env:ECHONET_ROOT = "<AIMI_EchoNet-Dynamic>"
-
-python scripts\build_echonet_manifest.py --echonet-root $env:ECHONET_ROOT --subset-5000
-
-# Optional ablation: --include-dilation  (primary captions are EF-only)
-
-
-
-# Strict official reproduction (hard-fails without real EchoCLIP weights)
-
-python scripts\run_protocol.py --paper --experiments R0
-
-
-
-# Full primary matrix (aliases B0,M1,M2,M4 still work)
-
-python scripts\run_protocol.py --experiments R0,R1,R5,R6
-
-```
-
-
-
-Edit `configs/echonet_dynamic.yaml` paths using env-style placeholders (`${ECHONET_ROOT}` documented in comments).
-
-
-
-See [PAPER.md](PAPER.md) for the locked R0–R6 + Oracle-EDES matrix. **Do not invent clinical MAE.** Published EchoCLIP external ~7.1% EF MAE is from Christensen et al.; reproduce only with official weights + seed-42 subset / full TEST under `--paper`.
-
-
-
-## Protocol notes
-
-
-
-- **VAL/TEST primary:** `sample_strategy=uniform` (honors `val_sample_strategy`). `ed_es`/`mixed` → `ValueError` unless **Oracle-EDES**.
-
-- **R5/M2:** EF-label-supervised temporal adaptation of frozen EchoCLIP — **not** a zero-shot temporal extension. Default: `EFSoftContrastiveLoss` + EF-only captions (`--use-edv-captions` opt-in).
-
-- **R0/B0 default name:** "EchoCLIP-based zero-shot baseline" until golden parity is proven. `--paper` hard-fails without official weights (train/eval/protocol).
-
-- **Calibration:** affine logistic preferred; ECE/Brier @50/40/30; optional `--adaptive-conformal` + AURC; bootstrap CIs in clinical summary.
-
-- **Seeds:** `scripts/run_seeds.py` (default 0,1,2; paper prefers 5).
-
-
-
-## Attribution / license
-
-
-
-See [ATTRIBUTION.md](ATTRIBUTION.md) and [LICENSE](LICENSE). MIT covers **this scaffold**; upstream EchoCLIP prompts/code and EchoNet terms may differ — do not assume MIT covers all derived materials without audit.
-
-
+This repository contains **protocol-level and demo-scale results**. Clinical-grade numbers
+require the license-gated EchoNet-Dynamic dataset and GPU runs; see
+`docs__OBTAIN_DATA_AND_WEIGHTS.md` and `reports__ZERO_TAIL_COMPLETE_20260915.md` for the exact
+state of each claim.
