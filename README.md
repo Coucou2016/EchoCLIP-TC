@@ -82,6 +82,7 @@ The original project `README.md` is still available as `README_project_original.
 | `reports__research_report.pdf` | Research report, PDF |
 | `report.html` | Root-level report bundle (rendered snapshot) |
 | `README_project_original.md` | The original (pre-flattening) project README |
+| `PROVENANCE.md` | Per-file origin / upstream-similarity / license inventory (engineering audit input) |
 
 > The numeric filenames below are **stable**; if a regenerated report has no date yet, use the
 > newest file whose name starts with the given prefix.
@@ -102,6 +103,8 @@ The original project `README.md` is still available as `README_project_original.
 | File | What it is |
 |---|---|
 | `reports__ZERO_TAIL_COMPLETE_20260915.md` | Final "zero-tail" closure record |
+| `reports__p0_closure_20261007.md` | Strict-review P0/P1 closure pass (code + tests) |
+| `reports__manuscript_hygiene_20261007.md` | Manuscript hygiene scan + license-file reconciliation addendum |
 | `reports__review_response_p0_20260913.md` | P0 review response |
 | `reports__review_response_p1_complete_20260914.md` | P1 review response |
 | `reports__review_response_round2_20260914.md` | Round-2 response |
@@ -116,16 +119,28 @@ The original project `README.md` is still available as `README_project_original.
 | `docs__OBTAIN_DATA_AND_WEIGHTS.md` | How to obtain EchoNet-Dynamic **and** the official EchoCLIP weights |
 | `docs__OBTAIN_STATUS.md` | Acquisition status template |
 | `DATA.md` | Dataset protocol / licensing |
-| `DATA.md`, `data__examples__manifest_template.csv` | Manifest formats |
+| `data__examples__manifest_template.json`, `data__examples__manifest_template.csv` | Manifest formats |
 
 ### 5. Code
 * Library: `echoclip__*.py` — model, loss, data, zeroshot, temporal, cycle sampling,
   calibration, clinical metrics, protocol, checkpointing, structured text, prompts.
+  Newer modules: `echoclip__supervised_checkpoint.py` (on-disk EF-regression schema),
+  `echoclip__config_io.py` (`${ENV}`/`~` config expansion), `echoclip__official_r0.py`
+  (standalone official-style R0 evaluator).
 * Entry points: `scripts__*.py` — `scripts__train.py`, `scripts__train_supervised.py`,
   `scripts__eval_clinical.py`, `scripts__eval_official_r0.py`, `scripts__run_protocol.py`,
   `scripts__run_paper_matrix.py`, `scripts__run_seeds.py`, `scripts__run_label_efficiency.py`,
-  `scripts__build_echonet_manifest.py`, `scripts__build_research_report_bundle.py`, …
+  `scripts__build_echonet_manifest.py`, `scripts__audit_repo_integrity.py`,
+  `scripts__build_research_report_bundle.py`, …
 * Tests: `tests__test_*.py` (protocol, calibration, zero-tail, official parity, e2e, …).
+
+### 6. Provenance, licensing & build config
+| File | What it is |
+|---|---|
+| `PROVENANCE.md` | **Per-file provenance + license inventory** (origin vocabulary, upstream-similarity, action items) |
+| `pytest.ini` | Pytest config (`addopts = -p no:zarr`; documented Python 3.13 workaround) |
+| `.github__workflows__ci.yml` | CI workflow (runs the test suite + repo integrity audit) |
+| `NOTICE`, `ATTRIBUTION.md`, `LICENSE`, `LICENSES__README.md` | Third-party notices and license-scope boundary |
 
 ---
 

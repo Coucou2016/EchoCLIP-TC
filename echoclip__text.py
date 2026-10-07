@@ -1,10 +1,13 @@
 """Clinical report cleaning and CLIP-style tokenization (GPT-2 BPE, 77 tokens).
 
-Report normalization is a **clean-room** reimplementation for EchoCLIP-TA:
-same functional goals as public echo report prep (uppercase, strip noise,
-normalize severity/tense wording, collapse whitespace) but with independently
-authored regexes. Official EchoCLIP prompt *strings* remain in ``prompts.py``
-and are attributed separately (see ATTRIBUTION.md / NOTICE).
+``clean_report_text`` is an independently authored report normalizer whose
+behavior intentionally overlaps upstream EchoCLIP report cleaning (uppercase,
+noise stripping, severity/tense normalization, whitespace collapse); no upstream
+code is vendored or line-copied in this repository, and whether the upstream
+``echonet/echo_CLIP`` ``utils.py`` source was consulted is **unclear — needs
+author confirmation** (see PROVENANCE.md). Official EchoCLIP prompt *strings*
+remain in ``prompts.py`` and are attributed separately (see ATTRIBUTION.md /
+NOTICE).
 """
 
 from __future__ import annotations
@@ -16,9 +19,11 @@ import torch
 from transformers import CLIPTokenizer
 
 # ---------------------------------------------------------------------------
-# Clean-room report normalizer (EchoCLIP-TA)
+# Report normalizer (EchoCLIP-TA; independently authored, behavioral overlap).
 # Intentional behavioral overlap with clinical echo report prep; patterns are
-# rewritten here and are not copied from echonet/echo_CLIP utils.py.
+# authored here and no upstream code is line-copied, but whether the upstream
+# echonet/echo_CLIP utils.py source was consulted is unclear — needs author
+# confirmation (see PROVENANCE.md).
 # ---------------------------------------------------------------------------
 
 _NOISE_CHARS = re.compile(r"[\^\u2021]|CRLF")
@@ -69,7 +74,7 @@ _ENSURE_PERIOD = re.compile("(" + "|".join(_ADD_PERIOD_PARTS) + ")")
 
 
 def clean_report_text(text: str) -> str:
-    """Normalize echocardiography report text before tokenization (clean-room)."""
+    """Normalize echocardiography report text before tokenization."""
     if len(text) <= 1:
         return text
     text = text.upper().strip().replace("`", "'")

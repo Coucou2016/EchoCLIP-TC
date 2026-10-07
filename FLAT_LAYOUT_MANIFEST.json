@@ -1,24 +1,24 @@
 {
   "repository": "Coucou2016/EchoCLIP-TC",
   "layout": "flat (no subfolders, by design)",
-  "generated_utc": "2026-10-06T15:35:25+00:00",
+  "generated_utc": "2026-10-07T17:13:44+00:00",
   "naming_convention": "<original_dir_1>__<original_dir_2>__...__<filename>",
   "rationale": "See FLAT_LAYOUT.md - full-context ingestion and cross-agent review",
-  "file_count": 181,
+  "file_count": 197,
   "note": "file_count excludes .gitignore, FLAT_LAYOUT_MANIFEST.json, FLAT_LAYOUT.md, README.md and restore_flat_to_tree.ps1",
-  "total_size_bytes": 7567156,
+  "total_size_bytes": 7735460,
   "count_by_category": {
     "ci": 1,
-    "code": 46,
+    "code": 50,
     "collaboration_log": 12,
     "config": 9,
     "data_manifest": 5,
-    "documentation": 10,
+    "documentation": 12,
     "figure": 14,
     "manuscript": 3,
-    "report": 36,
+    "report": 38,
     "result_data": 25,
-    "test": 20
+    "test": 28
   },
   "excluded": {
     "model_weights": [
@@ -51,64 +51,71 @@
       "flat_name": ".github__workflows__ci.yml",
       "original_path": ".github/workflows/ci.yml",
       "category": "ci",
-      "size_bytes": 1398,
-      "sha256": "a4d4f70542730903b45eb686eb2f3451247a20519342f90906fafcd3dde2e218"
+      "size_bytes": 1489,
+      "sha256": "2d1b37be5311e9cf4630aa89a0b690e3c7721f7b084274a7ed64cb3f6a090e02"
     },
     {
       "flat_name": "ATTRIBUTION.md",
       "original_path": "ATTRIBUTION.md",
       "category": "documentation",
-      "size_bytes": 4453,
-      "sha256": "bed541276196dc4b3899f0abe6c1916b35c8e0fe942ebc93dec5fa2934b3072b"
+      "size_bytes": 5607,
+      "sha256": "33239aad8d1961f4cc088d952fc9114eb9e1dc7355f74931b14ef08ffb7508f9"
     },
     {
       "flat_name": "CITATION.cff",
       "original_path": "CITATION.cff",
       "category": "documentation",
-      "size_bytes": 1007,
-      "sha256": "be52a67a337386917a6ab619fd8a1caf99c8cb2e7e3624b554ef7534f96f866e"
+      "size_bytes": 1902,
+      "sha256": "e20faa789c3177ad381e6ffc114939c78ef1142ebfa36c347d1548b7d674fbe3"
     },
     {
       "flat_name": "DATA.md",
       "original_path": "DATA.md",
       "category": "documentation",
-      "size_bytes": 7310,
-      "sha256": "ae6d18d99126b5d387babde89555d3cb66328a6aea9acf10ccfbd711fb976cbc"
+      "size_bytes": 8260,
+      "sha256": "975a52f545f84c9e8fc3ff2fd59a9a1510db069b9104dd213e6f5d4d07cab7e4"
     },
     {
       "flat_name": "LICENSE",
       "original_path": "LICENSE",
       "category": "documentation",
-      "size_bytes": 1570,
-      "sha256": "7fc15768461ba33fd6e65b113138fdebab603dfbaabbfbc512f5074aec352089"
+      "size_bytes": 2561,
+      "sha256": "7ff83ea5f4b9260b6fab011a0d0cd1d577b0625d1ea849285669d75993b3fda9"
     },
     {
       "flat_name": "LICENSES__README.md",
       "original_path": "LICENSES/README.md",
       "category": "documentation",
-      "size_bytes": 833,
-      "sha256": "32b7741aa709974ce859c63b50464ba034dbb0b47f0574d7f2d38299c625bbfb"
+      "size_bytes": 2506,
+      "sha256": "9c179bfab67f2156bfface4f20a7b5be63d305f9863f2394f99d37b5cc5af797"
     },
     {
       "flat_name": "NOTICE",
       "original_path": "NOTICE",
       "category": "documentation",
-      "size_bytes": 1456,
-      "sha256": "b6448ae32a2f50e14fc76986b24c1f540cb3787bc1602e1b34756ddb6f231e05"
+      "size_bytes": 4049,
+      "sha256": "45fc6e893e0de06ee31affc6406ee5492f0e5f52d6c255e5741234329c7ee2e6"
     },
     {
       "flat_name": "PAPER.md",
       "original_path": "PAPER.md",
       "category": "manuscript",
-      "size_bytes": 9473,
-      "sha256": "5610048f98e37a89fee784a7268a9ea2f16c38d4850c83adfa9fc9284fc0a838"
+      "size_bytes": 9526,
+      "sha256": "7639ca5bc87319bac1c69eb6dc39aa35c5e4704e494ca4acc4d9c173a67937bb"
+    },
+    {
+      "flat_name": "PROVENANCE.md",
+      "original_path": "PROVENANCE.md",
+      "category": "documentation",
+      "size_bytes": 13955,
+      "sha256": "e8790bcdc5ad425c8ea3d59c0d6e2fc5ce913501b1e1098349209185e6e5b17b"
     },
     {
       "flat_name": "README_project_original.md",
       "original_path": "README.md",
       "category": "documentation",
-      "size_bytes": 6813,
-      "sha256": "0b3ee890d66787fb3811a5630d92ce10cea3532a41d67a834bc7b97c471ed406"
+      "size_bytes": 7555,
+      "sha256": "d87b5053f0c5f3139ddc5700a85551c110f080ae13b93674c95d81b61d075872"
     },
     {
       "flat_name": "_dual_agent_staging__chatgpt_paste_context_20260816.txt",
@@ -485,15 +492,15 @@
       "flat_name": "echoclip__checkpoint.py",
       "original_path": "echoclip/checkpoint.py",
       "category": "code",
-      "size_bytes": 14584,
-      "sha256": "282ed51ffdbe97d5a211388018267f14652594f69a6dbc61fde985b443106ee2"
+      "size_bytes": 7806,
+      "sha256": "4ef9ea4204bc318dbbd6d617a83ab932c67e7d2041c85ea374d32b42df3f5e8b"
     },
     {
       "flat_name": "echoclip__clinical.py",
       "original_path": "echoclip/clinical.py",
       "category": "code",
-      "size_bytes": 20423,
-      "sha256": "01d91fdfb55efe61a4fb5e6d376d58949a38ad4a086d3c4591b6c0cebb9a85e9"
+      "size_bytes": 22099,
+      "sha256": "94ce7205c23ce7487143855bf640a40fb08f034a54a9f41241a6936bf074fc28"
     },
     {
       "flat_name": "echoclip__config.py",
@@ -501,6 +508,13 @@
       "category": "code",
       "size_bytes": 854,
       "sha256": "433323d2ed09caf0710931a7bf78531033776bbc42f48958f2ef7d8b46b9bf4f"
+    },
+    {
+      "flat_name": "echoclip__config_io.py",
+      "original_path": "echoclip/config_io.py",
+      "category": "code",
+      "size_bytes": 3818,
+      "sha256": "77fe7bfa14b1c31b5b8426272ef12e8dd10418b47a3dc434e2c270f84a41c7a2"
     },
     {
       "flat_name": "echoclip__cycle_sample.py",
@@ -534,8 +548,8 @@
       "flat_name": "echoclip__loss.py",
       "original_path": "echoclip/loss.py",
       "category": "code",
-      "size_bytes": 5105,
-      "sha256": "60326fa6f655b95304a9c22bc411e1357ccbab3d771f19b779cc911417533106"
+      "size_bytes": 6095,
+      "sha256": "d7289f2da60101af85761feddbaa01e9c68915c65e4b118ed2979c0cf912393b"
     },
     {
       "flat_name": "echoclip__model.py",
@@ -550,6 +564,13 @@
       "category": "code",
       "size_bytes": 3235,
       "sha256": "dc80467fd94facce32a302d7a420d638889be1b7ffc1cd2078db4d691a146e21"
+    },
+    {
+      "flat_name": "echoclip__official_r0.py",
+      "original_path": "echoclip/official_r0.py",
+      "category": "code",
+      "size_bytes": 16246,
+      "sha256": "38d440f6d91e1241219278b0cc41ccd61b49db047330bc93d767f281fc25cb67"
     },
     {
       "flat_name": "echoclip__preprocess.py",
@@ -576,8 +597,8 @@
       "flat_name": "echoclip__protocol.py",
       "original_path": "echoclip/protocol.py",
       "category": "code",
-      "size_bytes": 24778,
-      "sha256": "e56729c56a46a983f6d7aa0ab1ec036bad1084f57a820420377d826a71852abe"
+      "size_bytes": 28623,
+      "sha256": "6121fcc21ad75d7680cf8ce30e900a89894d9dcb4224627a067ec81847cfdd36"
     },
     {
       "flat_name": "echoclip__structured_text.py",
@@ -594,6 +615,13 @@
       "sha256": "2008e370f5101f2f6539eb5c47e62e841b545df32bb3ad92494d23372c97e538"
     },
     {
+      "flat_name": "echoclip__supervised_checkpoint.py",
+      "original_path": "echoclip/supervised_checkpoint.py",
+      "category": "code",
+      "size_bytes": 13322,
+      "sha256": "600c25e8a3cf14c8c5790850d3d76fb5a5cfb7d5e95736d505179783a592c2dd"
+    },
+    {
       "flat_name": "echoclip__temporal.py",
       "original_path": "echoclip/temporal.py",
       "category": "code",
@@ -604,15 +632,15 @@
       "flat_name": "echoclip__text.py",
       "original_path": "echoclip/text.py",
       "category": "code",
-      "size_bytes": 5110,
-      "sha256": "d71857aa12d4f8a3d6863c82616360bacd1be08e4e4e085941e481a67e2cbb6f"
+      "size_bytes": 5447,
+      "sha256": "0b01dd3a875f9bcb3431f9ca74632a0b6ec73a656531c6347daaf3fa7bf2b262"
     },
     {
       "flat_name": "echoclip__utils.py",
       "original_path": "echoclip/utils.py",
       "category": "code",
-      "size_bytes": 667,
-      "sha256": "5bed5ec510809a566fc975a66685aa436c5d80f3fcf7476a9e56c59f5e835ff0"
+      "size_bytes": 2238,
+      "sha256": "327ddab26a9d958c17d47038c9bfa3a664af6670a25904e84bfbe3bfa44befc8"
     },
     {
       "flat_name": "echoclip__zeroshot.py",
@@ -739,6 +767,13 @@
       "category": "manuscript",
       "size_bytes": 22480,
       "sha256": "541d4d05d88e2c559c13afb48287a2e352e353aa3abfe1f1d63729915b6acd39"
+    },
+    {
+      "flat_name": "pytest.ini",
+      "original_path": "pytest.ini",
+      "category": "documentation",
+      "size_bytes": 32,
+      "sha256": "492bf07f24e6e8d5b7c67ff54a0dac3bb5f080ef86ef3feec4201a031ce0ec55"
     },
     {
       "flat_name": "report.html",
@@ -930,6 +965,20 @@
       "sha256": "6736f3b20a15d3cffab66a8ebcc95f36898116004f6dc410d48365adfdac313e"
     },
     {
+      "flat_name": "reports__manuscript_hygiene_20261007.md",
+      "original_path": "reports/manuscript_hygiene_20261007.md",
+      "category": "report",
+      "size_bytes": 9435,
+      "sha256": "75ec4f231e91389e43199db4f95b1e6c3c2ba3826c749106c486a4357dc8192b"
+    },
+    {
+      "flat_name": "reports__p0_closure_20261007.md",
+      "original_path": "reports/p0_closure_20261007.md",
+      "category": "report",
+      "size_bytes": 9148,
+      "sha256": "f9f7ac2f6e37635702f40cc842a93218ba872d0414aa251cde7f8b37368c0666"
+    },
+    {
       "flat_name": "reports__report.html",
       "original_path": "reports/report.html",
       "category": "report",
@@ -1028,11 +1077,18 @@
       "sha256": "6630c313f653b94c5439d9d83b394e4e169ffd66bffc9ddd6b962e30fa3eab2e"
     },
     {
+      "flat_name": "scripts__audit_repo_integrity.py",
+      "original_path": "scripts/audit_repo_integrity.py",
+      "category": "code",
+      "size_bytes": 11067,
+      "sha256": "b4809775fc5ac0291e2a37514c76b156181c588fcb9e6b4ab3ef6a8714663a9b"
+    },
+    {
       "flat_name": "scripts__build_echonet_manifest.py",
       "original_path": "scripts/build_echonet_manifest.py",
       "category": "code",
-      "size_bytes": 12148,
-      "sha256": "b421e50fa007bc4013599f834d023a6692eaa3a79c2d2dcf26a10ed6841ade20"
+      "size_bytes": 17302,
+      "sha256": "bb63e3195916e98181ad2690755b7f2424e34e254ab57ca8ae4e1dbd532e7869"
     },
     {
       "flat_name": "scripts__build_public_echo_manifest.py",
@@ -1059,22 +1115,22 @@
       "flat_name": "scripts__eval.py",
       "original_path": "scripts/eval.py",
       "category": "code",
-      "size_bytes": 4519,
-      "sha256": "f5852fcfd2fcfce1f549e774573282076b90d55042e933795a799f80313359fe"
+      "size_bytes": 4616,
+      "sha256": "18ef3204ed15913dca848a28c1835d18bbb16ab47b444cbae9e686e846cc6cad"
     },
     {
       "flat_name": "scripts__eval_clinical.py",
       "original_path": "scripts/eval_clinical.py",
       "category": "code",
-      "size_bytes": 26686,
-      "sha256": "6dd84a4d3de93620d6d4b592fdc40e9e69518f2e0ed9a5489b243d1972ac7f1b"
+      "size_bytes": 27987,
+      "sha256": "f8638f97a7b4140dbfd894a73b354a4a744b482637878722e28fd2c744e73b2d"
     },
     {
       "flat_name": "scripts__eval_official_r0.py",
       "original_path": "scripts/eval_official_r0.py",
       "category": "code",
-      "size_bytes": 16605,
-      "sha256": "c082ea9eda350bce290d8a9b350488007e3b8a963d351c2fec97c96babd40a61"
+      "size_bytes": 18548,
+      "sha256": "944e84506617c7424fd587810f51b5b8378746c91f3e81e5a38b6efcf91d561b"
     },
     {
       "flat_name": "scripts__infer.py",
@@ -1129,8 +1185,8 @@
       "flat_name": "scripts__run_protocol.py",
       "original_path": "scripts/run_protocol.py",
       "category": "code",
-      "size_bytes": 28204,
-      "sha256": "c98fe1d41571119be2e20f14d369301ffab916a8a6720c05e71b93c69abed186"
+      "size_bytes": 31326,
+      "sha256": "ad2f55ade54f5998e0d1c38a40c7d1a36c72c0cdea394ddb4c4c858aa40d6649"
     },
     {
       "flat_name": "scripts__run_seeds.py",
@@ -1150,15 +1206,15 @@
       "flat_name": "scripts__train.py",
       "original_path": "scripts/train.py",
       "category": "code",
-      "size_bytes": 17324,
-      "sha256": "78f95b4fba1df280a59bca26022e740bb6004abc7ed1209f55641222d5d734d3"
+      "size_bytes": 18737,
+      "sha256": "be7280b294c7b019840c58e1c1c6f18aa9c4d6f4c0773ddc24eba874e1f3c4f3"
     },
     {
       "flat_name": "scripts__train_supervised.py",
       "original_path": "scripts/train_supervised.py",
       "category": "code",
-      "size_bytes": 17589,
-      "sha256": "96b1b28f57d988d5776597f8cd4f0038f36a0de84326993b814b6472d65530f0"
+      "size_bytes": 19025,
+      "sha256": "f96ee03df3b4de543447a22e16fc51103f58b6a4bb2150832198fc8ed61d7aac"
     },
     {
       "flat_name": "scripts__validate.py",
@@ -1185,8 +1241,22 @@
       "flat_name": "tests__test_adaptive_bootstrap.py",
       "original_path": "tests/test_adaptive_bootstrap.py",
       "category": "test",
-      "size_bytes": 3681,
-      "sha256": "bc6f15285009a00f09a04fa934690ac60cd49fc275fe3333fc6ae573aea2e090"
+      "size_bytes": 6749,
+      "sha256": "105f8965fa21b5d22d91ea3d6a3fe7c46002c6d9f12d98f33d4e0e32a65987c1"
+    },
+    {
+      "flat_name": "tests__test_audit_repo_integrity.py",
+      "original_path": "tests/test_audit_repo_integrity.py",
+      "category": "test",
+      "size_bytes": 4036,
+      "sha256": "7a2bb5cd23a1c45e1a7b66fc124046ee24e07fd12e4e67119fe5dc12a9501027"
+    },
+    {
+      "flat_name": "tests__test_build_echonet_manifest_cli.py",
+      "original_path": "tests/test_build_echonet_manifest_cli.py",
+      "category": "test",
+      "size_bytes": 8053,
+      "sha256": "9b133ebdba2aa22138faa0cb93aac10b1765731c773317e2659a0f546da07707"
     },
     {
       "flat_name": "tests__test_calibration.py",
@@ -1208,6 +1278,13 @@
       "category": "test",
       "size_bytes": 3480,
       "sha256": "41616ff775732bcc93c887366c796d135181a570a2d1158d2163b5da16ac6901"
+    },
+    {
+      "flat_name": "tests__test_config.py",
+      "original_path": "tests/test_config.py",
+      "category": "test",
+      "size_bytes": 4424,
+      "sha256": "ada146d369b9f25561ad2b8b8a4083813723ea3cba5859f8f4bde2cdaf0760a1"
     },
     {
       "flat_name": "tests__test_cycle_sample.py",
@@ -1241,15 +1318,15 @@
       "flat_name": "tests__test_eval_clinical.py",
       "original_path": "tests/test_eval_clinical.py",
       "category": "test",
-      "size_bytes": 6497,
-      "sha256": "f4ecb3ae00059fbb50e8843a381772d9426c87e608894db6cc7585d2d0fbd672"
+      "size_bytes": 7740,
+      "sha256": "c92dd7f2062c754eee5da622b7ce51d8f3278e00c103986c4249a5c96435ddef"
     },
     {
       "flat_name": "tests__test_loss.py",
       "original_path": "tests/test_loss.py",
       "category": "test",
-      "size_bytes": 796,
-      "sha256": "3b7ce15d879d43f99230b714f9cb8a9e92e98fa6c36c65d49e5c0920abf525a8"
+      "size_bytes": 4853,
+      "sha256": "e31ab3141ca9df0625b6bcf79cea1af54d3c7bf9e94075f0eddd5a04b3500abe"
     },
     {
       "flat_name": "tests__test_official_b0_parity.py",
@@ -1259,6 +1336,13 @@
       "sha256": "c4b78afda9d1e2e2d56c2811f9193a87186c7daab8b32e7f616162a96fbce63d"
     },
     {
+      "flat_name": "tests__test_official_r0_standalone.py",
+      "original_path": "tests/test_official_r0_standalone.py",
+      "category": "test",
+      "size_bytes": 5514,
+      "sha256": "a0798c0764cc4ac5fde9bf27400f03033725ea99e776e704f2ceeb35afb8f959"
+    },
+    {
       "flat_name": "tests__test_p1_protocol.py",
       "original_path": "tests/test_p1_protocol.py",
       "category": "test",
@@ -1266,11 +1350,32 @@
       "sha256": "54a60b0b309549ac35ec0681cd74cbce22a27f941e799226ec96dbbc9d0d7eef"
     },
     {
+      "flat_name": "tests__test_prediction_mode.py",
+      "original_path": "tests/test_prediction_mode.py",
+      "category": "test",
+      "size_bytes": 6156,
+      "sha256": "c5606123dd8317dda92f2b07a5c186214b87fd61b23f1532e9d337d0466df25d"
+    },
+    {
       "flat_name": "tests__test_protocol.py",
       "original_path": "tests/test_protocol.py",
       "category": "test",
-      "size_bytes": 12262,
-      "sha256": "e836b5269e7396937c56b99b9cbcd9e7e987eb95482897bcb815b17e33f67081"
+      "size_bytes": 12882,
+      "sha256": "5c5fc20b81ded9c63423de108698f8ba382e4736bcf7553419b96bf0f3797098"
+    },
+    {
+      "flat_name": "tests__test_seed_propagation.py",
+      "original_path": "tests/test_seed_propagation.py",
+      "category": "test",
+      "size_bytes": 9880,
+      "sha256": "d49d5c6699c70bfb178a1f10831f971ec75b7f307e77d718e5cd90f7ccf4bbc9"
+    },
+    {
+      "flat_name": "tests__test_split_integrity.py",
+      "original_path": "tests/test_split_integrity.py",
+      "category": "test",
+      "size_bytes": 8131,
+      "sha256": "21f9d162581847426c4571c373570553ba43b60a4869ceb1e450b3d4cbb1f7b2"
     },
     {
       "flat_name": "tests__test_structured_text.py",
@@ -1292,6 +1397,13 @@
       "category": "test",
       "size_bytes": 9542,
       "sha256": "b12864c21f34347ee73b2bd927f24f0f5dc6cd879c15fdd457ac4011dae4be09"
+    },
+    {
+      "flat_name": "tests__test_supervised_roundtrip.py",
+      "original_path": "tests/test_supervised_roundtrip.py",
+      "category": "test",
+      "size_bytes": 10850,
+      "sha256": "a076e4197998441608592162dc5b8eeceb0ac36c601e469c4438b63a01bf9799"
     },
     {
       "flat_name": "tests__test_temporal.py",

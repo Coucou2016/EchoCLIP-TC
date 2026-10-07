@@ -302,6 +302,54 @@ def bootstrap_metric_ci(
 
 
 
+def stratified_bootstrap_auc(
+    y_bin: ArrayLike,
+    y_score: ArrayLike,
+    n_boot: int = 1000,
+    seed: int = 42,
+    alpha: float = 0.05,
+) -> Tuple[float, float, float]:
+    """Stratified bootstrap CI for a **binary** ROC-AUC (P1-9).
+
+    Each draw resamples the positive and negative groups *separately*, so a
+    replicate can never collapse to a single class. That removes the NaN
+    poisoning that unstratified draws suffer when the minority class is small.
+
+    Returns ``(point, lo, hi)``. When either class is empty the AUC is undefined
+    and ``(nan, nan, nan)`` is returned without fabrication.
+    """
+    y = _as_numpy(y_bin).reshape(-1).astype(np.int64)
+    s = _as_numpy(y_score).reshape(-1).astype(np.float64)
+    n = y.size
+    if n == 0:
+        return float("nan"), float("nan"), float("nan")
+
+    pos = np.where(y == 1)[0]
+    neg = np.where(y == 0)[0]
+    if pos.size == 0 or neg.size == 0:
+        return float("nan"), float("nan"), float("nan")
+
+    point = roc_auc(y, s)
+    rng = np.random.default_rng(int(seed))
+    vals: list[float] = []
+    for _ in range(int(n_boot)):
+        idx = np.concatenate(
+            [
+                rng.choice(pos, size=pos.size, replace=True),
+                rng.choice(neg, size=neg.size, replace=True),
+            ]
+        )
+        v = roc_auc(y[idx], s[idx])
+        if np.isfinite(v):
+            vals.append(float(v))
+    if not vals:
+        return point, float("nan"), float("nan")
+    arr = np.asarray(vals, dtype=np.float64)
+    lo = float(np.quantile(arr, alpha / 2.0))
+    hi = float(np.quantile(arr, 1.0 - alpha / 2.0))
+    return point, lo, hi
+
+
 def bootstrap_mae_ci(
 
     y_true: ArrayLike,
@@ -551,15 +599,13 @@ def summarize_clinical(
 
         y_bin = (y < float(t)).astype(np.int64)
 
-        _, a_lo, a_hi = bootstrap_metric_ci(
+        # P1-9: stratified bootstrap so one-class resamples cannot produce NaN CIs.
+        _, a_lo, a_hi = stratified_bootstrap_auc(
 
-            y,
-            p,
-            _auc_lt(float(t)),
+            y_bin,
+            -p,
             n_boot=n_boot,
             seed=seed + int(t),
-            stratified=True,
-            stratify_labels=y_bin,
         )
 
         metrics[f"auc_ef_lt_{int(t)}_bootstrap_ci95"] = [a_lo, a_hi]

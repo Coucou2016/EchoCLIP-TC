@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from echoclip.checkpoint import load_checkpoint
+from echoclip.config_io import load_yaml_config
 from echoclip.data import EchoCLIPDataset, collate_batch, load_manifest, validate_manifest
 from echoclip.eval import pairwise_retrieval_metrics, zero_shot_pacemaker_accuracy
 from echoclip.text import EchoTokenizer
@@ -56,7 +57,8 @@ def main() -> None:
 
     cfg = {}
     if args.config.exists():
-        cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+        # P0-8: expand ${ENV_VAR} / ~ in every string value (config_io).
+        cfg = load_yaml_config(args.config)
     manifest = args.manifest or Path(cfg.get("manifest", ROOT / "data" / "demo" / "manifest.json"))
     manifest_dir = args.manifest_dir or Path(cfg.get("manifest_dir", manifest.parent))
 

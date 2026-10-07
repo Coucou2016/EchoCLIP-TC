@@ -38,6 +38,9 @@ jobs:
           # Torch CPU wheel (pin loosely for CI)
           pip install --index-url https://download.pytorch.org/whl/cpu torch
 
+      - name: Repo integrity audit
+        run: python scripts/audit_repo_integrity.py
+
       - name: Unit tests
         env:
           ECHOCLIP_SKIP_HUB: "1"

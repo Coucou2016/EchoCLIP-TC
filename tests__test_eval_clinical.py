@@ -82,6 +82,37 @@ class TestEvalClinicalGuards(unittest.TestCase):
         self.assertEqual(mod.resolve_pool("auto", model), "temporal")
 
 
+class TestCalibrationMethodDefault(unittest.TestCase):
+    """P1-6: affine_logistic is the paper default; temperature is legacy."""
+
+    def test_cli_default_is_none_so_path_can_choose(self):
+        import subprocess
+        import sys
+
+        r = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "eval_clinical.py"), "--help"],
+            capture_output=True,
+            text=True,
+            cwd=str(ROOT),
+        )
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("affine_logistic", r.stdout)
+
+    def test_protocol_paper_default_affine(self):
+        src = (ROOT / "scripts" / "run_protocol.py").read_text(encoding="utf-8")
+        self.assertIn('"affine_logistic" if paper else "temperature"', src)
+
+    def test_clinical_paper_default_affine(self):
+        src = (ROOT / "scripts" / "eval_clinical.py").read_text(encoding="utf-8")
+        self.assertIn('"affine_logistic" if paper else "temperature"', src)
+
+
+class TestStratifiedBootstrapWiring(unittest.TestCase):
+    def test_summarize_uses_stratified_bootstrap(self):
+        src = (ROOT / "echoclip" / "clinical.py").read_text(encoding="utf-8")
+        self.assertIn("stratified_bootstrap_auc", src)
+
+
 class TestRunProtocolCalLeak(unittest.TestCase):
     def test_m4_same_cal_test_hard_fails_non_demo(self):
         path = ROOT / "scripts" / "run_protocol.py"

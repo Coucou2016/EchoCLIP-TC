@@ -40,16 +40,74 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from echoclip.config_io import load_yaml_config  # noqa: E402
 from echoclip.protocol import (  # noqa: E402
     EXPERIMENT_IDS,
+    assert_disjoint,
     get_experiment,
     list_experiments,
     merge_metrics_meta,
     metrics_path,
     protocol_output_dir,
     resolve_eval_sample_strategy,
+    split_provenance,
     write_protocol_comparison,
 )
+
+# R2–R6 adapt frozen EchoCLIP on TRAIN and are evaluated on TEST/VAL, so their
+# TRAIN and TEST manifests MUST be disjoint. R0/R1 are zero-shot (external
+# anchor may legitimately overlap TRAIN) and are exempt.
+ADAPTED_EXPERIMENT_IDS = frozenset({"R2", "R3", "R4", "R5", "R5_EDESTRAIN", "R6"})
+
+
+def _load_pairs(path: Optional[Path]):
+    from echoclip.data import load_manifest
+
+    if path is None:
+        return None
+    p = Path(path)
+    if not p.exists():
+        return None
+    try:
+        return load_manifest(p)
+    except Exception:  # noqa: BLE001 — provenance is best-effort, never fatal here
+        return None
+
+
+def _compute_split_provenance(
+    train_manifest: Optional[Path],
+    test_manifest: Optional[Path],
+) -> dict:
+    train_pairs = _load_pairs(train_manifest)
+    test_pairs = _load_pairs(test_manifest)
+    return split_provenance(
+        train_manifest, test_manifest, train_pairs, test_pairs
+    )
+
+
+def _guard_adapted_split_integrity(
+    spec,
+    train_manifest: Optional[Path],
+    test_manifest: Optional[Path],
+) -> Optional[str]:
+    """Return an error string if TRAIN/TEST overlap for an adapted experiment."""
+    if spec.id not in ADAPTED_EXPERIMENT_IDS:
+        return None
+    train_pairs = _load_pairs(train_manifest)
+    test_pairs = _load_pairs(test_manifest)
+    if not train_pairs or not test_pairs:
+        return None
+    try:
+        assert_disjoint(
+            train_pairs,
+            test_pairs,
+            id_key="file_name",
+            label_train="TRAIN",
+            label_eval="TEST",
+        )
+    except RuntimeError as exc:
+        return str(exc)
+    return None
 
 
 def _print_catalog() -> None:
@@ -91,7 +149,8 @@ def _parse_experiments(raw: Optional[str]) -> List[str]:
 def _load_cfg(path: Path) -> dict:
     if not path.exists():
         return {}
-    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    # P0-8: expand ${ENV_VAR} / ~ in every string value (config_io).
+    return load_yaml_config(path, record_provenance=True)
 
 
 def _run(cmd: Sequence[str], cwd: Path = ROOT) -> int:
@@ -293,6 +352,7 @@ def _eval_experiment(
     out_metrics: Path,
     demo: bool,
     paper: bool,
+    train_manifest: Optional[Path] = None,
 ) -> int:
     # Paper / official R0: prefer dedicated open_clip path (no pad-to-16 Dataset).
     if spec.id == "R0" and (paper or demo) and args.sample_strategy is None:
@@ -318,6 +378,7 @@ def _eval_experiment(
                     "eval_seed": args.seed,
                     "train_seed": metrics.get("train_seed"),
                     "official_r0_script": "scripts/eval_official_r0.py",
+                    **_compute_split_provenance(train_manifest, test_manifest),
                     "b0_reproduce_hint": (
                         "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
                         "AND/OR full TEST; load_source must be "
@@ -332,9 +393,16 @@ def _eval_experiment(
         return 0
 
     pred_mode = getattr(spec, "prediction_mode", None) or (
-        "direct_regression" if spec.pool == "supervised" else "zeroshot"
+        "direct_ef" if spec.pool == "supervised" else "zeroshot"
     )
-    # Pool for zeroshot path only; supervised uses direct_regression (ignore mean remap).
+    # Canonical name for the supervised direct-regression path (R2/R3/R4).
+    if str(pred_mode).strip().lower() in (
+        "direct_regression",
+        "direct",
+        "supervised",
+    ):
+        pred_mode = "direct_ef"
+    # Pool for zeroshot path only; supervised uses direct_ef (ignore mean remap).
     pool_arg = spec.pool if spec.pool != "supervised" else "mean"
     cmd = [
         sys.executable,
@@ -423,10 +491,10 @@ def _eval_experiment(
     if checkpoint and checkpoint.exists():
         cmd.extend(["--checkpoint", str(checkpoint)])
     else:
-        if pred_mode == "direct_regression":
+        if pred_mode == "direct_ef":
             print(
                 f"Error: {spec.id} requires a supervised checkpoint for "
-                "direct_regression eval."
+                "direct_ef eval."
             )
             return 1
         cmd.append("--init-official")
@@ -457,6 +525,7 @@ def _eval_experiment(
                 "protocol_output": str(out_metrics.parent),
                 "train_seed": metrics.get("train_seed", args.seed),
                 "eval_seed": args.seed,
+                **_compute_split_provenance(train_manifest, test_manifest),
                 "b0_reproduce_hint": (
                     "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
                     "(see subset_5000_ids.json) AND/OR full TEST; "
@@ -606,6 +675,22 @@ def main() -> int:
         out_metrics = metrics_path(args.output_root, spec.id)
         print(f"\n===== {spec.id}: {spec.title} =====")
 
+        # P0-2: adapted models (R2–R6) must never train and test on the same study.
+        split_err = _guard_adapted_split_integrity(spec, train_m, test_m)
+        if split_err:
+            print(f"Error: {spec.id} split-integrity failure — {split_err}")
+            results[spec.id] = "split_leak"
+            if not args.demo:
+                return 1
+            print("  (demo mode: continuing despite overlap, metrics not clinical)")
+        elif spec.id in ADAPTED_EXPERIMENT_IDS:
+            prov = _compute_split_provenance(train_m, test_m)
+            assert prov["train_test_overlap_n"] == 0 or args.demo
+            print(
+                f"  split integrity OK: train_n={prov['train_n']} "
+                f"test_n={prov['test_n']} overlap={prov['train_test_overlap_n']}"
+            )
+
         if args.dry_run:
             print(
                 json.dumps(
@@ -719,6 +804,7 @@ def main() -> int:
             out_metrics=out_metrics,
             demo=args.demo,
             paper=args.paper,
+            train_manifest=train_m,
         )
         results[spec.id] = "ok" if code == 0 else f"eval_failed:{code}"
 

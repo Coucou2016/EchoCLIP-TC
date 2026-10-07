@@ -70,16 +70,47 @@ class EFSoftContrastiveLoss(nn.Module):
     over texts j is proportional to ``exp(-|EF_i - EF_j| / temperature_ef)``
     (self always included).
 
-    ``soft_weight`` scales the soft EF multi-positive term (1.0 = full soft
-    loss). When some EF labels are NaN/missing, those rows fall back to hard
-    diagonal InfoNCE — the whole batch is **not** dropped.
+    Hard / soft mixture (P1-3)
+    --------------------------
+    ``lambda_soft`` is a *mix ratio* in ``[0, 1]``::
+
+        loss = lambda_soft * soft_EF_loss + (1 - lambda_soft) * hard_InfoNCE
+
+    ``lambda_soft=0`` is **exactly** hard InfoNCE (soft branch not evaluated),
+    ``lambda_soft=1`` is pure soft (legacy behavior). ``lambda_soft`` defaults
+    to 1.0 so existing configs keep their numbers.
+
+    Finite-EF subset (P1-2)
+    -----------------------
+    Rows with NaN/missing EF are **excluded** from the soft target matrix rather
+    than polluting it, and the soft term is computed on the finite subset only
+    (``n_valid``). When fewer than 2 finite EF labels remain, the soft term is
+    undefined and the loss falls back to hard InfoNCE for the whole batch.
     """
 
-    def __init__(self, ef_temperature: float = 5.0, soft_weight: float = 1.0):
+    def __init__(
+        self,
+        ef_temperature: float = 5.0,
+        soft_weight: Optional[float] = None,
+        lambda_soft: float = 1.0,
+    ):
         super().__init__()
         self.ef_temperature = float(ef_temperature)
-        # soft_weight: multiplier on the soft multi-positive KL term (not a mix ratio).
-        self.soft_weight = float(soft_weight)
+        # ``soft_weight`` was misleadingly named (it scaled the KL term rather
+        # than mixing). Kept as a deprecated alias for ``lambda_soft``.
+        if soft_weight is not None:
+            import warnings
+
+            warnings.warn(
+                "EFSoftContrastiveLoss(soft_weight=...) is deprecated; use "
+                "lambda_soft=... (a hard/soft mix ratio, 0 == hard InfoNCE).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            lambda_soft = float(soft_weight)
+        self.lambda_soft = float(min(max(lambda_soft, 0.0), 1.0))
+        # Backwards-compatible attribute (documented as the mix ratio).
+        self.soft_weight = self.lambda_soft
         self.hard = ClipLoss()
 
     def forward(
@@ -89,39 +120,39 @@ class EFSoftContrastiveLoss(nn.Module):
         logit_scale: torch.Tensor,
         ef: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
+        hard = self.hard(video_features, text_features, logit_scale)
+        # lambda_soft == 0 must be *exactly* hard InfoNCE (no soft computation).
+        if self.lambda_soft <= 0.0:
+            return hard
         if ef is None:
-            return self.hard(video_features, text_features, logit_scale)
+            return hard
 
         finite = torch.isfinite(ef)
-        if not bool(finite.any()):
-            return self.hard(video_features, text_features, logit_scale)
+        if int(finite.sum()) < 2:
+            # Soft targets are undefined with <2 valid labels: hard fallback.
+            return hard
 
         video_features = F.normalize(video_features, dim=-1)
         text_features = F.normalize(text_features, dim=-1)
-        scale = logit_scale.exp()
-        logits = scale * video_features @ text_features.T  # (B, B)
-        batch_size = video_features.shape[0]
-        labels = torch.arange(batch_size, device=video_features.device)
 
-        # Soft targets only among finite-EF pairs; missing EF → hard one-hot.
-        ef_f = torch.where(finite, ef.float(), torch.zeros_like(ef.float())).view(-1, 1)
-        dist = torch.abs(ef_f - ef_f.T)
+        # Restrict to the finite-EF subset (P1-2): no NaN rows/cols in the
+        # target matrix, and no cross-talk from dropped samples.
+        ef_valid = ef.float()[finite]
+        vid_valid = video_features[finite]
+        txt_valid = text_features[finite]
+
+        scale = logit_scale.exp()
+        logits = scale * vid_valid @ txt_valid.T  # (n_valid, n_valid)
+        logits_t = logits.T
+
+        dist = torch.abs(ef_valid.view(-1, 1) - ef_valid.view(1, -1))
         soft = torch.exp(-dist / max(self.ef_temperature, 1e-3))
-        # Zero out rows/cols with non-finite EF so they do not pollute soft targets
-        mask = finite.float().view(-1, 1) * finite.float().view(1, -1)
-        soft = soft * mask
-        row_sum = soft.sum(dim=1, keepdim=True).clamp(min=1e-8)
-        soft = soft / row_sum
+        soft = soft / soft.sum(dim=1, keepdim=True).clamp(min=1e-8)
 
         log_prob = F.log_softmax(logits, dim=1)
         soft_loss_i = -(soft * log_prob).sum(dim=1)
-        log_prob_t = F.log_softmax(logits.T, dim=1)
+        log_prob_t = F.log_softmax(logits_t, dim=1)
         soft_loss_t = -(soft * log_prob_t).sum(dim=1)
+        soft_loss = (soft_loss_i.mean() + soft_loss_t.mean()) / 2.0
 
-        hard_loss_i = F.cross_entropy(logits, labels, reduction="none")
-        hard_loss_t = F.cross_entropy(logits.T, labels, reduction="none")
-
-        # Finite EF → soft; missing → hard (do not drop the batch)
-        loss_i = torch.where(finite, soft_loss_i, hard_loss_i)
-        loss_t = torch.where(finite, soft_loss_t, hard_loss_t)
-        return self.soft_weight * (loss_i.mean() + loss_t.mean()) / 2.0
+        return self.lambda_soft * soft_loss + (1.0 - self.lambda_soft) * hard

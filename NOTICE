@@ -1,33 +1,78 @@
 # Third-party and dataset notices for EchoCLIP-TA (repo: EchoCLIP-TC)
 
-This NOTICE accompanies the MIT-licensed scaffold in this repository.
-It does **not** re-license third-party materials.
+This NOTICE accompanies the MIT-licensed **original** scaffold in this repository.
+It does **not** re-license third-party materials, and it does not assert any legal
+conclusion. Per-file origin and license status are inventoried in `PROVENANCE.md`;
+see also `ATTRIBUTION.md`, `DATA.md`, and `LICENSES/README.md`.
 
-## SPDX
+## License scope (what MIT covers, and what it does not)
 
-- Original EchoCLIP-TA scaffold code: SPDX-License-Identifier: MIT
-- See LICENSE and LICENSES/ for file-level notes.
+**MIT covers** original scaffold code written for this repository (for example
+`echoclip/temporal.py`, `echoclip/loss.py`, `echoclip/calibrate.py`,
+`echoclip/clinical.py`, `echoclip/protocol.py`, `echoclip/supervised.py`,
+`echoclip/cardiacclip.py`, `echoclip/prompts_ta.py`, `scripts/*`, `tests/*`) as
+listed in `ATTRIBUTION.md` and `PROVENANCE.md`.
 
-## Upstream research software (not redistributed as weights)
+**MIT does NOT cover, and this repository does not relicense:**
+
+- Upstream EchoCLIP prompt strings (`echoclip/prompts.py`) and any
+  upstream-aligned/derived logic (see `PROVENANCE.md`), which remain under the
+  upstream EchoCLIP **Academic Software License** (academic / non-profit use;
+  derivatives allowed; **further transfer of the software including derivative
+  works is restricted**; commercial use requires separate permission).
+- The official EchoCLIP weights (`hf-hub:mkaichristensen/echo-clip`).
+- EchoNet-Dynamic and other Stanford AIMI datasets.
+- Third-party Python packages (`torch`, `open_clip`, `transformers`, `timm`, …).
+
+Where this repository contains material that is behaviorally aligned with or derived
+from upstream EchoCLIP, that material is **not** offered under MIT; its terms come
+from upstream. No verbatim upstream source files are vendored here.
+
+## Weights and data are not redistributed
+
+Neither the official EchoCLIP weights nor EchoNet-Dynamic data (videos,
+FileList.csv, VolumeTracings.csv) are redistributed in this repository. Users
+must obtain them under their own upstream terms. Step-by-step instructions:
+`docs/OBTAIN_DATA_AND_WEIGHTS.md`.
+
+## Upstream research software
 
 ### EchoCLIP (Nature Medicine 2024)
 - Christensen, Vukadinovic, Yuan, Ouyang.
 - Code: https://github.com/echonet/echo_CLIP
-- Hub weights: hf-hub:mkaichristensen/echo-clip (loaded at runtime; not vendored)
-- Prompt strings in echoclip/prompts.py follow published templates — attributed,
-  not claimed as original clinical IP. Clean-room TA captions: echoclip/prompts_ta.py.
-- Report-cleaning goals overlap public echo prep; echoclip/text.py is a clean-room
-  reimplementation (see ATTRIBUTION.md).
+- Hub weights: `hf-hub:mkaichristensen/echo-clip` (loaded at runtime; not vendored).
+- Prompt strings in `echoclip/prompts.py` follow the published templates —
+  attributed, not claimed as original clinical IP. Clean-room TA captions:
+  `echoclip/prompts_ta.py`.
+- `echoclip/text.py` is an independently authored report normalizer whose behavior
+  intentionally overlaps upstream EchoCLIP report cleaning; no upstream code is
+  vendored or line-copied in this repository, and whether the upstream
+  echonet/echo_CLIP utils.py source was consulted is **unclear — needs author
+  confirmation** (see `PROVENANCE.md`).
 
 ### EchoNet-Dynamic / Stanford AIMI
 - Separate non-commercial terms: https://echonet.github.io/dynamic/
-- Videos / FileList / VolumeTracings are NOT redistributed in this repository.
+- Videos / `FileList` / `VolumeTracings` are NOT redistributed in this repository.
 
 ### CardiacCLIP (MICCAI 2025)
 - https://github.com/xmed-lab/CardiacCLIP — external comparator only.
-- Weights not bundled; see echoclip/cardiacclip.py download instructions.
+- Weights not bundled; see `echoclip/cardiacclip.py` download instructions.
+
+## If material looks upstream-derived
+
+If you believe any material in this repository is upstream-derived and should be
+handled differently, please contact the maintainers. We will clean-room rewrite or
+remove the material, or re-license/label it correctly, as appropriate.
+
+## Recommended pre-submission action
+
+This NOTICE and `PROVENANCE.md` are engineering statements, not legal advice. Before
+submission or redistribution, the author(s) should run a **per-file provenance audit
+with their institution** (dissemination/licensing office) covering at minimum
+`echoclip/official_parity.py`, `echoclip/preprocess.py`, `echoclip/text.py`, and
+`echoclip/prompts.py`.
 
 ## Python dependencies
 
 Runtime packages (torch, open_clip, transformers, timm, …) retain their own
-licenses as installed from PyPI / Hugging Face. Pins: requirements-paper.lock.
+licenses as installed from PyPI / Hugging Face. Pins: `requirements-paper.lock`.

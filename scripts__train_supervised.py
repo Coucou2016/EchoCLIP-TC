@@ -19,8 +19,9 @@ from tqdm import tqdm
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from echoclip.checkpoint import model_config_dict, save_supervised_ef_checkpoint
+from echoclip.checkpoint import backbone_config_dict, save_ef_regression_checkpoint
 from echoclip.config import EchoCLIPConfig
+from echoclip.config_io import load_yaml_config
 from echoclip.data import EchoCLIPDataset, collate_batch, load_manifest, split_manifest, validate_manifest
 from echoclip.model import EchoCLIP
 from echoclip.supervised import (
@@ -38,8 +39,8 @@ from echoclip import model as model_module
 
 
 def load_config(path: Path) -> dict:
-    with path.open(encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    # P0-8: expand ${ENV_VAR} / ~ in every string value (config_io).
+    return load_yaml_config(path)
 
 
 def build_backbone(cfg: dict) -> EchoCLIP:
@@ -107,6 +108,14 @@ def main() -> int:
     parser.add_argument("--manifest-dir", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--head", type=str, default="linear", help="linear|mlp|temporal_l1")
+    parser.add_argument(
+        "--determinism",
+        type=str,
+        choices=["fast", "strict"],
+        default=None,
+        help="fast (default) leaves cuDNN benchmarks on; strict sets deterministic "
+        "cuDNN + disables benchmark and records the mode in the checkpoint.",
+    )
     parser.add_argument("--epochs", type=int, default=None)
     parser.add_argument("--batch-size", type=int, default=None)
     parser.add_argument("--video-frames", type=int, default=None)
@@ -189,7 +198,15 @@ def main() -> int:
         cfg["sample_strategy"] = "uniform"
 
     train_seed = int(cfg.get("seed", 42))
-    set_seed(train_seed)
+    cfg["seed"] = train_seed
+    seed_info = set_seed(train_seed, determinism=args.determinism)
+    # Explicit seed provenance: the TRAIN/VAL split and the per-epoch frame
+    # sampler both derive from the same run seed unless overridden in cfg.
+    split_seed = int(cfg.get("split_seed", train_seed))
+    sampler_seed = int(cfg.get("sampler_seed", train_seed))
+    cfg["split_seed"] = split_seed
+    cfg["sampler_seed"] = sampler_seed
+    cfg["determinism_mode"] = seed_info["determinism_mode"]
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     manifest = Path(cfg.get("manifest") or ROOT / "data" / "demo" / "manifest.json")
     if args.demo and not args.manifest:
@@ -206,7 +223,7 @@ def main() -> int:
             print(e)
         return 1
 
-    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), train_seed)
+    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), split_seed)
     out_dir = Path(cfg.get("output_dir", ROOT / "checkpoints" / "supervised"))
     out_dir.mkdir(parents=True, exist_ok=True)
     split_dir = out_dir / "splits"
@@ -224,7 +241,7 @@ def main() -> int:
         video_frames=cfg.get("video_frames", 16),
         tokenizer=tokenizer,
         sample_strategy=cfg.get("sample_strategy", "uniform"),
-        seed=train_seed,
+        seed=sampler_seed,
     )
     train_ds = EchoCLIPDataset(train_m, **ds_kwargs)
     val_ds = EchoCLIPDataset(
@@ -233,8 +250,14 @@ def main() -> int:
     )
     val_ds.set_epoch(0)
     batch_size = min(cfg.get("batch_size", 8), max(len(train_ds), 1))
+    loader_generator = torch.Generator()
+    loader_generator.manual_seed(sampler_seed)
     train_loader = DataLoader(
-        train_ds, batch_size=batch_size, shuffle=True, collate_fn=collate_batch
+        train_ds,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=collate_batch,
+        generator=loader_generator,
     )
     val_loader = DataLoader(
         val_ds, batch_size=min(batch_size, max(len(val_ds), 1)), shuffle=False, collate_fn=collate_batch
@@ -287,16 +310,22 @@ def main() -> int:
                 total += loss.item()
                 n += 1
             print(f"epoch {epoch}: train_l1={total / max(n, 1):.4f}")
-        save_supervised_ef_checkpoint(
+        save_ef_regression_checkpoint(
             out_dir / "best.pt",
             head_kind="linear",
             head=head.cpu(),
-            model_config=model_config_dict(backbone),
+            backbone_config=backbone_config_dict(backbone),
             train_seed=train_seed,
+            split_seed=split_seed,
+            sampler_seed=sampler_seed,
             epoch=epochs,
             embed_dim=dim,
             train_cfg={**cfg, "seed": train_seed},
-            meta={"ridge_alpha": args.ridge_alpha, "head_kind": "linear"},
+            meta={
+                "ridge_alpha": args.ridge_alpha,
+                "head_kind": "linear",
+                "determinism": seed_info,
+            },
             backbone_load_source=getattr(backbone, "load_source", None),
         )
         print(f"Saved linear/ridge head → {out_dir / 'best.pt'} (train_seed={train_seed})")
@@ -345,16 +374,18 @@ def main() -> int:
             print(f"epoch {epoch}: train={total / max(n, 1):.4f} val_l1={val_l1:.4f}")
             if val_l1 < best:
                 best = val_l1
-                save_supervised_ef_checkpoint(
+                save_ef_regression_checkpoint(
                     out_dir / "best.pt",
                     head_kind="mlp",
                     head=head,
-                    model_config=model_config_dict(backbone),
+                    backbone_config=backbone_config_dict(backbone),
                     train_seed=train_seed,
+                    split_seed=split_seed,
+                    sampler_seed=sampler_seed,
                     epoch=epoch,
                     embed_dim=dim,
                     train_cfg={**cfg, "seed": train_seed},
-                    meta={"head_kind": "mlp"},
+                    meta={"head_kind": "mlp", "determinism": seed_info},
                     backbone_load_source=getattr(backbone, "load_source", None),
                 )
         print(f"Saved MLP head → {out_dir / 'best.pt'} (train_seed={train_seed})")
@@ -403,12 +434,12 @@ def main() -> int:
             print(f"epoch {epoch}: train={total / max(n, 1):.4f} val_l1={val_l1:.4f}")
             if val_l1 < best:
                 best = val_l1
-                save_supervised_ef_checkpoint(
+                save_ef_regression_checkpoint(
                     out_dir / "best.pt",
                     head_kind="temporal_l1",
                     head=reg,
-                    model_config={
-                        **model_config_dict(backbone),
+                    backbone_config={
+                        **backbone_config_dict(backbone),
                         "temporal_type": "transformer",
                         "temporal_layers": cfg.get("temporal_layers", 2),
                         "temporal_heads": cfg.get("temporal_heads", 8),
@@ -417,11 +448,13 @@ def main() -> int:
                         ),
                     },
                     train_seed=train_seed,
+                    split_seed=split_seed,
+                    sampler_seed=sampler_seed,
                     epoch=epoch,
                     embed_dim=dim,
                     temporal_state_dict=reg.aggregator.state_dict(),
                     train_cfg={**cfg, "seed": train_seed, "supervised_head": "temporal_l1"},
-                    meta={"head_kind": "temporal_l1"},
+                    meta={"head_kind": "temporal_l1", "determinism": seed_info},
                     backbone_load_source=getattr(backbone, "load_source", None),
                 )
         print(f"Saved temporal L1 model → {out_dir / 'best.pt'} (train_seed={train_seed})")

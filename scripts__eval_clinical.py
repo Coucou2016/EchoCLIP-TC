@@ -26,10 +26,11 @@ sys.path.insert(0, str(ROOT))
 from echoclip.checkpoint import (
     is_supervised_ef_checkpoint,
     load_checkpoint,
-    load_supervised_ef_checkpoint,
+    load_ef_regression_checkpoint,
     predict_direct_ef,
 )
 from echoclip.clinical import parse_ef_from_text, summarize_clinical
+from echoclip.config_io import load_yaml_config
 from echoclip.data import EchoCLIPDataset, collate_batch, load_manifest, validate_manifest
 from echoclip.model import EchoCLIP
 from echoclip.protocol import (
@@ -149,6 +150,14 @@ def resolve_pool(args_pool: str, model: EchoCLIP) -> str:
     raise ValueError(f"Unknown --pool {args_pool!r}")
 
 
+def _normalize_prediction_mode(mode: str) -> str:
+    """Map accepted CLI aliases to the canonical {zeroshot, direct_ef} set."""
+    key = str(mode).strip().lower()
+    if key in ("direct_ef", "direct_regression", "direct", "supervised"):
+        return "direct_ef"
+    return "zeroshot"
+
+
 def _infer_split_name(manifest: Path, cfg: dict) -> str:
     name = manifest.name.lower()
     for key in ("test", "val", "valid", "train"):
@@ -223,9 +232,9 @@ def _run_split(
         collate_fn=collate_batch,
     )
     y_true, source, n_missing = _collect_ef_labels(ds)
-    if prediction_mode == "direct_regression":
+    if _normalize_prediction_mode(prediction_mode) == "direct_ef":
         if backbone is None or head is None or head_kind is None:
-            raise RuntimeError("direct_regression requires loaded backbone+head")
+            raise RuntimeError("direct_ef requires loaded backbone+head")
         y_pred = predict_ef_direct(
             backbone, head, loader, head_kind=head_kind, device=device
         )
@@ -289,8 +298,12 @@ def main() -> int:
     parser.add_argument(
         "--calibration-method",
         choices=["temperature", "affine_logistic"],
-        default="temperature",
-        help="VAL-fit calibration for P(EF<50/40/30); affine_logistic preferred over pseudo-logit T",
+        default=None,
+        help=(
+            "VAL-fit calibration for P(EF<50/40/30). Paper path defaults to "
+            "affine_logistic (P1-6); temperature remains the legacy default on "
+            "the non-paper path and can always be forced explicitly."
+        ),
     )
     parser.add_argument(
         "--adaptive-conformal",
@@ -305,9 +318,15 @@ def main() -> int:
     )
     parser.add_argument(
         "--prediction-mode",
-        choices=["zeroshot", "direct_regression", "auto"],
+        choices=[
+            "zeroshot",
+            "direct_ef",
+            "direct_regression",  # deprecated alias for direct_ef
+            "auto",
+        ],
         default="auto",
-        help="zeroshot=EF prompt pack; direct_regression=supervised head (R2–R4); "
+        help="zeroshot=EF prompt pack; direct_ef=supervised EF head (R2–R4); "
+        "direct_regression=deprecated alias for direct_ef; "
         "auto=infer from experiment / checkpoint",
     )
     parser.add_argument(
@@ -322,7 +341,8 @@ def main() -> int:
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     cfg = {}
     if args.config.exists():
-        cfg = yaml.safe_load(args.config.read_text(encoding="utf-8")) or {}
+        # P0-8: expand ${ENV_VAR} / ~ in every string value (config_io).
+        cfg = load_yaml_config(args.config, record_provenance=True)
 
     paper = bool(args.paper)
     if paper:
@@ -400,9 +420,10 @@ def main() -> int:
         if spec is not None and getattr(spec, "prediction_mode", None):
             prediction_mode = spec.prediction_mode
         elif spec is not None and spec.pool == "supervised":
-            prediction_mode = "direct_regression"
+            prediction_mode = "direct_ef"
         else:
             prediction_mode = "zeroshot"
+    prediction_mode = _normalize_prediction_mode(prediction_mode)
 
     engine: Optional[EchoCLIPInference] = None
     model: Optional[EchoCLIP] = None
@@ -418,9 +439,9 @@ def main() -> int:
             raw = torch.load(args.checkpoint, map_location=device, weights_only=False)
         except TypeError:
             raw = torch.load(args.checkpoint, map_location=device)
-        if prediction_mode == "direct_regression" or is_supervised_ef_checkpoint(raw):
-            prediction_mode = "direct_regression"
-            model, head, ckpt = load_supervised_ef_checkpoint(
+        if prediction_mode == "direct_ef" or is_supervised_ef_checkpoint(raw):
+            prediction_mode = "direct_ef"
+            model, head, ckpt = load_ef_regression_checkpoint(
                 args.checkpoint,
                 device=device,
                 allow_scratch_fallback=not paper,
@@ -453,9 +474,9 @@ def main() -> int:
         from echoclip.config import EchoCLIPConfig
         from echoclip.utils import config_from_dict
 
-        if prediction_mode == "direct_regression":
+        if prediction_mode == "direct_ef":
             print(
-                "Error: --prediction-mode direct_regression requires --checkpoint "
+                "Error: --prediction-mode direct_ef requires --checkpoint "
                 "with a supervised EF head (R2–R4)."
             )
             return 1
@@ -595,9 +616,11 @@ def main() -> int:
         "note": protocol_note,
         "paper_primary": True,
         "demo_is_not_clinical": info["ef_source"] != "manifest",
-        "official_reproduction": paper,
+        # P0-6 honesty: --paper is a request, not proof of parity.
         "paper_mode": paper,
+        "official_reproduction_requested": paper,
         "official_reproduction_verified": official_verified,
+        "official_reproduction": official_verified,
         "ef_grid": "0_100_step1" if paper else "15_80_step5",
         "ef_grid_n": len(ef_values),
         "baseline_name": (
@@ -605,11 +628,20 @@ def main() -> int:
             if paper and prediction_mode == "zeroshot"
             else (
                 "Supervised EF regression (direct head)"
-                if prediction_mode == "direct_regression"
+                if prediction_mode == "direct_ef"
                 else "EchoCLIP-based zero-shot baseline"
             )
         ),
     }
+    # P0-4: carry seed provenance from the checkpoint when available.
+    if "split_seed" in ckpt:
+        metrics["split_seed"] = ckpt.get("split_seed")
+    if "sampler_seed" in ckpt:
+        metrics["sampler_seed"] = ckpt.get("sampler_seed")
+    if "determinism_mode" in ckpt:
+        metrics["determinism_mode"] = ckpt.get("determinism_mode")
+    if "schema_version" in ckpt:
+        metrics["checkpoint_schema_version"] = ckpt.get("schema_version")
     # Efficiency / timing fields for paper tables
     try:
         metrics.update(count_parameters(model))
@@ -642,12 +674,12 @@ def main() -> int:
         if spec is not None and spec.annotation_assisted:
             metrics["annotation_assisted"] = True
     if n_eval >= 2:
-        # Paper default calibration: affine_logistic when calibrate path used
+        # P1-6: affine_logistic is the paper-path default; temperature is the
+        # legacy default on the non-paper path. An explicit CLI choice always wins.
         cal_method = args.calibration_method
-        if paper and cal_method == "temperature" and args.cal_manifest:
-            # Prefer affine_logistic for paper unless user overrode via CLI default —
-            # keep CLI explicit; protocol passes affine_logistic under --paper.
-            cal_method = args.calibration_method
+        if cal_method is None:
+            cal_method = "affine_logistic" if paper else "temperature"
+        metrics["calibration_method"] = cal_method
         clinical = summarize_clinical(
             y_true[mask],
             y_pred[mask],

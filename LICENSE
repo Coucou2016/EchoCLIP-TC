@@ -23,10 +23,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-SPDX / provenance boundary
-- This MIT license applies to original scaffold code in this repository
-  (see ATTRIBUTION.md “Clean-room / original scaffold”).
-- It does **not** re-license: EchoCLIP prompts/patterns, official hub weights
-  (`hf-hub:mkaichristensen/echo-clip`), Stanford AIMI / EchoNet dataset terms,
-  or third-party packages listed in requirements*.
-- File-level provenance: ATTRIBUTION.md
+SPDX / provenance boundary (scope note — not part of the MIT license text above)
+- The MIT license above applies to **original scaffold code written for this
+  repository only** (see ATTRIBUTION.md "Original scaffold (this repository)" and
+  the per-file table in PROVENANCE.md).
+- It does **not** re-license: EchoCLIP prompt strings or any upstream-aligned
+  logic (`echoclip/prompts.py`, `echoclip/official_parity.py`,
+  `echoclip/preprocess.py`); official hub weights
+  (`hf-hub:mkaichristensen/echo-clip`); Stanford AIMI / EchoNet dataset terms; or
+  third-party packages listed in the requirements files.
+- Neither the official EchoCLIP weights nor EchoNet-Dynamic data are redistributed
+  in this repository; obtain them under their own upstream terms
+  (docs/OBTAIN_DATA_AND_WEIGHTS.md).
+- `echoclip/text.py` is an independently authored report
+  normalizer whose behavior intentionally overlaps upstream EchoCLIP report cleaning;
+  no upstream code is vendored or line-copied in this repository, and whether the
+  upstream echonet/echo_CLIP utils.py source was consulted is **unclear — needs
+  author confirmation** (canonical wording; see PROVENANCE.md).
+- File-level provenance: ATTRIBUTION.md and PROVENANCE.md. This scope note is an
+  engineering statement, not legal advice; a per-file provenance audit with the
+  author's institution is recommended before submission.

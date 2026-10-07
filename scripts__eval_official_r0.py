@@ -40,13 +40,22 @@ from echoclip.official_parity import (  # noqa: E402
     compute_regression_metric_official,
     crop_and_scale_official,
 )
+from echoclip.official_r0 import (  # noqa: E402
+    EF_PROMPT_TEMPLATES,
+    OFFICIAL_HUB,
+    UPSTREAM_COMMIT,
+    UPSTREAM_REPO,
+    build_ef_prompt_grid,
+    official_metadata,
+    parity_report,
+    prompt_grid_sha256,
+    write_parity_report,
+)
 from echoclip.protocol import OFFICIAL_EF_VALUES  # noqa: E402
 from echoclip.zeroshot import compute_regression_score  # noqa: E402
 
-EF_TEMPLATES = (
-    "THE LEFT VENTRICULAR EJECTION FRACTION IS ESTIMATED TO BE <#>% ",
-    "LV EJECTION FRACTION IS <#>%. ",
-)
+#: Backwards-compatible alias (previously defined locally).
+EF_TEMPLATES = EF_PROMPT_TEMPLATES
 
 
 def _formula_parity_ok() -> bool:
@@ -63,13 +72,8 @@ def _formula_parity_ok() -> bool:
 
 
 def _build_ef_prompts() -> Tuple[List[str], List[int]]:
-    prompts: List[str] = []
-    values: List[int] = []
-    for tmpl in EF_TEMPLATES:
-        for i in OFFICIAL_EF_VALUES:
-            prompts.append(tmpl.replace("<#>", str(i)))
-            values.append(int(i))
-    return prompts, values
+    """Official 202-candidate EF grid (delegates to :mod:`echoclip.official_r0`)."""
+    return build_ef_prompt_grid()
 
 
 def _try_open_clip_hub(hub: str, device: str):
@@ -249,6 +253,12 @@ def main() -> int:
     parser.add_argument("--hub", type=str, default="hf-hub:mkaichristensen/echo-clip")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--avi", type=Path, default=None, help="Optional single-AVI smoke")
+    parser.add_argument(
+        "--parity-avi",
+        type=Path,
+        default=None,
+        help="Official example AVI for golden-parity; skips gracefully if absent.",
+    )
     args = parser.parse_args()
     if not args.demo and not args.dry_run:
         # Default to paper semantics when not demo/dry-run (CLI may omit --paper).
@@ -256,22 +266,27 @@ def main() -> int:
 
     device = args.device or ("cuda" if __import__("torch").cuda.is_available() else "cpu")
     formula_ok = _formula_parity_ok()
+    grid_prompts, grid_values = _build_ef_prompts()
+    paper_mode = bool(args.paper or not args.demo)
     summary: Dict[str, Any] = {
         "experiment_id": "R0",
         "script": "eval_official_r0.py",
-        "paper_mode": bool(args.paper or not args.demo),
         "ef_grid_n": len(OFFICIAL_EF_VALUES),
+        "ef_grid_full_n": len(grid_values),
+        "prompt_grid_sha256": prompt_grid_sha256(grid_prompts, grid_values),
         "sample_strategy": "official_stride",
         "pad_to_16": False,
         "aggregation_formula_parity": formula_ok,
-        "parity_gaps": list(PARITY_GAPS),
-        "official_reproduction_verified": False,
+        "official_hub": OFFICIAL_HUB,
+        "upstream_repo": UPSTREAM_REPO,
+        "upstream_commit": UPSTREAM_COMMIT,
         "eval_seed": int(args.seed),
         "seed": int(args.seed),
         "note": (
-            "Verified only after hub load + formula parity. "
+            "Verified only after hub load + real parity. "
             "Clinical MAE requires EchoNet + official weights — never invent."
         ),
+        **official_metadata(paper_mode=paper_mode, verified=False),
     }
 
     if args.dry_run:
@@ -285,35 +300,47 @@ def main() -> int:
             print(json.dumps(summary, indent=2))
             return 2
         model, tokenize, preprocess_val, _ = packed
-        try:
-            pred = _predict_avi_open_clip(
-                args.avi,
-                model=model,
-                tokenize=tokenize,
-                preprocess_val=preprocess_val,
-                device=device,
-            )
-        except Exception as exc:  # noqa: BLE001
-            summary.update({"ok": False, "error": str(exc)})
-            print(json.dumps(summary, indent=2))
-            return 2
-        summary.update(
-            {
-                "ok": True,
-                "avi": str(args.avi),
-                "pred_ef": pred,
-                "bypassed_dataset": True,
-                "load_source": args.hub,
-                "official_reproduction_verified": bool(formula_ok),
-            }
+        # Golden-parity attempt against the real AVI (stride/grid/finite checks).
+        # NEVER fabricates numbers and skips honestly when assets are missing.
+        report = parity_report(example_avi=args.avi, device=device)
+        out = args.output or (
+            ROOT / "checkpoints" / "protocol" / "R0" / "official_r0_avi.json"
         )
-        if formula_ok:
+        parity_path = Path(out).parent / "official_r0_parity.json"
+        write_parity_report(parity_path, report)
+        summary.update(
+            official_metadata(
+                paper_mode=True,
+                verified=bool(report.verified and formula_ok),
+                parity=report.to_dict(),
+                extra={"parity_report": str(parity_path)},
+            )
+        )
+        if summary["official_reproduction_verified"]:
             os.environ["ECHOCLIP_OFFICIAL_PARITY_OK"] = "1"
-        out = args.output or (ROOT / "checkpoints" / "protocol" / "R0" / "official_r0_avi.json")
+            summary.update(
+                {
+                    "ok": True,
+                    "avi": str(args.avi),
+                    "pred_ef": (report.details[0]["pred_ef"] if report.details else None),
+                    "bypassed_dataset": True,
+                    "load_source": args.hub,
+                    **report.metadata,
+                }
+            )
+        else:
+            summary.update(
+                {
+                    "ok": False,
+                    "avi": str(args.avi),
+                    "error": report.reason or "parity report did not pass",
+                    "bypassed_dataset": True,
+                }
+            )
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         Path(out).write_text(json.dumps(summary, indent=2), encoding="utf-8")
         print(json.dumps(summary, indent=2))
-        return 0
+        return 0 if summary.get("official_reproduction_verified") else 1
 
     if args.demo:
         manifest = ROOT / "data" / "demo" / "manifest.json"
@@ -357,7 +384,9 @@ def main() -> int:
                     k: summary[k]
                     for k in (
                         "paper_mode",
+                        "official_reproduction_requested",
                         "official_reproduction_verified",
+                        "official_reproduction",
                         "aggregation_formula_parity",
                         "pad_to_16",
                         "eval_seed",
@@ -389,22 +418,32 @@ def main() -> int:
         device=device,
         seed=args.seed,
     )
-    verified = bool(formula_ok and direct.get("ok") and direct.get("load_source"))
+    # Honest gating (P0-6): --paper only *requests* reproduction. A run counts as
+    # verified only when an actual parity report passes against real upstream
+    # assets (golden example AVI). Missing assets → verified stays False.
+    report = parity_report(example_avi=args.parity_avi, device=device)
+    verified = bool(formula_ok and report.verified and direct.get("ok"))
     if verified:
         os.environ["ECHOCLIP_OFFICIAL_PARITY_OK"] = "1"
     else:
         os.environ.pop("ECHOCLIP_OFFICIAL_PARITY_OK", None)
+    parity_path = (
+        Path(args.output).parent / "official_r0_parity.json"
+        if args.output
+        else ROOT / "checkpoints" / "protocol" / "R0" / "official_r0_parity.json"
+    )
+    write_parity_report(parity_path, report)
 
     if direct.get("ok"):
         metrics = {
             "task": "clinical_ef",
             "experiment_id": "R0",
             "baseline_name": "Official EchoCLIP zero-shot (reproduction path)",
-            "paper_mode": True,
-            "official_reproduction": True,
-            "official_reproduction_verified": verified,
             "aggregation_formula_parity": formula_ok,
-            "parity_gaps": list(PARITY_GAPS),
+            "prompt_grid_sha256": prompt_grid_sha256(*_build_ef_prompts()),
+            "upstream_repo": UPSTREAM_REPO,
+            "upstream_commit": UPSTREAM_COMMIT,
+            **official_metadata(paper_mode=True, verified=verified),
             **direct,
         }
         out = args.output or (ROOT / "checkpoints" / "protocol" / "R0" / "metrics.json")

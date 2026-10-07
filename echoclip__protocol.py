@@ -8,6 +8,7 @@ These IDs do **not** invent clinical performance numbers.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -343,6 +344,100 @@ def list_experiments() -> List[ExperimentSpec]:
     return [EXPERIMENTS[i] for i in EXPERIMENT_IDS]
 
 
+# ---------------------------------------------------------------------------
+# Split integrity (P0-2): disjointness + provenance hashes
+# ---------------------------------------------------------------------------
+
+def manifest_ids(pairs: Sequence[dict], id_key: str = "file_name") -> List[str]:
+    """Ordered, de-duplicated IDs for a manifest pair list.
+
+    Looks at ``id_key`` first, then the common media keys (``image`` /
+    ``video``), so it works with both EchoNet (``file_name``) and generic
+    DATA.md manifests (``image``).
+    """
+    ids: List[str] = []
+    for rec in pairs:
+        key = ""
+        for candidate in (id_key, "file_name", "image", "video"):
+            val = rec.get(candidate)
+            if val is not None and str(val).strip():
+                key = Path(str(val).strip()).name
+                break
+        if key:
+            ids.append(key)
+    # Preserve order while dropping duplicates
+    return list(dict.fromkeys(ids))
+
+
+def assert_disjoint(
+    train_pairs: Sequence[dict],
+    eval_pairs: Sequence[dict],
+    id_key: str = "file_name",
+    *,
+    label_train: str = "train",
+    label_eval: str = "eval",
+) -> None:
+    """Raise ``RuntimeError`` if TRAIN and EVAL share any study ID.
+
+    Lists the first overlapping IDs to speed up debugging. Call this before any
+    R2–R6 evaluation so TEST/VAL leakage cannot silently inflate metrics.
+    """
+    train_ids = set(manifest_ids(train_pairs, id_key=id_key))
+    eval_ids = set(manifest_ids(eval_pairs, id_key=id_key))
+    overlap = sorted(train_ids & eval_ids)
+    if overlap:
+        preview = ", ".join(overlap[:10])
+        more = "" if len(overlap) <= 10 else f" (+{len(overlap) - 10} more)"
+        raise RuntimeError(
+            f"Split leakage: {len(overlap)} overlapping IDs between "
+            f"{label_train} ({len(train_ids)} ids) and {label_eval} "
+            f"({len(eval_ids)} ids) on key {id_key!r}: {preview}{more}. "
+            "TRAIN and TEST/VAL must be disjoint."
+        )
+
+
+def manifest_sha256(path: Path) -> Optional[str]:
+    """SHA-256 of a manifest file (raw bytes); ``None`` if the file is absent."""
+    p = Path(path)
+    if not p.exists():
+        return None
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def split_provenance(
+    train_manifest: Optional[Path],
+    test_manifest: Optional[Path],
+    train_pairs: Optional[Sequence[dict]] = None,
+    test_pairs: Optional[Sequence[dict]] = None,
+    *,
+    id_key: str = "file_name",
+) -> Dict[str, object]:
+    """Provenance block required on every produced metrics/manifest JSON.
+
+    Records manifest hashes, sample counts, and TRAIN/TEST overlap count so a
+    reported number can always be tied to an exact split.
+    """
+    train_n = len(train_pairs) if train_pairs is not None else None
+    test_n = len(test_pairs) if test_pairs is not None else None
+    overlap_n: Optional[int] = None
+    if train_pairs is not None and test_pairs is not None:
+        overlap_n = len(
+            set(manifest_ids(train_pairs, id_key=id_key))
+            & set(manifest_ids(test_pairs, id_key=id_key))
+        )
+    return {
+        "train_manifest_sha256": (
+            manifest_sha256(train_manifest) if train_manifest else None
+        ),
+        "test_manifest_sha256": (
+            manifest_sha256(test_manifest) if test_manifest else None
+        ),
+        "train_n": train_n,
+        "test_n": test_n,
+        "train_test_overlap_n": overlap_n,
+    }
+
+
 def assert_primary_eval_sampling(
     *,
     split: Optional[str],
@@ -502,9 +597,14 @@ def merge_metrics_meta(
         )
     if paper:
         out["paper_mode"] = True
-        out["official_reproduction"] = True
+        # Honesty: passing --paper is a *request*, never proof of parity.
+        out["official_reproduction_requested"] = True
         # Verified only when eval already set the flag (parity OK); else false.
         out.setdefault("official_reproduction_verified", False)
+        # Backwards-compatible alias; true only when actually verified.
+        out.setdefault(
+            "official_reproduction", bool(out.get("official_reproduction_verified"))
+        )
     if extra:
         out.update(extra)
     return out

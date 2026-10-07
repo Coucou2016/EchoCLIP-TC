@@ -1,4 +1,8 @@
-# EchoCLIP-TA (repo: EchoCLIP-TC)
+# EchoCLIP-TA (repository URL retained as EchoCLIP-TC)
+
+> **Project name: EchoCLIP-TA.** The GitHub repository URL `Coucou2016/EchoCLIP-TC`
+> is kept for continuity; the legacy name "EchoCLIP-TC" appears only in the URL and
+> the Python package name `echoclip`. Everywhere else this project is **EchoCLIP-TA**.
 
 
 
@@ -12,7 +16,7 @@ Vision-language foundation model for **echocardiogram interpretation**, implemen
 
 
 
-This repository (**https://github.com/Coucou2016/EchoCLIP-TC**) implements **EchoCLIP-TA**: parameter-efficient, EF-aware temporal adaptation on frozen EchoCLIP, with validation-only calibration and a locked R0–R6 public-data protocol. Legacy name EchoCLIP-TC (Temporal, Calibrated) still appears in paths; the Python package remains `echoclip`.
+This repository (**https://github.com/Coucou2016/EchoCLIP-TC**) implements **EchoCLIP-TA**: parameter-efficient, EF-aware temporal adaptation on frozen EchoCLIP, with validation-only calibration and a locked R0–R6 public-data protocol. The legacy name EchoCLIP-TC (Temporal, Calibrated) is retained only in the repository URL; the Python package remains `echoclip`.
 
 
 
@@ -32,11 +36,11 @@ This repository (**https://github.com/Coucou2016/EchoCLIP-TC**) implements **Ech
 
 | Pretraining | LAION-400M CLIP → echo finetune | Optional `init_open_clip` or official `hf-hub:mkaichristensen/echo-clip` |
 
-| Temporal (TC/TA) | None (frame encoder + mean) | `echoclip/temporal.py` — attention pool / Temporal Transformer `(B,T,D)→(B,D)` |
+| Temporal (TA) | None (frame encoder + mean) | `echoclip/temporal.py` — attention pool / Temporal Transformer `(B,T,D)→(B,D)` |
 
 | Supervised baselines | — | S0/S1/S2 (`echoclip/supervised.py`): linear/ridge, MLP, temporal L1/Huber |
 
-| Calibration (TC) | Uncalibrated cosine | Temperature **or** affine logistic @50/40/30, ECE, Brier, split + optional adaptive conformal / AURC, bootstrap CIs |
+| Calibration (TA) | Uncalibrated cosine | Temperature **or** affine logistic @50/40/30, ECE, Brier, split + optional adaptive conformal / AURC, bootstrap CIs |
 
 
 
@@ -46,7 +50,7 @@ This repository (**https://github.com/Coucou2016/EchoCLIP-TC**) implements **Ech
 
 ```
 
-echoclip/                 # Dual encoder, TC modules, zero-shot, clinical metrics
+echoclip/                 # Dual encoder, TA modules, zero-shot, clinical metrics
 
   protocol.py             # R0–R6 + Oracle-EDES matrix (aliases B0/M1/M2/M4)
 
@@ -87,7 +91,10 @@ DATA.md                   # Manifest format + EchoNet-Dynamic
 
 requirements-lock.txt     # Pinned working env note
 
-ATTRIBUTION.md            # File-level upstream vs clean-room + ASL risk
+ATTRIBUTION.md            # File-level upstream vs original + license boundary
+
+PROVENANCE.md             # Per-file provenance audit (origin / similarity / license)
+NOTICE                    # Third-party, dataset, and license-scope notices
 
 ```
 
@@ -99,7 +106,7 @@ ATTRIBUTION.md            # File-level upstream vs clean-room + ASL risk
 
 ```powershell
 
-cd $env:ECHOCLIP_ROOT   # or: cd <path-to-EchoCLIP-TC>
+cd $env:ECHOCLIP_ROOT   # or: cd <path-to-this-repo>
 
 python -m venv .venv
 
@@ -209,6 +216,6 @@ See [PAPER.md](PAPER.md) for the locked R0–R6 + Oracle-EDES matrix. **Do not i
 
 
 
-See [ATTRIBUTION.md](ATTRIBUTION.md) and [LICENSE](LICENSE). MIT covers **this scaffold**; upstream EchoCLIP prompts/code and EchoNet terms may differ — do not assume MIT covers all derived materials without audit.
+See [ATTRIBUTION.md](ATTRIBUTION.md), [NOTICE](NOTICE), [LICENSE](LICENSE), and [PROVENANCE.md](PROVENANCE.md). MIT covers **original scaffold code written here** only; it does **not** re-license upstream EchoCLIP prompt strings, upstream-aligned logic, official hub weights, or EchoNet-Dynamic data. Neither the official EchoCLIP weights nor EchoNet data are redistributed — obtain them under their own upstream terms ([docs/OBTAIN_DATA_AND_WEIGHTS.md](docs/OBTAIN_DATA_AND_WEIGHTS.md)).
 
 

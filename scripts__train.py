@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 
 from echoclip.checkpoint import save_checkpoint
 from echoclip.config import EchoCLIPConfig
+from echoclip.config_io import load_yaml_config
 from echoclip.data import EchoCLIPDataset, collate_batch, split_manifest, load_manifest, validate_manifest
 from echoclip.loss import ClipLoss, TemporalClipLoss, EFSoftContrastiveLoss
 from echoclip.text import EchoTokenizer
@@ -25,8 +26,8 @@ from echoclip.utils import set_seed
 
 
 def load_config(path: Path) -> dict:
-    with path.open(encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    # P0-8: expand ${ENV_VAR} / ~ in every string value (config_io).
+    return load_yaml_config(path)
 
 
 def build_model(cfg: dict) -> EchoCLIP:
@@ -184,6 +185,13 @@ def main() -> None:
         help="Override cfg seed; stored as train_seed in checkpoints/metrics",
     )
     parser.add_argument(
+        "--determinism",
+        type=str,
+        choices=["fast", "strict"],
+        default=None,
+        help="Record/apply the determinism mode (strict → deterministic cuDNN).",
+    )
+    parser.add_argument(
         "--ef-soft-contrastive",
         action="store_true",
         default=None,
@@ -268,7 +276,12 @@ def main() -> None:
 
     train_seed = int(cfg.get("seed", 42))
     cfg["seed"] = train_seed
-    set_seed(train_seed)
+    seed_info = set_seed(train_seed, determinism=args.determinism)
+    split_seed = int(cfg.get("split_seed", train_seed))
+    sampler_seed = int(cfg.get("sampler_seed", train_seed))
+    cfg["split_seed"] = split_seed
+    cfg["sampler_seed"] = sampler_seed
+    cfg["determinism_mode"] = seed_info["determinism_mode"]
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     manifest = Path(cfg["manifest"])
     if not manifest.exists():
@@ -284,7 +297,7 @@ def main() -> None:
         for err in manifest_errors[:15]:
             print(f"  - {err}")
         sys.exit(1)
-    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), train_seed)
+    train_pairs, val_pairs = split_manifest(pairs, cfg.get("val_ratio", 0.1), split_seed)
     out_dir = Path(cfg["output_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -315,7 +328,7 @@ def main() -> None:
     )
     train_ds = EchoCLIPDataset(
         train_manifest,
-        seed=train_seed,
+        seed=sampler_seed,
         **ds_kwargs,
     )
     val_ds = EchoCLIPDataset(
@@ -344,12 +357,17 @@ def main() -> None:
     else:
         use_ef_soft = is_temporal  # default for temporal / R5 train path
     if use_ef_soft:
+        # P1-3: lambda_soft is the hard/soft mix ratio (0 == pure hard InfoNCE).
+        lambda_soft = float(cfg.get("lambda_soft", 1.0))
         criterion = EFSoftContrastiveLoss(
             ef_temperature=float(cfg.get("ef_soft_temperature", 5.0)),
+            lambda_soft=lambda_soft,
         )
+        cfg["lambda_soft"] = lambda_soft
         print(
             "loss=EFSoftContrastiveLoss "
-            f"(use_edv_captions={bool(cfg.get('use_edv_captions', False))})"
+            f"(lambda_soft={lambda_soft}, "
+            f"use_edv_captions={bool(cfg.get('use_edv_captions', False))})"
         )
     elif cfg.get("video_frames", 1) > 1 or view_weight > 0:
         criterion = TemporalClipLoss(
@@ -368,6 +386,8 @@ def main() -> None:
 
     batch_size = min(cfg.get("batch_size", 32), len(train_ds))
     val_batch_size = min(cfg.get("batch_size", 32), len(val_ds))
+    loader_generator = torch.Generator()
+    loader_generator.manual_seed(sampler_seed)
     train_loader = DataLoader(
         train_ds,
         batch_size=batch_size,
@@ -376,6 +396,7 @@ def main() -> None:
         collate_fn=collate_batch,
         pin_memory=device.startswith("cuda"),
         drop_last=len(train_ds) > batch_size,
+        generator=loader_generator,
     )
     val_loader = DataLoader(
         val_ds,
@@ -395,12 +416,19 @@ def main() -> None:
             val_loss = eval_epoch(model, val_loader, criterion, device)
             print(f"epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f}")
 
+            ckpt_extra = {
+                "train_seed": train_seed,
+                "split_seed": split_seed,
+                "sampler_seed": sampler_seed,
+                "determinism_mode": seed_info["determinism_mode"],
+                "determinism": seed_info,
+            }
             save_checkpoint(
                 out_dir / "last.pt",
                 model,
                 epoch,
                 train_cfg=cfg,
-                extra={"train_seed": train_seed},
+                extra=ckpt_extra,
             )
             if val_loss < best_val:
                 best_val = val_loss
@@ -409,7 +437,7 @@ def main() -> None:
                     model,
                     epoch,
                     train_cfg=cfg,
-                    extra={"train_seed": train_seed},
+                    extra=ckpt_extra,
                 )
                 print(f"  saved best.pt (val_loss={val_loss:.4f})")
 
@@ -418,6 +446,10 @@ def main() -> None:
     meta_path = out_dir / "train_meta.json"
     meta = {
         "train_seed": train_seed,
+        "split_seed": split_seed,
+        "sampler_seed": sampler_seed,
+        "determinism_mode": seed_info["determinism_mode"],
+        "determinism": seed_info,
         "best_val": best_val,
         "train_seconds": train_timer.get("train_seconds"),
         **eff,

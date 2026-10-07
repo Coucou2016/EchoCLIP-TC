@@ -1,13 +1,26 @@
 cff-version: 1.2.0
 title: "EchoCLIP-TA: EF-aware parameter-efficient temporal adaptation of EchoCLIP"
 message: >-
-  If you use this code, please cite the EchoCLIP paper and this repository.
+  If you use this code, please cite the EchoCLIP paper (Christensen et al.,
+  Nature Medicine 2024) and, once available, the archived release of this
+  repository. The author entry below is a placeholder that MUST be replaced
+  with the real author names, affiliations, and ORCIDs before submission.
 type: software
+version: 0.2.0
+date-released: 2026-09-15
 authors:
-  - name: EchoCLIP-TA Contributors
+  # Placeholder only. Do NOT invent names, affiliations, ORCIDs, or a DOI.
+  # Replace this entry before submission/archiving; the human author(s) must
+  # supply the real metadata.
+  - name: "AUTHOR LIST PENDING (placeholder — replace with real author names, affiliations, and ORCIDs before submission)"
 repository-code: "https://github.com/Coucou2016/EchoCLIP-TC"
 url: "https://github.com/Coucou2016/EchoCLIP-TC"
+# Note: the repository/URL name EchoCLIP-TC is retained for continuity; the
+# project name in this file is EchoCLIP-TA.
 license: MIT
+# MIT covers original scaffold code only; upstream EchoCLIP prompt strings,
+# upstream-aligned logic, official hub weights, and EchoNet-Dynamic data are
+# NOT relicensed by MIT. See NOTICE, ATTRIBUTION.md, and PROVENANCE.md.
 keywords:
   - echocardiography
   - vision-language

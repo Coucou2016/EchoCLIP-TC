@@ -246,8 +246,27 @@ def main() -> int:
         default=ROOT / "data" / "echonet_dynamic",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--allow-missing-videos",
+        action="store_true",
+        help=(
+            "Build a metadata-only manifest even when Videos/ is absent or some "
+            "videos are missing. DANGER: such a manifest cannot run clinical "
+            "evaluation; it is written with require_video=false and a loud warning."
+        ),
+    )
     parser.add_argument("--subset-5000", action="store_true",
-                        help="Also write EchoCLIP-style random 5000-study subset")
+                        help="Historical mixed-pool 5000 subset (R0 external anchor)")
+    parser.add_argument(
+        "--test-subset",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "Also write a TEST-only subset of N studies (test_subset_N.json + ids) "
+            "for adapted-model evaluation (R2–R6). Disjointness is asserted."
+        ),
+    )
     parser.add_argument(
         "--include-dilation",
         action="store_true",
@@ -261,6 +280,9 @@ def main() -> int:
     args = parser.parse_args()
 
     set_seed(args.seed)
+    # Default: clinical manifests MUST have real videos. Metadata-only builds
+    # require the explicit --allow-missing-videos opt-in and warn loudly.
+    require_video = not bool(args.allow_missing_videos)
     root = args.echonet_root
     filelist = _find_filelist(root)
     if filelist is None:
@@ -269,12 +291,17 @@ def main() -> int:
         return 1
 
     videos_dir = _find_videos_dir(root, filelist)
-    if videos_dir is None and not args.allow_missing_videos:
+    if videos_dir is None and require_video:
         print(ECHONET_DOWNLOAD_HELP)
         print(f"\nFileList found at {filelist}, but no Videos/ directory.")
         return 1
     if videos_dir is None:
         videos_dir = root / "Videos"
+        print(
+            "WARNING: no Videos/ directory found and --allow-missing-videos was "
+            "passed. Building a METADATA-ONLY manifest that CANNOT run clinical "
+            "evaluation."
+        )
 
     tracing_path = _find_tracings(root, filelist)
     tracings = ed_es_from_tracings(tracing_path) if tracing_path else {}
@@ -285,7 +312,7 @@ def main() -> int:
         videos_dir,
         tracings=tracings,
         include_dilation=bool(args.include_dilation) and not args.no_dilation,
-        require_video=not args.allow_missing_videos,
+        require_video=require_video,
     )
     if not pairs:
         print("No pairs could be built from FileList.csv.")
@@ -304,46 +331,139 @@ def main() -> int:
         "n_pairs": len(pairs),
         "n_skipped": len(skipped),
         "seed": args.seed,
+        "require_video": bool(require_video),
+        "metadata_only": not bool(require_video),
         "text": "Official EchoCLIP prompt templates filled from EF/EDV (see echoclip.structured_text)",
         "note": "Demo retrieval metrics are not a substitute for this clinical split.",
     }
+    if not require_video:
+        meta["WARNING"] = (
+            "METADATA-ONLY manifest built with --allow-missing-videos: one or more "
+            "videos are absent on disk. This manifest CANNOT produce clinical EF "
+            "metrics; it is for schema/wiring checks only. Do not report MAE."
+        )
+        print("\n" + "!" * 72)
+        print("WARNING: METADATA-ONLY manifest (--allow-missing-videos).")
+        print("         Videos are absent; clinical evaluation is IMPOSSIBLE.")
+        print("         Do not report any MAE/AUC from this manifest.")
+        print("!" * 72 + "\n")
     out_dir = args.output_dir
     write_json(out_dir / "manifest.json", pairs, meta)
 
+    # --- Explicit per-split artifacts (P0-2) -----------------------------
     by_split: Dict[str, List[dict]] = defaultdict(list)
     for rec in pairs:
         split = rec.get("split") or "UNKNOWN"
         by_split[split].append(rec)
+    split_names = {"TRAIN": "train.json", "VAL": "val.json", "TEST": "test.json"}
     for split, items in by_split.items():
-        name = {"TRAIN": "train.json", "VAL": "val.json", "TEST": "test.json"}.get(
-            split, f"{split.lower()}.json"
-        )
+        name = split_names.get(split, f"{split.lower()}.json")
         write_json(out_dir / name, items, {**meta, "split": split, "n_pairs": len(items)})
+
+    train_items = by_split.get("TRAIN", [])
+    test_items = by_split.get("TEST", [])
+
+    # Guard: TRAIN and TEST must be disjoint when both are present.
+    if train_items and test_items:
+        from echoclip.protocol import assert_disjoint
+
+        assert_disjoint(
+            train_items,
+            test_items,
+            id_key="file_name",
+            label_train="TRAIN",
+            label_eval="TEST",
+        )
 
     if args.subset_5000:
         from echoclip.protocol import write_subset_ids
 
+        # Historical mixed-pool subset (draws from TRAIN+VAL+TEST).
+        # Kept ONLY as the R0 external/historical anchor — never for R2–R6.
         sub = subset_n(pairs, 5000, args.seed)
+        anchor_name = "r0_external_anchor_5000"
         write_json(
-            out_dir / "subset_5000.json",
+            out_dir / f"{anchor_name}.json",
             sub,
             {
                 **meta,
                 "subset": 5000,
                 "n_pairs": len(sub),
-                "protocol": "EchoCLIP-style random 5000",
-                "ids_file": str(out_dir / "subset_5000_ids.json"),
+                "protocol": "EchoCLIP-style random 5000 (historical external anchor)",
+                "ids_file": str(out_dir / f"{anchor_name}_ids.json"),
+                "provenance": {
+                    "role": "R0 external/historical anchor",
+                    "sampled_from": "combined TRAIN+VAL+TEST pool",
+                    "mixed_splits": True,
+                    "may_overlap_train": True,
+                    "seed": args.seed,
+                    "note": (
+                        "Drawn from the combined pool, so it MAY overlap TRAIN. "
+                        "Use ONLY for R0 zero-shot external-anchor comparisons; "
+                        "never for R2–R6 adapted models (use test_subset_N.json)."
+                    ),
+                },
             },
         )
         ids_path = write_subset_ids(
             sub,
-            out_dir / "subset_5000_ids.json",
+            out_dir / f"{anchor_name}_ids.json",
             seed=args.seed,
             n=5000,
             source="EchoNet-Dynamic",
             already_sampled=True,
         )
-        print(f"  Locked subset IDs → {ids_path} (+ .txt)")
+        print(f"  Locked R0 anchor IDs → {ids_path} (+ .txt)")
+
+    if args.test_subset is not None:
+        from echoclip.protocol import assert_disjoint, write_subset_ids
+
+        n_test = int(args.test_subset)
+        if not test_items:
+            print(
+                "  WARNING: --test-subset requested but no TEST split rows found; "
+                "skipping TEST-only subset."
+            )
+        else:
+            sub_test = subset_n(test_items, n_test, args.seed)
+            # TEST-only subset is by construction disjoint from TRAIN.
+            if train_items:
+                assert_disjoint(
+                    train_items,
+                    sub_test,
+                    id_key="file_name",
+                    label_train="TRAIN",
+                    label_eval="TEST_SUBSET",
+                )
+            name = f"test_subset_{n_test}"
+            write_json(
+                out_dir / f"{name}.json",
+                sub_test,
+                {
+                    **meta,
+                    "split": "TEST",
+                    "subset": n_test,
+                    "n_pairs": len(sub_test),
+                    "protocol": "TEST-only subset for adapted-model evaluation (R2–R6)",
+                    "ids_file": str(out_dir / f"{name}_ids.json"),
+                    "provenance": {
+                        "role": "TEST-only subset (R2–R6)",
+                        "sampled_from": "TEST split only",
+                        "mixed_splits": False,
+                        "may_overlap_train": False,
+                        "seed": args.seed,
+                    },
+                },
+            )
+            ids_path = write_subset_ids(
+                sub_test,
+                out_dir / f"{name}_ids.json",
+                seed=args.seed,
+                n=n_test,
+                source="EchoNet-Dynamic",
+                already_sampled=True,
+            )
+            print(f"  Locked TEST-only subset IDs → {ids_path} (+ .txt)")
 
     print(f"Wrote {len(pairs)} pairs to {out_dir / 'manifest.json'}")
     for split, items in sorted(by_split.items()):

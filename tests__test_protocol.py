@@ -124,7 +124,19 @@ class TestProtocolSpecs(unittest.TestCase):
         self.assertTrue(out["demo_is_not_clinical"])
         self.assertEqual(out["experiment_id"], "R0")
         out2 = merge_metrics_meta({"mae": 1.0}, experiment=spec, paper=True)
-        self.assertTrue(out2["official_reproduction"])
+        # P0-6 honesty: --paper is a *request*, never proof of parity.
+        self.assertTrue(out2["paper_mode"])
+        self.assertTrue(out2["official_reproduction_requested"])
+        self.assertFalse(out2["official_reproduction_verified"])
+        self.assertFalse(out2["official_reproduction"])
+        # When parity evidence is present, verified (and the alias) flip true.
+        out3 = merge_metrics_meta(
+            {"mae": 1.0, "official_reproduction_verified": True},
+            experiment=spec,
+            paper=True,
+        )
+        self.assertTrue(out3["official_reproduction_verified"])
+        self.assertTrue(out3["official_reproduction"])
 
     def test_protocol_comparison_table(self):
         with tempfile.TemporaryDirectory() as tmp:

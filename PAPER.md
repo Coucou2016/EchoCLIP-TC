@@ -1,8 +1,8 @@
-# EchoCLIP-TC / EchoCLIP-TA paper protocol
+# EchoCLIP-TA paper protocol
 
 This document locks the experiment IDs, commands, and honesty rules for the
 **EchoCLIP-TA** (EF-aware parameter-efficient temporal adaptation) paper path
-in this repository (repo / package name remains EchoCLIP-TC / `echoclip`).
+in this repository (repository URL retained as EchoCLIP-TC; Python package `echoclip`).
 
 **Demo ≠ clinical.** Numbers from `data/demo/` or `--demo` must never be
 reported as EchoNet or Nature Medicine EF MAE. Do **not** invent clinical MAE.
@@ -52,7 +52,7 @@ except **R0 under `--paper`** which uses `official_stride` (`0:min(40,T):2`) **w
 
 Definitions live in `echoclip/protocol.py`. Runner: `scripts/run_protocol.py`.  
 
-Table aggregate: `scripts/write_protocol_table.py` → `checkpoints/protocol/comparison.{json,md}`.
+Table aggregate: `scripts/write_protocol_table.py` → writes checkpoints/protocol/comparison.json and comparison.md (generated on run).
 
 
 
@@ -188,9 +188,7 @@ Optional **adaptive conformal** (`--adaptive-conformal`): normalized score `|y-�
 
 with heuristic or learned positive scale head → variable width + risk–coverage / AURC.
 
-Paired bootstrap CIs for ΔMAE and bootstrap CIs for RMSE/R²/AUCs are emitted in
-
-`summarize_clinical` / `metrics.json`.
+Paired bootstrap CIs for ΔMAE and bootstrap CIs for RMSE/R²/AUCs are emitted by the `summarize_clinical` helper in generated metrics.json.
 
 
 
