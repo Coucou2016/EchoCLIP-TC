@@ -6,6 +6,14 @@ Python package `echoclip`). This is the working tree-layout copy.
 **Audit date:** 2026-10-07
 **Auditor:** automated provenance/licensing closure pass (human author confirmation required — see below).
 
+**Docstring alignment follow-up (2026-10-08):** the module docstrings of
+`echoclip/text.py` and `echoclip/official_r0.py` no longer self-describe as
+"clean-room"; they now carry the conservative canonical wording (independently
+authored, behavior intentionally overlaps upstream, no upstream code vendored or
+line-copied, whether upstream source was consulted **unclear — needs author
+confirmation**). This is a documentation-only change: the per-file provenance
+classifications below and the open author/legal decisions are **unchanged**.
+
 > **Scope and honesty limits of this audit.**
 > 1. The upstream repository `https://github.com/echonet/echo_CLIP` is **not checked out
 >    in this workspace**, so *line-level similarity is not diff-verified here*. The
@@ -36,10 +44,10 @@ Python package `echoclip`). This is the working tree-layout copy.
 
 | file | origin | did we read upstream source? | line-level similarity to upstream? | license | action needed |
 |------|--------|------------------------------|-------------------------------------|---------|---------------|
-| `echoclip/text.py` | Independently authored report normalizer; behavior intentionally overlaps upstream EchoCLIP report cleaning. | **Unclear — needs author confirmation.** No upstream checkout or vendored copy is present in-repo; the module docstring claims "independently authored regexes". | Not diff-verified (upstream absent). No upstream code body is vendored; overlap is textual/behavioral (uppercase, noise/tense/severity normalization, whitespace collapse, period insertion). | MIT (this repo) for the code as authored; **not** covered by upstream Academic Software License on the basis of this audit. | Author to confirm whether upstream echonet/echo_CLIP utils.py was read during authoring. If yes, decide whether to keep MIT on the independent expression or relabel as behaviorally-inspired/upstream-derived. |
+| `echoclip/text.py` | Independently authored report normalizer; behavior intentionally overlaps upstream EchoCLIP report cleaning. | **Unclear — needs author confirmation.** No upstream checkout or vendored copy is present in-repo; the module docstring states it is independently authored (aligned 2026-10-08 to the conservative canonical wording — see the follow-up note above). | Not diff-verified (upstream absent). No upstream code body is vendored; overlap is textual/behavioral (uppercase, noise/tense/severity normalization, whitespace collapse, period insertion). | MIT (this repo) for the code as authored; **not** covered by upstream Academic Software License on the basis of this audit. | Author to confirm whether upstream echonet/echo_CLIP utils.py was read during authoring. If yes, decide whether to keep MIT on the independent expression or relabel as behaviorally-inspired/upstream-derived. |
 | `echoclip/prompts.py` | **Upstream-derived** — verbatim published EchoCLIP zero-shot prompt sentence templates. | Effectively yes: the module docstring says the strings are "from EchoCLIP (echonet/echo_CLIP)" and they match the published prompt list. | Verbatim clinical prompt sentences (not independently authored text). | Upstream EchoCLIP Academic Software License / published-prompt terms. **Not MIT.** | Keep explicit upstream attribution and a non-MIT license note; do not relicense. Do not claim as original clinical IP. |
 | `echoclip/official_parity.py` | **Upstream-derived / behaviorally-aligned reference logic.** Docstring: "aligned with echonet/echo_CLIP utils.py"; functions self-described as "Bit-aligned copy of … compute_regression_metric" and "Match … utils.crop_and_scale". | **Yes — indicated by the in-code description of alignment with upstream.** | High for `compute_regression_metric_official` and `crop_and_scale_official` (self-described bit-aligned copy / match). Not diff-verified here. | Upstream Academic Software License applies to the aligned logic. **Not MIT** as a verbatim/near-verbatim copy. | Before submission: either (a) keep and label clearly as upstream-derived under upstream terms, or (b) replace with an independently authored version plus citations. Requires author decision. |
-| `echoclip/official_r0.py` | **Behaviorally-inspired** standalone official-style R0 evaluation. Its own docstring calls it "clean-room" and says no upstream source is vendored; however it imports `crop_and_scale_official` / `compute_regression_metric_official` from `echoclip/official_parity.py`, which is itself self-described as a "bit-aligned copy". | Yes — via the imported `official_parity` reference logic; the module targets a documented upstream behavior (`UPSTREAM_COMMIT = echonet/echo_CLIP@main`). | Low in its own file body (new code), but the aligned math it calls inherits the `echoclip/official_parity.py` similarity. Not diff-verified. | MIT (this repo) for the authored body; the aligned logic it imports carries upstream terms. | **Newly added since the 2026-10-07 audit** (by the concurrent Python owner). Re-audit together with `echoclip/official_parity.py`; recommend reconciling the "clean-room" docstring with the upstream-aligned import. |
+| `echoclip/official_r0.py` | **Behaviorally-inspired** standalone official-style R0 evaluation that imports `crop_and_scale_official` / `compute_regression_metric_official` from `echoclip/official_parity.py`, which is itself self-described as a "bit-aligned copy". (Its docstring previously self-described as "clean-room"; it was aligned on 2026-10-08 to the conservative canonical wording — see the follow-up note above.) | Yes — via the imported `official_parity` reference logic; the module targets a documented upstream behavior (`UPSTREAM_COMMIT = echonet/echo_CLIP@main`). | Low in its own file body (new code), but the aligned math it calls inherits the `echoclip/official_parity.py` similarity. Not diff-verified. | MIT (this repo) for the authored body; the aligned logic it imports carries upstream terms. | **Newly added since the 2026-10-07 audit** (by the concurrent Python owner). Re-audit together with `echoclip/official_parity.py`; the "clean-room" docstring was reconciled on 2026-10-08, and the keep-and-label-vs-rewrite decision for this module remains open (see recommendation 1). |
 | `echoclip/temporal.py` | **Original** (attention pool + Temporal Transformer on frozen embeddings). | No upstream echo_CLIP equivalent. | None identified. Uses standard `torch.nn` primitives. | MIT (this repo). | None. |
 | `echoclip/loss.py` (`EFSoftContrastiveLoss`, `ClipLoss`, `TemporalClipLoss`) | **Original.** `ClipLoss` is the standard CLIP symmetric InfoNCE (Radford et al. common architecture), not echo_CLIP-specific; EF-soft multi-positive loss is authored here. | No upstream echo_CLIP loss source consulted for the EF-soft variant. | None identified for `EFSoftContrastiveLoss`. `ClipLoss` reproduces the standard CLIP loss formula. | MIT (this repo). | None. |
 | `echoclip/cardiacclip.py` and `echoclip/cardiacclip_stub.py` | **Original adapter** (interface/template only; references upstream CardiacCLIP by URL). No CardiacCLIP code copied. | No CardiacCLIP source vendored. | None identified (download instructions + dataclasses authored here). | MIT (this repo); external CardiacCLIP weights under their own upstream Academic terms and **not bundled**. | None beyond keeping the "weights not redistributed" statement. |
@@ -74,9 +82,11 @@ The identical sentence below is used in `NOTICE`, `ATTRIBUTION.md`, and `DATA.md
 
 > `echoclip/text.py` is an independently authored report normalizer whose behavior intentionally overlaps upstream EchoCLIP report cleaning; no upstream code is vendored or line-copied in this repository, and whether the upstream echonet/echo_CLIP utils.py source was consulted is **unclear — needs author confirmation**.
 
-**Reasoning.** The module docstring declares independently authored regexes and states
-the patterns "are not copied from echonet/echo_CLIP utils.py". The working copy contains
-no upstream source to diff against. The functional goals (uppercase, noise stripping,
+**Reasoning.** The module docstring (aligned on 2026-10-08 to the canonical
+wording) declares the normalizer independently authored with intentional behavioral
+overlap and states that no upstream code is vendored or line-copied here. The
+working copy contains no upstream source to diff against. The functional goals
+(uppercase, noise stripping,
 tense/severity normalization, whitespace/period normalization) match public echo report
 preparation, which is what earlier docs described as "inspired by" before. Asserting
 pure clean-room would overclaim what this audit can verify; asserting upstream-derived
@@ -90,8 +100,8 @@ unclear" framing, with author confirmation requested.
    **`echoclip/official_r0.py`**: decide between (a) keeping upstream-aligned logic with
    explicit upstream license labeling, or (b) an independently authored rewrite. This is
    the highest-risk set because `echoclip/official_parity.py` self-describes "bit-aligned
-   copy" behavior and `echoclip/official_r0.py` labels itself "clean-room" while importing
-   that aligned logic.
+   copy" behavior and `echoclip/official_r0.py` imports that aligned logic (its "clean-room"
+   docstring was reconciled on 2026-10-08, but the import is unchanged).
 2. **`echoclip/text.py`**: author to confirm whether upstream echonet/echo_CLIP utils.py was read.
 3. **`LICENSE` and `LICENSES/README.md`**: **reconciled on 2026-10-08** — both now carry
    the canonical echoclip/text.py sentence and an explicit MIT-scope boundary; the MIT license

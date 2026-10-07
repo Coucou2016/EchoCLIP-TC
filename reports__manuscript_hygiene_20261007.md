@@ -123,3 +123,10 @@ for this follow-up. Recommended resolution: the Python owner updates those
 docstrings/comments, or the wording is accepted as-is with the caveat now recorded in
 `PROVENANCE.md`.
 
+### Follow-up completed (2026-10-08)
+
+**Resolved:** the `echoclip/text.py` and `echoclip/official_r0.py` docstring/comment
+alignment recorded in the section above as "not edited / recommended for the Python
+owner" was subsequently completed — both now carry the conservative canonical wording
+(see `PROVENANCE.md`, "Docstring alignment follow-up (2026-10-08)").
+
