@@ -1,12 +1,12 @@
 {
   "repository": "Coucou2016/EchoCLIP-TC",
   "layout": "flat (no subfolders, by design)",
-  "generated_utc": "2026-10-07T17:22:25+00:00",
+  "generated_utc": "2026-10-08T03:04:35+00:00",
   "naming_convention": "<original_dir_1>__<original_dir_2>__...__<filename>",
   "rationale": "See FLAT_LAYOUT.md - full-context ingestion and cross-agent review",
   "file_count": 197,
   "note": "file_count excludes .gitignore, FLAT_LAYOUT_MANIFEST.json, FLAT_LAYOUT.md, README.md and restore_flat_to_tree.ps1",
-  "total_size_bytes": 7736751,
+  "total_size_bytes": 7751191,
   "count_by_category": {
     "ci": 1,
     "code": 50,
@@ -72,8 +72,8 @@
       "flat_name": "DATA.md",
       "original_path": "DATA.md",
       "category": "documentation",
-      "size_bytes": 8260,
-      "sha256": "975a52f545f84c9e8fc3ff2fd59a9a1510db069b9104dd213e6f5d4d07cab7e4"
+      "size_bytes": 9020,
+      "sha256": "61c9943087835e18b20dafd3581c9d203e51c1d935ae2871dfa0870b3ef1ddb9"
     },
     {
       "flat_name": "LICENSE",
@@ -450,8 +450,8 @@
       "flat_name": "docs__OBTAIN_DATA_AND_WEIGHTS.md",
       "original_path": "docs/OBTAIN_DATA_AND_WEIGHTS.md",
       "category": "documentation",
-      "size_bytes": 8761,
-      "sha256": "8a5fd79e5100653a241e6d13bfcf7eb739c5a96b6691a6509d1fa62bc2c2379a"
+      "size_bytes": 22441,
+      "sha256": "8e915dd188dc72a88eef1550d013eba9e5c241743038c8fe8f5305469109ce4d"
     },
     {
       "flat_name": "docs__OBTAIN_STATUS.md",

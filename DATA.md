@@ -119,6 +119,17 @@ python scripts\build_public_echo_manifest.py --dataset echonet_pediatric --root 
 python scripts\build_public_echo_manifest.py --dataset echonet_lvh --root $env:ECHONET_LVH_ROOT
 ```
 
+For the full 2026 dataset inventory — CAMUS (open, no registration), MIMIC-IV-ECHO and
+MIMIC-IV-ECHO-Ext-LVVOLUMES-A4C-ROI (external validation), EchoNet-Pediatric / -LVH,
+EchoRisk, TED, TMED-2, HMC-QU, CardiacUDA, RVENet, Unity Imaging — plus license reality
+and mirror-risk warnings, see the "Other public echo datasets" and "License reality"
+sections of [docs/OBTAIN_DATA_AND_WEIGHTS.md](docs/OBTAIN_DATA_AND_WEIGHTS.md).
+
+**License reality.** No fully-open (CC-BY / CC0) LVEF-from-video dataset exists: all usable
+sources are NonCommercial, and several are ShareAlike. Obtain data only from authoritative
+sources (Stanford Redivis / AIMI for EchoNet; CREATIS for CAMUS) — not from Kaggle or
+Hugging Face mirrors that relabel the license.
+
 
 Point `configs/echonet_dynamic.yaml` at the generated train.json / val.json / test.json and set `manifest_dir` to the EchoNet root (so `Videos/...` resolves).
 
