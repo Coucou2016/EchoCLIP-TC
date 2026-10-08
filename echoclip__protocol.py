@@ -744,7 +744,9 @@ def comparison_to_markdown(rows: Sequence[dict]) -> str:
     any_demo = any(r.get("demo_is_not_clinical") for r in rows)
     any_oracle = any(r.get("annotation_assisted") for r in rows)
     footer_bits = [
-        "State `load_source` and split (TEST vs subset_5000) next to every table number.",
+        "State `load_source` and split (official TEST / TEST-only `test_subset_N` for "
+        "adapted R2-R6 models; `r0_external_anchor_5000` for the R0 zero-shot anchor) "
+        "next to every table number.",
     ]
     if any_oracle:
         footer_bits.append(

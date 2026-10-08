@@ -97,9 +97,9 @@ python scripts\build_echonet_manifest.py `
 ```
 
 The builder writes **explicit per-split artifacts**: train.json, val.json,
-test.json (plus train_ids.json / val_ids.json / test_ids.json), so
-TRAIN/VAL/TEST pools can never leak into each other. For label-efficiency runs
-use `--test-subset N` (writes a **TEST-only** test_subset_N.json).
+test.json (each with a `split` field, so TRAIN/VAL/TEST pools can never leak
+into each other). For label-efficiency runs use `--test-subset N` (writes a
+**TEST-only** test_subset_N.json).
 
 `--subset-5000` writes the **historical mixed 5000-study external anchor** as
 r0_external_anchor_5000.json (seed=42) with r0_external_anchor_5000_ids.json

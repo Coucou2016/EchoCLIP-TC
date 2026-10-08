@@ -192,7 +192,7 @@ Edit `configs/echonet_dynamic.yaml` paths using env-style placeholders (`${ECHON
 
 
 
-See [PAPER.md](PAPER.md) for the locked R0–R6 + Oracle-EDES matrix. **Do not invent clinical MAE.** Published EchoCLIP external ~7.1% EF MAE is from Christensen et al.; reproduce only with official weights + seed-42 subset / full TEST under `--paper`.
+See [PAPER.md](PAPER.md) for the locked R0–R6 + Oracle-EDES matrix. **Do not invent clinical MAE.** Published EchoCLIP external ~7.1% EF MAE is from Christensen et al.; reproduce only with official weights and the seed-42 `r0_external_anchor_5000` anchor (R0) and/or full TEST under `--paper`. For adapted models (R2–R6) always report the official TEST split — never the mixed anchor.
 
 
 

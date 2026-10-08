@@ -313,8 +313,11 @@ Default `--output-dir` = `data/echonet_dynamic/`:
 | File | Role |
 |------|------|
 | `manifest.json` | All pairs |
-| `train.json` / `val.json` / `test.json` | Official splits |
-| `subset_5000.json` + `subset_5000_ids.json` | Seed-42 EchoCLIP-style 5000 subset (`--subset-5000`) |
+| `train.json` / `val.json` / `test.json` | Official splits, emitted separately (each carries its `split` field) so TRAIN/VAL/TEST can never leak into each other |
+| `r0_external_anchor_5000.json` + `r0_external_anchor_5000_ids.json` / `.txt` | **R0 historical/external anchor only** (`--subset-5000`, seed 42). Samples from the *mixed* TRAIN+VAL+TEST pool to approximate the EchoCLIP paper's random 5000-study external protocol; it embeds provenance (`pool: mixed_train_val_test`, `disjoint_from_train: false`). **Must NOT be used to evaluate adapted models (R2–R6)**, because those trained on EchoNet TRAIN and could score on a TRAIN case. |
+| `test_subset_<N>.json` + `_ids.json` | **TEST-only** subset for label-efficiency / adapted-model runs (`--test-subset N`). Always also report the full official TEST split. |
+
+> Earlier versions of this repo wrote a single ambiguous `subset_5000.json`; that name is superseded. Always report the official **TEST** split for adapted models, plus the R0 anchor for zero-shot comparability.
 
 `manifest_dir` in `configs/echonet_dynamic.yaml` should resolve video paths as `Videos/...` relative to `ECHONET_ROOT`.
 
@@ -349,7 +352,7 @@ python scripts\run_paper_matrix.py --demo --epochs 1 --seeds 0,1 --vision-backbo
 - [ ] EchoNet used only under AIMI non-commercial terms; no clinical deployment.
 - [ ] No license-gated data or adapted weights redistributed (see §3 / §4).
 - [ ] `load_source` in metrics is the hub id (or documented local official checkpoint), not `scratch_fallback`.
-- [ ] Report TEST and/or locked `subset_5000`; never substitute demo MAE.
+- [ ] Report the official **TEST** split for any adapted model (R2–R6); the mixed `r0_external_anchor_5000` is for the R0 zero-shot anchor only. Never substitute demo MAE.
 - [ ] Calibration / conformal fitted on **VAL only**.
 - [ ] Published EchoCLIP external EF MAE ≈ 7.1% is a **literature reproduction target**, not a local result until you finish `--paper` runs.
 - [ ] Any fact still marked **UNVERIFIED** above is re-checked against a primary source before it appears in the manuscript.

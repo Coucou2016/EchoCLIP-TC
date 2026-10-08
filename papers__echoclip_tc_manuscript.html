@@ -127,7 +127,7 @@ ul.compact li { margin:0.25rem 0; }
 <h3>4.2 Implementation</h3>
 <p>PyTorch scaffold in this repository; protocol runner `scripts/run_protocol.py`; clinical eval `scripts/eval_clinical.py`. Gates: `python -m unittest discover -s tests -v` and `python scripts/validate.py --skip-eval`.</p>
 <h3>4.3 Results (clinical)</h3>
-<p>**待补充.** Do not substitute demo MAE for EchoNet or for the published EchoCLIP external 7.1% figure. The 7.1% value is attributed to Christensen et al. and is a *reproduction target* for B0 with hub weights + seed-42 5000-subset and/or full TEST, not a result of this draft.</p>
+<p>**待补充.** Do not substitute demo MAE for EchoNet or for the published EchoCLIP external 7.1% figure. The 7.1% value is attributed to Christensen et al. and is a *reproduction target* for B0 with hub weights + the seed-42 mixed `r0_external_anchor_5000` anchor (R0 zero-shot) and/or full TEST, not a result of this draft.</p>
 <h3>4.4 Results (DEMO pipeline only — not clinical)</h3>
 <p>Local `checkpoints/protocol/*/metrics.json` (synthetic demo, \(T=4\), scratch weights):</p>
 <table><tr><th>ID</th><th>DEMO MAE</th><th>DEMO ECE@50</th><th>DEMO conformal coverage</th><th>load_source</th><th>n</th></tr>

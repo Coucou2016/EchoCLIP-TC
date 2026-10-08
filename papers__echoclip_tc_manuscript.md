@@ -143,7 +143,7 @@ PyTorch scaffold in this repository; protocol runner `scripts/run_protocol.py`; 
 
 ### 4.3 Results (clinical)
 
-**待补充.** Do not substitute demo MAE for EchoNet or for the published EchoCLIP external 7.1% figure. The 7.1% value is attributed to Christensen et al. and is a *reproduction target* for B0 with hub weights + seed-42 5000-subset and/or full TEST, not a result of this draft.
+**待补充.** Do not substitute demo MAE for EchoNet or for the published EchoCLIP external 7.1% figure. The 7.1% value is attributed to Christensen et al. and is a *reproduction target* for B0 with hub weights + the seed-42 mixed `r0_external_anchor_5000` anchor (R0 zero-shot) and/or full TEST, not a result of this draft.
 
 ### 4.4 Results (DEMO pipeline only — not clinical)
 

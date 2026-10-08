@@ -202,7 +202,7 @@ Paired bootstrap CIs for ΔMAE and bootstrap CIs for RMSE/R²/AUCs are emitted b
 
 3. State `load_source` (hub vs local vs scratch) next to any table number.
 
-4. State which split (TEST vs subset_5000) and seed (multi-seed: mean±SD; paper prefers 5 seeds).
+4. State which split (official **TEST** for adapted models R2–R6; the mixed `r0_external_anchor_5000` is for the R0 zero-shot anchor only) and seed (multi-seed: mean±SD; paper prefers 5 seeds).
 
 5. `simple_cnn` / missing hub = plumbing only.
 

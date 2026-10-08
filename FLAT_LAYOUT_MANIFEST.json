@@ -1,12 +1,12 @@
 {
   "repository": "Coucou2016/EchoCLIP-TC",
   "layout": "flat (no subfolders, by design)",
-  "generated_utc": "2026-10-08T03:04:35+00:00",
+  "generated_utc": "2026-10-08T03:22:36+00:00",
   "naming_convention": "<original_dir_1>__<original_dir_2>__...__<filename>",
   "rationale": "See FLAT_LAYOUT.md - full-context ingestion and cross-agent review",
   "file_count": 197,
   "note": "file_count excludes .gitignore, FLAT_LAYOUT_MANIFEST.json, FLAT_LAYOUT.md, README.md and restore_flat_to_tree.ps1",
-  "total_size_bytes": 7751191,
+  "total_size_bytes": 7752652,
   "count_by_category": {
     "ci": 1,
     "code": 50,
@@ -72,8 +72,8 @@
       "flat_name": "DATA.md",
       "original_path": "DATA.md",
       "category": "documentation",
-      "size_bytes": 9020,
-      "sha256": "61c9943087835e18b20dafd3581c9d203e51c1d935ae2871dfa0870b3ef1ddb9"
+      "size_bytes": 8995,
+      "sha256": "2aa6974e5e2472efdb3da68279a8d00f5fa7caaae9e43bee048138fb95aa99c4"
     },
     {
       "flat_name": "LICENSE",
@@ -100,8 +100,8 @@
       "flat_name": "PAPER.md",
       "original_path": "PAPER.md",
       "category": "manuscript",
-      "size_bytes": 9526,
-      "sha256": "7639ca5bc87319bac1c69eb6dc39aa35c5e4704e494ca4acc4d9c173a67937bb"
+      "size_bytes": 9624,
+      "sha256": "b2d273135ea226618aa036e07c7a62553c72d2332596c9dddfd2a8c698b01801"
     },
     {
       "flat_name": "PROVENANCE.md",
@@ -114,8 +114,8 @@
       "flat_name": "README_project_original.md",
       "original_path": "README.md",
       "category": "documentation",
-      "size_bytes": 7555,
-      "sha256": "d87b5053f0c5f3139ddc5700a85551c110f080ae13b93674c95d81b61d075872"
+      "size_bytes": 7692,
+      "sha256": "2a111b96efbb0b9f6702d3c7bb74cbb6fb749edeb5e4bbe84b594043d8b0e36b"
     },
     {
       "flat_name": "_dual_agent_staging__chatgpt_paste_context_20260816.txt",
@@ -450,8 +450,8 @@
       "flat_name": "docs__OBTAIN_DATA_AND_WEIGHTS.md",
       "original_path": "docs/OBTAIN_DATA_AND_WEIGHTS.md",
       "category": "documentation",
-      "size_bytes": 22441,
-      "sha256": "8e915dd188dc72a88eef1550d013eba9e5c241743038c8fe8f5305469109ce4d"
+      "size_bytes": 23414,
+      "sha256": "5cc8440bd9ea1099fa01e2ce9e13948c1f9a240ccb4a4855e9e22bdbdbd53c29"
     },
     {
       "flat_name": "docs__OBTAIN_STATUS.md",
@@ -597,8 +597,8 @@
       "flat_name": "echoclip__protocol.py",
       "original_path": "echoclip/protocol.py",
       "category": "code",
-      "size_bytes": 28623,
-      "sha256": "6121fcc21ad75d7680cf8ce30e900a89894d9dcb4224627a067ec81847cfdd36"
+      "size_bytes": 28749,
+      "sha256": "7397b8df2c8b4ef18ee28f6004e8dd4b33f5def6b3ebce2cfd4414dd47756a6f"
     },
     {
       "flat_name": "echoclip__structured_text.py",
@@ -758,15 +758,15 @@
       "flat_name": "papers__echoclip_tc_manuscript.html",
       "original_path": "papers/echoclip_tc_manuscript.html",
       "category": "manuscript",
-      "size_bytes": 956627,
-      "sha256": "238766a487df4f238824dffc233877f2b1d0707d40932bdc466403d72d41fb33"
+      "size_bytes": 956673,
+      "sha256": "91c90c4b2bc282ef4e813b7b46d0232bfcdf3dbcadb3f5f799745a556077c858"
     },
     {
       "flat_name": "papers__echoclip_tc_manuscript.md",
       "original_path": "papers/echoclip_tc_manuscript.md",
       "category": "manuscript",
-      "size_bytes": 22480,
-      "sha256": "541d4d05d88e2c559c13afb48287a2e352e353aa3abfe1f1d63729915b6acd39"
+      "size_bytes": 22526,
+      "sha256": "02df8537a9bb47288c6855380ab37d16bb8033b49bab2b05fac1c274937a630a"
     },
     {
       "flat_name": "pytest.ini",
@@ -1185,8 +1185,8 @@
       "flat_name": "scripts__run_protocol.py",
       "original_path": "scripts/run_protocol.py",
       "category": "code",
-      "size_bytes": 31326,
-      "sha256": "ad2f55ade54f5998e0d1c38a40c7d1a36c72c0cdea394ddb4c4c858aa40d6649"
+      "size_bytes": 31386,
+      "sha256": "23c3f313f585f729e4ea093e1e61baae7a2efc74711424774e7d03a9ca7dc270"
     },
     {
       "flat_name": "scripts__run_seeds.py",

@@ -380,8 +380,8 @@ def _eval_experiment(
                     "official_r0_script": "scripts/eval_official_r0.py",
                     **_compute_split_provenance(train_manifest, test_manifest),
                     "b0_reproduce_hint": (
-                        "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
-                        "AND/OR full TEST; load_source must be "
+                        "Official EchoCLIP external ~7.1% EF MAE: seed=42 "
+                        "r0_external_anchor_5000 AND/OR full TEST; load_source must be "
                         "hf-hub:mkaichristensen/echo-clip. "
                         "Set ECHOCLIP_OFFICIAL_PARITY_OK=1 only after "
                         "compare_official_b0 parity."
@@ -527,8 +527,9 @@ def _eval_experiment(
                 "eval_seed": args.seed,
                 **_compute_split_provenance(train_manifest, test_manifest),
                 "b0_reproduce_hint": (
-                    "Official EchoCLIP external ~7.1% EF MAE: seed=42 subset_5000 "
-                    "(see subset_5000_ids.json) AND/OR full TEST; "
+                    "Official EchoCLIP external ~7.1% EF MAE: seed=42 "
+                    "r0_external_anchor_5000 (see r0_external_anchor_5000_ids.json) "
+                    "AND/OR full TEST; "
                     "load_source must be hf-hub:mkaichristensen/echo-clip "
                     "(not scratch_fallback / simple_cnn). Use --paper + "
                     "scripts/eval_official_r0.py; set ECHOCLIP_OFFICIAL_PARITY_OK=1 "
