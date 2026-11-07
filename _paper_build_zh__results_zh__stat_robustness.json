@@ -1,0 +1,40 @@
+{
+ "r5_minus_r6_mae": {
+  "mean": 0.0,
+  "lo": 0.0,
+  "hi": 0.0,
+  "n_boot": 1000,
+  "note": "positive value means R5 has larger MAE than R6"
+ },
+ "r2_minus_r4_mae": {
+  "mean": 0.5972222148755391,
+  "lo": 0.4068192765553796,
+  "hi": 0.7846600890477498,
+  "n_boot": 1000,
+  "note": "positive value means R2 has larger MAE than R4"
+ },
+ "r4_minus_r5_mae": {
+  "mean": -0.05932422178649902,
+  "lo": -0.19904119408925372,
+  "hi": 0.08520581061045306,
+  "n_boot": 1000,
+  "note": "positive value means R4 has larger MAE than R5"
+ },
+ "ef_distribution": {
+  "test_full_n": 1277,
+  "test_full_mean": 55.499501119647604,
+  "test_full_sd": 12.230281885368434,
+  "test_full_lt50": 0.2231793265465936,
+  "test_full_lt40": 0.12529365700861395,
+  "test_full_lt30": 0.06499608457321848,
+  "test500_n": 500,
+  "test500_mean": 54.822263885599995,
+  "test500_sd": 12.855448580261202,
+  "test500_lt50": 0.252,
+  "test500_lt40": 0.148,
+  "test500_lt30": 0.074,
+  "ks_stat": 0.03154111198120595,
+  "ks_p": 0.8529585752407146,
+  "coverage_of_full_test": 0.39154267815191857
+ }
+}

@@ -1,0 +1,16 @@
+[16:32:05] split=train n=7465 frames=32 color=bgr device=cuda batch=4
+[16:33:00] text prompts cached: (202, 512)
+[16:33:00] 7465 videos to encode
+[16:33:40] 20/7465 videos, 0.50 vid/s, eta 247.4 min
+[16:34:17] 40/7465 videos, 0.51 vid/s, eta 240.3 min
+[16:34:55] 60/7465 videos, 0.52 vid/s, eta 236.5 min
+[16:35:32] 80/7465 videos, 0.52 vid/s, eta 234.7 min
+[16:36:10] 100/7465 videos, 0.53 vid/s, eta 233.5 min
+[16:36:47] 120/7465 videos, 0.53 vid/s, eta 232.3 min
+[16:37:01]   checkpoint at 127 videos
+[16:37:25] 140/7465 videos, 0.53 vid/s, eta 231.3 min
+[16:38:03] 160/7465 videos, 0.53 vid/s, eta 230.4 min
+[16:38:40] 180/7465 videos, 0.53 vid/s, eta 229.5 min
+[16:39:20] 200/7465 videos, 0.53 vid/s, eta 230.4 min
+[16:39:58] 220/7465 videos, 0.53 vid/s, eta 229.6 min
+[16:40:36] 240/7465 videos, 0.53 vid/s, eta 228.9 min

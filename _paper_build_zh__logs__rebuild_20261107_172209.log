@@ -1,0 +1,108 @@
+﻿[17:22:09] REBUILD START  root=E:\Projects\20260522-EchoCLIP
+[17:22:09] SKIP  c_test500 (cache present)
+[17:22:09] START c_val
+[18:08:38] END   c_val  exit=0  46.5 min
+[18:08:38] START c_train
+[19:20:07] END   c_train  exit=0  71.5 min
+[19:20:07] START c_test500_stride
+[19:31:04] END   c_test500_stride  exit=0  10.9 min
+[19:31:04] START R0
+[19:31:27] END   R0  exit=0  0.4 min
+[19:31:27] START R1
+[19:31:51] END   R1  exit=0  0.4 min
+[19:31:51] START R1U16
+[19:32:14] END   R1U16  exit=0  0.4 min
+[19:32:14] START ORACLE_EDES
+[19:32:39] END   ORACLE_EDES  exit=0  0.4 min
+[19:32:39] START R2_3seed
+[19:33:59] END   R2_3seed  exit=0  1.3 min
+[19:33:59] START R3_3seed
+[19:35:24] END   R3_3seed  exit=0  1.4 min
+[19:35:25] START R4_3seed
+[19:46:08] END   R4_3seed  exit=0  10.7 min
+[19:46:08] START R5_3seed
+[20:01:17] END   R5_3seed  exit=0  15.1 min
+[20:01:17] START R6_3seed
+[20:01:53] END   R6_3seed  exit=0  0.6 min
+[20:01:53] START ablation
+[20:06:13] END   ablation  exit=-1  4.3 min
+---- stdout tail ----
+### group frames
+$ E:\Miniconda3\python.exe E:\Projects\20260522-EchoCLIP\scripts\train_heads_from_cache.py --experiment R4 --seeds 42 --frames 8 --cache-tag 32_bgr --tag abframes8
+[20:02:03] === R4 seed=42 frames=8 pool=cls top=0.2 n_train=None ===
+E:\Miniconda3\Lib\site-packages\torch\nn\modules\transformer.py:382: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+[20:04:27]   MAE 5.852 | AUC50 0.879 | R2 0.576 | R4_s42_f8_cls_abframes8.json (144.3s)
+$ E:\Miniconda3\python.exe E:\Projects\20260522-EchoCLIP\scripts\train_heads_from_cache.py --experiment R4 --seeds 43 --frames 8 --cache-tag 32_bgr --tag abframes8
+---- stderr tail ----
+[20:06:13] WARN ablation exit=-1
+[20:06:13] START audit
+[20:06:25] END   audit  exit=1  0.2 min
+---- stdout tail ----
+---- stderr tail ----
+Traceback (most recent call last):
+  File "E:\Projects\20260522-EchoCLIP\scripts\audit_data.py", line 248, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "E:\Projects\20260522-EchoCLIP\scripts\audit_data.py", line 206, in main
+    tr_npz = cache_dir / "train_32_bgr.npz"
+             ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for /: 'function' and 'str'
+[20:06:25] START figures
+[20:06:35] END   figures  exit=1  0.2 min
+---- stdout tail ----
+---- stderr tail ----
+Traceback (most recent call last):
+  File "E:\Projects\20260522-EchoCLIP\scripts\make_figures.py", line 34, in <module>
+    if str(_SCRIPTS) not in sys.path:
+                            ^^^
+NameError: name 'sys' is not defined. Did you forget to import 'sys'?
+[20:06:35] START crosscheck
+[20:06:37] END   crosscheck  exit=1  0.0 min
+---- stdout tail ----
+ - R6.R2: docx 0.584 vs json 0.5724
+ - R6.bias: docx 1.36 vs json 1.4794
+ - R6.pearson: docx 0.772 vs json 0.7676
+ - R6.spearman: docx 0.651 vs json 0.6452
+ - table5 甯ф暟 8.MAE: docx 6.1 vs json 5.8522
+ - table5 甯ф暟 8.AUC: docx 0.873 vs json 0.8789
+ - table5 甯ф暟 16.MAE: docx 6.1 vs json 5.8462
+ - table5 甯ф暟 16.AUC: docx 0.869 vs json 0.8823
+ - table5 甯ф暟 32.MAE: docx 5.88 vs json 5.8462
+ - table5 甯ф暟 32.AUC: docx 0.877 vs json 0.8823
+ - table5 姹犲寲 鍙涔犺瘝鍏?MAE: docx 5.88 vs json 5.8462
+ - table5 姹犲寲 鍙涔犺瘝鍏?AUC: docx 0.877 vs json 0.8823
+ - table5 姹犲寲 杈撳嚭鍧囧€? no JSON
+ - table5 璁粌瑙勬ā 500: no JSON
+ - table5 璁粌瑙勬ā 1000: no JSON
+ - table5 璁粌瑙勬ā 2000.MAE: docx 5.88 vs json 5.8462
+ - table5 璁粌瑙勬ā 2000.AUC: docx 0.877 vs json 0.8823
+ - table5 闆舵牱鏈瘮渚?10%: no JSON
+ - table5 闆舵牱鏈瘮渚?30%: no JSON
+ - table5 瀵规瘮棰勮缁?鏍囨敞 ED/ES 甯? no JSON
+---- stderr tail ----
+[20:06:37] START verify
+[20:06:39] END   verify  exit=1  0.0 min
+---- stdout tail ----
+R2            AUC50      0.858     0.858   +0.000  ok
+R3            MAE        6.300     6.333   +0.033  MISMATCH
+R3            AUC50      0.862     0.862   -0.000  ok
+R4            MAE        5.880     5.846   -0.034  MISMATCH
+R4            AUC50      0.877     0.882   +0.005  MISMATCH
+R5            MAE        5.870     5.904   +0.034  MISMATCH
+R5            AUC50      0.879     0.879   -0.000  ok
+R6            MAE        5.870     5.904   +0.034  MISMATCH
+R6            AUC50      0.879     0.879   -0.000  ok
+ORACLE_EDES   MAE       10.950    10.954   +0.004  ok
+ORACLE_EDES   AUC50      0.734     0.734   +0.000  ok
+------------------------------------------------------------
+cells checked: 16
+PROBLEMS
+ - R2.MAE: paper 6.47 rebuilt 6.4492
+ - R3.MAE: paper 6.3 rebuilt 6.3333
+ - R4.MAE: paper 5.88 rebuilt 5.8462
+ - R4.AUC50: paper 0.877 rebuilt 0.8823
+ - R5.MAE: paper 5.87 rebuilt 5.9037
+ - R6.MAE: paper 5.87 rebuilt 5.9037
+---- stderr tail ----
+[20:06:40] REBUILD END

@@ -1,0 +1,15 @@
+WARNING:root:No pretrained weights loaded for model 'convnext_base'. Model initialized randomly.
+Traceback (most recent call last):
+  File "E:\Projects\20260522-EchoCLIP\scripts\extract_frames_embeddings.py", line 435, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "E:\Projects\20260522-EchoCLIP\scripts\extract_frames_embeddings.py", line 280, in main
+    text_pack = encode_text_prompts(model, args.device)
+  File "E:\Projects\20260522-EchoCLIP\scripts\extract_frames_embeddings.py", line 140, in encode_text_prompts
+    emb = F.normalize(model.encode_text(ids), dim=-1).float().cpu().numpy()
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+RuntimeError: CUDA error: the launch timed out and was terminated
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+

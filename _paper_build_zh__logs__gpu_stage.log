@@ -1,0 +1,11 @@
+[16:25:04] start
+[16:25:14] weights loaded
+[16:25:15] tokenized (101, 77)
+[16:25:15] moving to cuda ...
+[16:25:16] on cuda
+[16:25:16] device=0 GeForce GTX 950M
+[16:25:16] encode_text on cuda ...
+[16:25:25] text ok (101, 512)
+[16:25:25] encode_image on cuda ...
+[16:25:28] image ok (2, 512)
+[16:25:28] DONE

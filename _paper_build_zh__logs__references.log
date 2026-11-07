@@ -1,0 +1,14 @@
+ouyang2020echonet          10.1038/s41586-020-2145-8          match=  7/7 oa=False pdf=False Video-based AI for beat-to-beat assessment of cardiac functi
+christensen2024echoclip    10.1038/s41591-024-02959-y         match=  6/6 oa=True  pdf=True  Vision–language foundation model for echocardiogram interpre
+du2025cardiacclip          10.1007/978-3-032-04971-1_5        match=  9/9 oa=False pdf=False CardiacCLIP: Video-Based CLIP Adaptation for LVEF Prediction
+leclerc2019camus           10.1109/TMI.2019.2900516           match=  9/9 oa=False pdf=False Deep Learning for Segmentation Using an Open Large-Scale Dat
+radford2021clip            10.48550/arXiv.2103.00020          match=  8/8 oa=False pdf=True  Learning Transferable Visual Models From Natural Language Su
+guo2017calibration         10.48550/arXiv.1706.04599          match=  4/4 oa=False pdf=True  On Calibration of Modern Neural Networks
+angelopoulos2023conformal  10.1561/2200000101                 match=  4/4 oa=False pdf=True  Conformal Prediction: A Gentle Introduction
+khosla2020supcon           10.48550/arXiv.2004.11362          match=  3/3 oa=False pdf=True  Supervised Contrastive Learning
+vaswani2017attention       10.48550/arXiv.1706.03762          match=  2/2 oa=False pdf=True  Attention Is All You Need
+liu2022convnext            10.1109/CVPR52688.2022.01167       match=  2/2 oa=False pdf=True  A ConvNet for the 2020s
+madani2018echo             10.1038/s41746-018-0065-x          match=14/14 oa=True  pdf=True  Deep echocardiography: data-efficient supervised and semi-su
+zhang2025echovisionfm      10.1038/s41467-025-66340-4         match=11/11 oa=True  pdf=True  Echo-Vision-FM: a pre-training and fine-tuning framework for
+holste2024echo             10.1038/s43856-024-00538-3         match=13/13 oa=True  pdf=True  Efficient deep learning-based automated diagnosis from echoc
+vukadinovic2024echoprime   10.48550/arXiv.2410.09704          match=11/11 oa=False pdf=True  EchoPrime: A Multi-Video View-Informed Vision-Language Model

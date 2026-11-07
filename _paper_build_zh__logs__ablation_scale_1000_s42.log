@@ -1,0 +1,4 @@
+[21:21:06] === R4 seed=42 frames=32 pool=cls top=0.2 n_train=1000 ===
+E:\Miniconda3\Lib\site-packages\torch\nn\modules\transformer.py:382: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+[21:23:46]   MAE 5.860 | AUC50 0.885 | R2 0.595 | R4_s42_f32_cls_n1000_abscale1000.json (159.7s)

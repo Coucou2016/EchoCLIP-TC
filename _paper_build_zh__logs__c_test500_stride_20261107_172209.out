@@ -1,0 +1,31 @@
+[19:20:14] split=test500 n=500 frames=stride color=bgr device=cuda batch=4
+[19:21:02] text prompts cached: (202, 512)
+[19:21:02] 500 videos to encode
+[19:21:27] 20/500 videos, 0.81 vid/s, eta 9.9 min
+[19:21:50] 40/500 videos, 0.84 vid/s, eta 9.2 min
+[19:22:13] 60/500 videos, 0.85 vid/s, eta 8.7 min
+[19:22:36] 80/500 videos, 0.85 vid/s, eta 8.2 min
+[19:22:59] 100/500 videos, 0.85 vid/s, eta 7.8 min
+[19:23:23] 120/500 videos, 0.85 vid/s, eta 7.4 min
+[19:23:46] 140/500 videos, 0.86 vid/s, eta 7.0 min
+[19:24:09] 160/500 videos, 0.86 vid/s, eta 6.6 min
+[19:24:32] 180/500 videos, 0.86 vid/s, eta 6.2 min
+[19:24:56] 200/500 videos, 0.86 vid/s, eta 5.8 min
+[19:25:05]   checkpoint at 206 videos
+[19:25:21] 220/500 videos, 0.85 vid/s, eta 5.5 min
+[19:25:44] 240/500 videos, 0.85 vid/s, eta 5.1 min
+[19:26:07] 260/500 videos, 0.85 vid/s, eta 4.7 min
+[19:26:31] 280/500 videos, 0.85 vid/s, eta 4.3 min
+[19:26:54] 300/500 videos, 0.85 vid/s, eta 3.9 min
+[19:27:17] 320/500 videos, 0.85 vid/s, eta 3.5 min
+[19:27:40] 340/500 videos, 0.85 vid/s, eta 3.1 min
+[19:28:03] 360/500 videos, 0.85 vid/s, eta 2.7 min
+[19:28:26] 380/500 videos, 0.86 vid/s, eta 2.3 min
+[19:28:50] 400/500 videos, 0.86 vid/s, eta 1.9 min
+[19:29:06]   checkpoint at 414 videos
+[19:29:13] 420/500 videos, 0.85 vid/s, eta 1.6 min
+[19:29:37] 440/500 videos, 0.86 vid/s, eta 1.2 min
+[19:30:00] 460/500 videos, 0.86 vid/s, eta 0.8 min
+[19:30:23] 480/500 videos, 0.86 vid/s, eta 0.4 min
+[19:30:47] 500/500 videos, 0.85 vid/s, eta 0.0 min
+[19:30:48] saved E:\Projects\20260522-EchoCLIP\_paper_build_zh\cache\test500_stride_bgr.npz emb=(500, 20, 512) total 585.5s errors=0

@@ -1,0 +1,21 @@
+[16:40:57] split=val n=1288 frames=32 color=bgr device=cuda batch=8
+WARNING:root:No pretrained weights loaded for model 'convnext_base'. Model initialized randomly.
+[16:41:45] text prompts cached: (202, 512)
+[16:41:45] 1288 videos to encode
+[16:42:23] 20/1288 videos, 0.53 vid/s, eta 40.1 min
+[16:42:58] 40/1288 videos, 0.55 vid/s, eta 37.5 min
+[16:43:32] 60/1288 videos, 0.56 vid/s, eta 36.3 min
+[16:44:06] 80/1288 videos, 0.57 vid/s, eta 35.4 min
+[16:44:40] 100/1288 videos, 0.57 vid/s, eta 34.6 min
+[16:45:14] 120/1288 videos, 0.57 vid/s, eta 33.9 min
+[16:45:46]   checkpoint at 138 videos
+[16:45:49] 140/1288 videos, 0.57 vid/s, eta 33.3 min
+[16:46:24] 160/1288 videos, 0.57 vid/s, eta 32.7 min
+[16:46:58] 180/1288 videos, 0.58 vid/s, eta 32.1 min
+[16:47:41] 200/1288 videos, 0.56 vid/s, eta 32.2 min
+[16:48:15] 220/1288 videos, 0.56 vid/s, eta 31.5 min
+[16:48:49] 240/1288 videos, 0.57 vid/s, eta 30.9 min
+[16:49:24] 260/1288 videos, 0.57 vid/s, eta 30.2 min
+[16:49:47]   checkpoint at 273 videos
+[16:49:59] 280/1288 videos, 0.57 vid/s, eta 29.6 min
+[16:50:33] 300/1288 videos, 0.57 vid/s, eta 29.0 min

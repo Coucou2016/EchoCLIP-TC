@@ -1,0 +1,5 @@
+[16:26:13] split=test500 n=20 frames=32 color=bgr device=cuda batch=4
+[16:27:09] text prompts cached: (202, 512)
+[16:27:09] 20 videos to encode
+[16:27:48] 20/20 videos, 0.51 vid/s, eta 0.0 min
+[16:27:49] saved E:\Projects\20260522-EchoCLIP\_paper_build_zh\cache\test500_32_bgr.npz emb=(20, 32, 512) total 39.1s errors=0

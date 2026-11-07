@@ -1,0 +1,27 @@
+row           metric     paper   rebuilt    delta  status
+------------------------------------------------------------
+R0            MAE       10.990    10.986   -0.004  ok
+R0            AUC50      0.740     0.740   +0.000  ok
+R1            MAE       11.030    11.035   +0.005  ok
+R1            AUC50      0.738     0.738   +0.000  ok
+R2            MAE        6.470     6.449   -0.021  MISMATCH
+R2            AUC50      0.858     0.858   +0.000  ok
+R3            MAE        6.300     6.333   +0.033  MISMATCH
+R3            AUC50      0.862     0.862   -0.000  ok
+R4            MAE        5.880     5.846   -0.034  MISMATCH
+R4            AUC50      0.877     0.882   +0.005  MISMATCH
+R5            MAE        5.870     5.904   +0.034  MISMATCH
+R5            AUC50      0.879     0.879   -0.000  ok
+R6            MAE        5.870     5.904   +0.034  MISMATCH
+R6            AUC50      0.879     0.879   -0.000  ok
+ORACLE_EDES   MAE       10.950    10.954   +0.004  ok
+ORACLE_EDES   AUC50      0.734     0.734   +0.000  ok
+------------------------------------------------------------
+cells checked: 16
+PROBLEMS
+ - R2.MAE: paper 6.47 rebuilt 6.4492
+ - R3.MAE: paper 6.3 rebuilt 6.3333
+ - R4.MAE: paper 5.88 rebuilt 5.8462
+ - R4.AUC50: paper 0.877 rebuilt 0.8823
+ - R5.MAE: paper 5.87 rebuilt 5.9037
+ - R6.MAE: paper 5.87 rebuilt 5.9037

@@ -1,0 +1,549 @@
+[
+ {
+  "key": "ouyang2020echonet",
+  "doi": "10.1038/s41586-020-2145-8",
+  "declared_title": "Video-based AI for beat-to-beat assessment of cardiac function",
+  "declared_venue": "Nature",
+  "declared_year": 2020,
+  "authors_short": "Ouyang D, He B, Ghorbani A, et al.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1038/s41586-020-2145-8",
+   "title": "Video-based AI for beat-to-beat assessment of cardiac function",
+   "container": "Nature",
+   "year": 2020,
+   "authors": [
+    "Ouyang David",
+    "He Bryan",
+    "Ghorbani Amirata",
+    "Yuan Neal",
+    "Ebinger Joseph"
+   ],
+   "volume": "580",
+   "issue": "7802",
+   "page": "252-256",
+   "article_number": null,
+   "type": "journal-article",
+   "cited_by": 1148,
+   "licenses": [
+    "https://www.springernature.com/gp/researchers/text-and-data-mining",
+    "https://www.springernature.com/gp/researchers/text-and-data-mining"
+   ]
+  },
+  "title_match": "7/7",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": false,
+   "attempts": [
+    {
+     "url": "https://www.nature.com/articles/s41586-020-2145-8.pdf",
+     "result": "URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)>"
+    }
+   ]
+  }
+ },
+ {
+  "key": "christensen2024echoclip",
+  "doi": "10.1038/s41591-024-02959-y",
+  "declared_title": "Vision-language foundation model for echocardiogram interpretation",
+  "declared_venue": "Nature Medicine",
+  "declared_year": 2024,
+  "authors_short": "Christensen M, Vukadinovic M, Yuan N, Ouyang D.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1038/s41591-024-02959-y",
+   "title": "Vision–language foundation model for echocardiogram interpretation",
+   "container": "Nature Medicine",
+   "year": 2024,
+   "authors": [
+    "Christensen Matthew",
+    "Vukadinovic Milos",
+    "Yuan Neal",
+    "Ouyang David"
+   ],
+   "volume": "30",
+   "issue": "5",
+   "page": "1481-1488",
+   "article_number": null,
+   "type": "journal-article",
+   "cited_by": 249,
+   "licenses": [
+    "https://creativecommons.org/licenses/by/4.0",
+    "https://creativecommons.org/licenses/by/4.0"
+   ]
+  },
+  "title_match": "6/6",
+  "oa_license_advertised": true,
+  "pdf": {
+   "ok": true,
+   "url": "https://www.nature.com/articles/s41591-024-02959-y.pdf",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\christensen2024echoclip.pdf",
+   "bytes": 4127881,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "du2025cardiacclip",
+  "doi": "10.1007/978-3-032-04971-1_5",
+  "declared_title": "CardiacCLIP: Video-Based CLIP Adaptation for LVEF Prediction in a Few-Shot Manner",
+  "declared_venue": "MICCAI 2025 (LNCS)",
+  "declared_year": 2025,
+  "authors_short": "Du Y, Guo J, Li X.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1007/978-3-032-04971-1_5",
+   "title": "CardiacCLIP: Video-Based CLIP Adaptation for LVEF Prediction in a Few-Shot Manner",
+   "container": "Lecture Notes in Computer Science",
+   "year": 2025,
+   "authors": [
+    "DU Yao",
+    "GUO Jiarong",
+    "LI Xiaomeng"
+   ],
+   "volume": null,
+   "issue": null,
+   "page": "46-56",
+   "article_number": null,
+   "type": "book-chapter",
+   "cited_by": 2,
+   "licenses": [
+    "https://www.springernature.com/gp/researchers/text-and-data-mining",
+    "https://www.springernature.com/gp/researchers/text-and-data-mining"
+   ]
+  },
+  "title_match": "9/9",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": false,
+   "attempts": [],
+   "note": "no candidate"
+  }
+ },
+ {
+  "key": "leclerc2019camus",
+  "doi": "10.1109/TMI.2019.2900516",
+  "declared_title": "Deep Learning for Segmentation Using an Open Large-Scale Dataset in 2D Echocardiography",
+  "declared_venue": "IEEE Transactions on Medical Imaging",
+  "declared_year": 2019,
+  "authors_short": "Leclerc S, Smistad E, Pedrosa J, et al.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1109/tmi.2019.2900516",
+   "title": "Deep Learning for Segmentation Using an Open Large-Scale Dataset in 2D Echocardiography",
+   "container": "IEEE Transactions on Medical Imaging",
+   "year": 2019,
+   "authors": [
+    "Leclerc Sarah",
+    "Smistad Erik",
+    "Pedrosa Joao",
+    "Ostvik Andreas",
+    "Cervenansky Frederic"
+   ],
+   "volume": "38",
+   "issue": "9",
+   "page": "2198-2210",
+   "article_number": null,
+   "type": "journal-article",
+   "cited_by": 808,
+   "licenses": [
+    "https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html",
+    "https://doi.org/10.15223/policy-029",
+    "https://doi.org/10.15223/policy-037"
+   ]
+  },
+  "title_match": "9/9",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": false,
+   "attempts": [
+    {
+     "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8643253",
+     "result": "not_pdf",
+     "magic": ""
+    }
+   ]
+  }
+ },
+ {
+  "key": "radford2021clip",
+  "doi": "10.48550/arXiv.2103.00020",
+  "declared_title": "Learning Transferable Visual Models From Natural Language Supervision",
+  "declared_venue": "ICML 2021",
+  "declared_year": 2021,
+  "authors_short": "Radford A, Kim JW, Hallacy C, et al.",
+  "registry": {
+   "ok": true,
+   "source": "datacite",
+   "doi": "10.48550/arxiv.2103.00020",
+   "title": "Learning Transferable Visual Models From Natural Language Supervision",
+   "container": "arXiv",
+   "year": 2021,
+   "authors": [
+    "Radford, Alec",
+    "Kim, Jong Wook",
+    "Hallacy, Chris",
+    "Ramesh, Aditya",
+    "Goh, Gabriel"
+   ],
+   "type": "Preprint"
+  },
+  "title_match": "8/8",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": true,
+   "url": "https://arxiv.org/pdf/2103.00020",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\radford2021clip.pdf",
+   "bytes": 6813639,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "guo2017calibration",
+  "doi": "10.48550/arXiv.1706.04599",
+  "declared_title": "On Calibration of Modern Neural Networks",
+  "declared_venue": "ICML 2017",
+  "declared_year": 2017,
+  "authors_short": "Guo C, Pleiss G, Sun Y, Weinberger KQ.",
+  "registry": {
+   "ok": true,
+   "source": "datacite",
+   "doi": "10.48550/arxiv.1706.04599",
+   "title": "On Calibration of Modern Neural Networks",
+   "container": "arXiv",
+   "year": 2017,
+   "authors": [
+    "Guo, Chuan",
+    "Pleiss, Geoff",
+    "Sun, Yu",
+    "Weinberger, Kilian Q."
+   ],
+   "type": "Preprint"
+  },
+  "title_match": "4/4",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": true,
+   "url": "https://arxiv.org/pdf/1706.04599",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\guo2017calibration.pdf",
+   "bytes": 1349691,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "angelopoulos2023conformal",
+  "doi": "10.1561/2200000101",
+  "declared_title": "Conformal Prediction: A Gentle Introduction",
+  "declared_venue": "Foundations and Trends in Machine Learning",
+  "declared_year": 2023,
+  "authors_short": "Angelopoulos AN, Bates S.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1561/2200000101",
+   "title": "Conformal Prediction: A Gentle Introduction",
+   "container": "Foundations and Trends® in Machine Learning",
+   "year": 2023,
+   "authors": [
+    "Angelopoulos Anastasios N.",
+    "Bates Stephen"
+   ],
+   "volume": "16",
+   "issue": "4",
+   "page": "494-591",
+   "article_number": null,
+   "type": "journal-article",
+   "cited_by": 1028,
+   "licenses": []
+  },
+  "title_match": "4/4",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": true,
+   "url": "https://arxiv.org/pdf/2107.07511",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\angelopoulos2023conformal.pdf",
+   "bytes": 5360733,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "khosla2020supcon",
+  "doi": "10.48550/arXiv.2004.11362",
+  "declared_title": "Supervised Contrastive Learning",
+  "declared_venue": "NeurIPS 2020",
+  "declared_year": 2020,
+  "authors_short": "Khosla P, Teterwak P, Wang C, et al.",
+  "registry": {
+   "ok": true,
+   "source": "datacite",
+   "doi": "10.48550/arxiv.2004.11362",
+   "title": "Supervised Contrastive Learning",
+   "container": "arXiv",
+   "year": 2020,
+   "authors": [
+    "Khosla, Prannay",
+    "Teterwak, Piotr",
+    "Wang, Chen",
+    "Sarna, Aaron",
+    "Tian, Yonglong"
+   ],
+   "type": "Preprint"
+  },
+  "title_match": "3/3",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": true,
+   "url": "https://arxiv.org/pdf/2004.11362",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\khosla2020supcon.pdf",
+   "bytes": 2197586,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "vaswani2017attention",
+  "doi": "10.48550/arXiv.1706.03762",
+  "declared_title": "Attention Is All You Need",
+  "declared_venue": "NeurIPS 2017",
+  "declared_year": 2017,
+  "authors_short": "Vaswani A, Shazeer N, Parmar N, et al.",
+  "registry": {
+   "ok": true,
+   "source": "datacite",
+   "doi": "10.48550/arxiv.1706.03762",
+   "title": "Attention Is All You Need",
+   "container": "arXiv",
+   "year": 2017,
+   "authors": [
+    "Vaswani, Ashish",
+    "Shazeer, Noam",
+    "Parmar, Niki",
+    "Uszkoreit, Jakob",
+    "Jones, Llion"
+   ],
+   "type": "Preprint"
+  },
+  "title_match": "2/2",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": true,
+   "url": "https://arxiv.org/pdf/1706.03762",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\vaswani2017attention.pdf",
+   "bytes": 2215244,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "liu2022convnext",
+  "doi": "10.1109/CVPR52688.2022.01167",
+  "declared_title": "A ConvNet for the 2020s",
+  "declared_venue": "CVPR 2022",
+  "declared_year": 2022,
+  "authors_short": "Liu Z, Mao H, Wu CY, et al.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1109/cvpr52688.2022.01167",
+   "title": "A ConvNet for the 2020s",
+   "container": "2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)",
+   "year": 2022,
+   "authors": [
+    "Liu Zhuang",
+    "Mao Hanzi",
+    "Wu Chao-Yuan",
+    "Feichtenhofer Christoph",
+    "Darrell Trevor"
+   ],
+   "volume": null,
+   "issue": null,
+   "page": "11966-11976",
+   "article_number": null,
+   "type": "proceedings-article",
+   "cited_by": 9070,
+   "licenses": [
+    "https://doi.org/10.15223/policy-029",
+    "https://doi.org/10.15223/policy-037"
+   ]
+  },
+  "title_match": "2/2",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": true,
+   "url": "https://arxiv.org/pdf/2201.03545",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\liu2022convnext.pdf",
+   "bytes": 751927,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "madani2018echo",
+  "doi": "10.1038/s41746-018-0065-x",
+  "declared_title": "Deep echocardiography: data-efficient supervised and semi-supervised deep learning towards automated diagnosis of cardiac disease",
+  "declared_venue": "npj Digital Medicine",
+  "declared_year": 2018,
+  "authors_short": "Madani A, Ong JR, Tibrewal A, Mofrad MRK.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1038/s41746-018-0065-x",
+   "title": "Deep echocardiography: data-efficient supervised and semi-supervised deep learning towards automated diagnosis of cardiac disease",
+   "container": "npj Digital Medicine",
+   "year": 2018,
+   "authors": [
+    "Madani Ali",
+    "Ong Jia Rui",
+    "Tibrewal Anshul",
+    "Mofrad Mohammad R. K."
+   ],
+   "volume": "1",
+   "issue": "1",
+   "page": null,
+   "article_number": "59",
+   "type": "journal-article",
+   "cited_by": 222,
+   "licenses": [
+    "https://creativecommons.org/licenses/by/4.0",
+    "https://creativecommons.org/licenses/by/4.0"
+   ]
+  },
+  "title_match": "14/14",
+  "oa_license_advertised": true,
+  "pdf": {
+   "ok": true,
+   "url": "https://www.nature.com/articles/s41746-018-0065-x.pdf",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\madani2018echo.pdf",
+   "bytes": 3085548,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "zhang2025echovisionfm",
+  "doi": "10.1038/s41467-025-66340-4",
+  "declared_title": "Echo-Vision-FM: a pre-training and fine-tuning framework for echocardiogram video vision foundation model",
+  "declared_venue": "Nature Communications",
+  "declared_year": 2025,
+  "authors_short": "Zhang Z, Wu Q, Ding S, et al.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1038/s41467-025-66340-4",
+   "title": "Echo-Vision-FM: a pre-training and fine-tuning framework for echocardiogram video vision foundation model",
+   "container": "Nature Communications",
+   "year": 2025,
+   "authors": [
+    "Zhang Ziyang",
+    "Wu Qinxin",
+    "Ding Sirui",
+    "Wang Xiaolong",
+    "Ye Jiancheng"
+   ],
+   "volume": "17",
+   "issue": "1",
+   "page": null,
+   "article_number": "19",
+   "type": "journal-article",
+   "cited_by": 7,
+   "licenses": [
+    "https://creativecommons.org/licenses/by/4.0",
+    "https://creativecommons.org/licenses/by/4.0"
+   ]
+  },
+  "title_match": "11/11",
+  "oa_license_advertised": true,
+  "pdf": {
+   "ok": true,
+   "url": "https://www.nature.com/articles/s41467-025-66340-4.pdf",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\zhang2025echovisionfm.pdf",
+   "bytes": 1076908,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "holste2024echo",
+  "doi": "10.1038/s43856-024-00538-3",
+  "declared_title": "Efficient deep learning-based automated diagnosis from echocardiography with contrastive self-supervised learning",
+  "declared_venue": "Communications Medicine",
+  "declared_year": 2024,
+  "authors_short": "Holste G, Oikonomou EK, Mortazavi BJ, et al.",
+  "registry": {
+   "ok": true,
+   "source": "crossref",
+   "doi": "10.1038/s43856-024-00538-3",
+   "title": "Efficient deep learning-based automated diagnosis from echocardiography with contrastive self-supervised learning",
+   "container": "Communications Medicine",
+   "year": 2024,
+   "authors": [
+    "Holste Gregory",
+    "Oikonomou Evangelos K.",
+    "Mortazavi Bobak J.",
+    "Wang Zhangyang",
+    "Khera Rohan"
+   ],
+   "volume": "4",
+   "issue": "1",
+   "page": null,
+   "article_number": "133",
+   "type": "journal-article",
+   "cited_by": 34,
+   "licenses": [
+    "https://creativecommons.org/licenses/by/4.0",
+    "https://creativecommons.org/licenses/by/4.0"
+   ]
+  },
+  "title_match": "13/13",
+  "oa_license_advertised": true,
+  "pdf": {
+   "ok": true,
+   "url": "https://www.nature.com/articles/s43856-024-00538-3.pdf",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\holste2024echo.pdf",
+   "bytes": 1945711,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ },
+ {
+  "key": "vukadinovic2024echoprime",
+  "doi": "10.48550/arXiv.2410.09704",
+  "declared_title": "EchoPrime: A Multi-Video View-Informed Vision-Language Model for Comprehensive Echocardiography Interpretation",
+  "declared_venue": "arXiv",
+  "declared_year": 2024,
+  "authors_short": "Vukadinovic M, Tang X, Yuan N, et al.",
+  "registry": {
+   "ok": true,
+   "source": "datacite",
+   "doi": "10.48550/arxiv.2410.09704",
+   "title": "EchoPrime: A Multi-Video View-Informed Vision-Language Model for Comprehensive Echocardiography Interpretation",
+   "container": "arXiv",
+   "year": 2024,
+   "authors": [
+    "Vukadinovic, Milos",
+    "Tang, Xiu",
+    "Yuan, Neal",
+    "Cheng, Paul",
+    "Li, Debiao"
+   ],
+   "type": "Preprint"
+  },
+  "title_match": "11/11",
+  "oa_license_advertised": false,
+  "pdf": {
+   "ok": true,
+   "url": "https://arxiv.org/pdf/2410.09704",
+   "path": "E:\\Projects\\20260522-EchoCLIP\\_paper_build_zh\\sources_zh\\vukadinovic2024echoprime.pdf",
+   "bytes": 1499501,
+   "magic": "%PDF-",
+   "attempts": []
+  }
+ }
+]

@@ -1,0 +1,78 @@
+[17:22:15] split=val n=1288 frames=32 color=bgr device=cuda batch=4
+[17:26:12] text prompts cached: (202, 512)
+[17:26:12] 1288 videos to encode
+[17:26:51] 20/1288 videos, 0.51 vid/s, eta 41.1 min
+[17:27:28] 40/1288 videos, 0.53 vid/s, eta 39.6 min
+[17:28:05] 60/1288 videos, 0.53 vid/s, eta 38.7 min
+[17:28:43] 80/1288 videos, 0.53 vid/s, eta 38.1 min
+[17:29:21] 100/1288 videos, 0.53 vid/s, eta 37.4 min
+[17:29:58] 120/1288 videos, 0.53 vid/s, eta 36.6 min
+[17:30:13]   checkpoint at 128 videos
+[17:30:35] 140/1288 videos, 0.53 vid/s, eta 36.0 min
+[17:31:12] 160/1288 videos, 0.53 vid/s, eta 35.3 min
+[17:31:49] 180/1288 videos, 0.53 vid/s, eta 34.6 min
+[17:32:26] 200/1288 videos, 0.53 vid/s, eta 34.0 min
+[17:33:06] 220/1288 videos, 0.53 vid/s, eta 33.5 min
+[17:33:45] 240/1288 videos, 0.53 vid/s, eta 33.0 min
+[17:34:14]   checkpoint at 254 videos
+[17:34:26] 260/1288 videos, 0.53 vid/s, eta 32.6 min
+[17:35:06] 280/1288 videos, 0.52 vid/s, eta 32.0 min
+[17:35:46] 300/1288 videos, 0.52 vid/s, eta 31.5 min
+[17:36:26] 320/1288 videos, 0.52 vid/s, eta 31.0 min
+[17:37:06] 340/1288 videos, 0.52 vid/s, eta 30.4 min
+[17:37:46] 360/1288 videos, 0.52 vid/s, eta 29.8 min
+[17:38:18]   checkpoint at 375 videos
+[17:38:32] 380/1288 videos, 0.51 vid/s, eta 29.5 min
+[17:39:16] 400/1288 videos, 0.51 vid/s, eta 29.0 min
+[17:39:54] 420/1288 videos, 0.51 vid/s, eta 28.3 min
+[17:40:31] 440/1288 videos, 0.51 vid/s, eta 27.6 min
+[17:41:08] 460/1288 videos, 0.51 vid/s, eta 26.9 min
+[17:41:46] 480/1288 videos, 0.51 vid/s, eta 26.2 min
+[17:42:21]   checkpoint at 498 videos
+[17:42:24] 500/1288 videos, 0.51 vid/s, eta 25.5 min
+[17:43:01] 520/1288 videos, 0.52 vid/s, eta 24.9 min
+[17:43:39] 540/1288 videos, 0.52 vid/s, eta 24.2 min
+[17:44:17] 560/1288 videos, 0.52 vid/s, eta 23.5 min
+[17:44:54] 580/1288 videos, 0.52 vid/s, eta 22.8 min
+[17:45:31] 600/1288 videos, 0.52 vid/s, eta 22.2 min
+[17:46:08] 620/1288 videos, 0.52 vid/s, eta 21.5 min
+[17:46:23]   checkpoint at 627 videos
+[17:46:47] 640/1288 videos, 0.52 vid/s, eta 20.8 min
+[17:47:24] 660/1288 videos, 0.52 vid/s, eta 20.2 min
+[17:48:02] 680/1288 videos, 0.52 vid/s, eta 19.5 min
+[17:48:39] 700/1288 videos, 0.52 vid/s, eta 18.9 min
+[17:49:16] 720/1288 videos, 0.52 vid/s, eta 18.2 min
+[17:49:53] 740/1288 videos, 0.52 vid/s, eta 17.5 min
+[17:50:24]   checkpoint at 756 videos
+[17:50:32] 760/1288 videos, 0.52 vid/s, eta 16.9 min
+[17:51:09] 780/1288 videos, 0.52 vid/s, eta 16.3 min
+[17:51:47] 800/1288 videos, 0.52 vid/s, eta 15.6 min
+[17:52:24] 820/1288 videos, 0.52 vid/s, eta 15.0 min
+[17:53:01] 840/1288 videos, 0.52 vid/s, eta 14.3 min
+[17:53:38] 860/1288 videos, 0.52 vid/s, eta 13.7 min
+[17:54:16] 880/1288 videos, 0.52 vid/s, eta 13.0 min
+[17:54:26]   checkpoint at 885 videos
+[17:54:54] 900/1288 videos, 0.52 vid/s, eta 12.4 min
+[17:55:32] 920/1288 videos, 0.52 vid/s, eta 11.7 min
+[17:56:09] 940/1288 videos, 0.52 vid/s, eta 11.1 min
+[17:56:46] 960/1288 videos, 0.52 vid/s, eta 10.4 min
+[17:57:23] 980/1288 videos, 0.52 vid/s, eta 9.8 min
+[17:58:00] 1000/1288 videos, 0.52 vid/s, eta 9.2 min
+[17:58:29]   checkpoint at 1015 videos
+[17:58:39] 1020/1288 videos, 0.52 vid/s, eta 8.5 min
+[17:59:16] 1040/1288 videos, 0.52 vid/s, eta 7.9 min
+[17:59:53] 1060/1288 videos, 0.52 vid/s, eta 7.2 min
+[18:00:30] 1080/1288 videos, 0.52 vid/s, eta 6.6 min
+[18:01:07] 1100/1288 videos, 0.52 vid/s, eta 6.0 min
+[18:01:45] 1120/1288 videos, 0.53 vid/s, eta 5.3 min
+[18:02:22] 1140/1288 videos, 0.53 vid/s, eta 4.7 min
+[18:02:33]   checkpoint at 1144 videos
+[18:03:03] 1160/1288 videos, 0.52 vid/s, eta 4.1 min
+[18:03:40] 1180/1288 videos, 0.52 vid/s, eta 3.4 min
+[18:04:17] 1200/1288 videos, 0.53 vid/s, eta 2.8 min
+[18:04:55] 1220/1288 videos, 0.53 vid/s, eta 2.2 min
+[18:05:32] 1240/1288 videos, 0.53 vid/s, eta 1.5 min
+[18:06:09] 1260/1288 videos, 0.53 vid/s, eta 0.9 min
+[18:06:35]   checkpoint at 1273 videos
+[18:06:48] 1280/1288 videos, 0.53 vid/s, eta 0.3 min
+[18:07:18] saved E:\Projects\20260522-EchoCLIP\_paper_build_zh\cache\val_32_bgr.npz emb=(1288, 32, 512) total 2466.1s errors=0

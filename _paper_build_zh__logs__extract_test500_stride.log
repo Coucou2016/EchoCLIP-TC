@@ -1,0 +1,2 @@
+[16:39:52] split=test500 n=500 frames=stride color=bgr device=cuda batch=8
+[16:39:52] resuming from E:\Projects\20260522-EchoCLIP\_paper_build_zh\cache\test500_stride_bgr.part.npz with 210 videos

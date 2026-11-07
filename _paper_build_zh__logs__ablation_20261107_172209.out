@@ -1,0 +1,7 @@
+### group frames
+$ E:\Miniconda3\python.exe E:\Projects\20260522-EchoCLIP\scripts\train_heads_from_cache.py --experiment R4 --seeds 42 --frames 8 --cache-tag 32_bgr --tag abframes8
+[20:02:03] === R4 seed=42 frames=8 pool=cls top=0.2 n_train=None ===
+E:\Miniconda3\Lib\site-packages\torch\nn\modules\transformer.py:382: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+[20:04:27]   MAE 5.852 | AUC50 0.879 | R2 0.576 | R4_s42_f8_cls_abframes8.json (144.3s)
+$ E:\Miniconda3\python.exe E:\Projects\20260522-EchoCLIP\scripts\train_heads_from_cache.py --experiment R4 --seeds 43 --frames 8 --cache-tag 32_bgr --tag abframes8

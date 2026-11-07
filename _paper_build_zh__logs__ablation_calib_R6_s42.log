@@ -1,0 +1,2 @@
+[21:10:48] === R6 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[21:11:01]   MAE 5.971 | AUC50 0.879 | R2 0.562 | R6_s42_f32_cls_a10_20_abcalib.json (13.6s)

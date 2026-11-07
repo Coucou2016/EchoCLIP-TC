@@ -1,0 +1,2 @@
+[19:32:25] === ORACLE_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:32:37]   MAE 10.954 | AUC50 0.734 | R2 -0.243 | ORACLE_EDES_s42_f32_cls.json (12.5s)

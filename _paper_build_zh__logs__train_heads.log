@@ -1,0 +1,115 @@
+[19:31:14] === R0 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:31:14]   val cache absent; test-only zero-shot report
+[19:31:25]   MAE 10.986 | AUC50 0.740 | R2 -0.239 | R0_s42_f20_cls.json (10.2s)
+[19:31:37] === R1 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:31:50]   MAE 11.035 | AUC50 0.738 | R2 -0.238 | R1_s42_f32_cls.json (12.4s)
+[19:32:02] === R1U16 seed=42 frames=16 pool=cls top=0.2 n_train=None ===
+[19:32:13]   MAE 11.000 | AUC50 0.740 | R2 -0.226 | R1U16_s42_f16_cls.json (11.7s)
+[19:32:25] === ORACLE_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:32:37]   MAE 10.954 | AUC50 0.734 | R2 -0.243 | ORACLE_EDES_s42_f32_cls.json (12.5s)
+[19:32:49] === R2 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:33:27]   MAE 6.481 | AUC50 0.858 | R2 0.506 | R2_s42_f32_cls.json (38.4s)
+[19:33:27] === R2 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[19:33:41]   MAE 6.445 | AUC50 0.855 | R2 0.511 | R2_s43_f32_cls.json (14.0s)
+[19:33:41] === R2 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[19:33:56]   MAE 6.422 | AUC50 0.863 | R2 0.521 | R2_s44_f32_cls.json (15.0s)
+[19:34:08] === R3 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:34:46]   MAE 6.216 | AUC50 0.861 | R2 0.533 | R3_s42_f32_cls.json (37.7s)
+[19:34:46] === R3 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[19:35:02]   MAE 6.382 | AUC50 0.865 | R2 0.509 | R3_s43_f32_cls.json (16.0s)
+[19:35:02] === R3 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[19:35:21]   MAE 6.402 | AUC50 0.859 | R2 0.498 | R3_s44_f32_cls.json (18.7s)
+[19:35:36] === R4 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:39:18]   MAE 5.868 | AUC50 0.876 | R2 0.600 | R4_s42_f32_cls.json (222.0s)
+[19:39:18] === R4 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[19:42:44]   MAE 5.756 | AUC50 0.892 | R2 0.603 | R4_s43_f32_cls.json (205.6s)
+[19:42:44] === R4 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[19:46:06]   MAE 5.915 | AUC50 0.879 | R2 0.586 | R4_s44_f32_cls.json (202.1s)
+[19:46:19] === R5 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:51:30]   MAE 5.971 | AUC50 0.879 | R2 0.562 | R5_s42_f32_cls.json (310.9s)
+[19:51:30] === R5 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[19:56:27]   MAE 5.815 | AUC50 0.874 | R2 0.578 | R5_s43_f32_cls.json (297.1s)
+[19:56:27] === R5 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[20:01:14]   MAE 5.925 | AUC50 0.883 | R2 0.577 | R5_s44_f32_cls.json (286.4s)
+[20:01:27] === R6 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[20:01:39]   MAE 5.971 | AUC50 0.879 | R2 0.562 | R6_s42_f32_cls_a10_20.json (12.3s)
+[20:01:39] === R6 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[20:01:45]   MAE 5.815 | AUC50 0.874 | R2 0.578 | R6_s43_f32_cls_a10_20.json (5.9s)
+[20:01:45] === R6 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[20:01:51]   MAE 5.925 | AUC50 0.883 | R2 0.577 | R6_s44_f32_cls_a10_20.json (6.0s)
+[20:02:03] === R4 seed=42 frames=8 pool=cls top=0.2 n_train=None ===
+[20:04:27]   MAE 5.852 | AUC50 0.879 | R2 0.576 | R4_s42_f8_cls_abframes8.json (144.3s)
+[20:04:39] === R4 seed=43 frames=8 pool=cls top=0.2 n_train=None ===
+[20:14:43] === R4 seed=42 frames=8 pool=cls top=0.2 n_train=None ===
+[20:16:35]   MAE 6.003 | AUC50 0.881 | R2 0.584 | R4_s42_f8_cls_abframes8.json (111.9s)
+[20:16:51] === R4 seed=43 frames=8 pool=cls top=0.2 n_train=None ===
+[20:19:03]   MAE 6.057 | AUC50 0.875 | R2 0.564 | R4_s43_f8_cls_abframes8.json (131.8s)
+[20:19:18] === R4 seed=44 frames=8 pool=cls top=0.2 n_train=None ===
+[20:21:57]   MAE 5.751 | AUC50 0.882 | R2 0.611 | R4_s44_f8_cls_abframes8.json (158.9s)
+[20:22:11] === R4 seed=42 frames=16 pool=cls top=0.2 n_train=None ===
+[20:24:43]   MAE 5.917 | AUC50 0.879 | R2 0.579 | R4_s42_f16_cls_abframes16.json (151.7s)
+[20:24:59] === R4 seed=43 frames=16 pool=cls top=0.2 n_train=None ===
+[20:28:20]   MAE 6.041 | AUC50 0.865 | R2 0.539 | R4_s43_f16_cls_abframes16.json (201.8s)
+[20:28:35] === R4 seed=44 frames=16 pool=cls top=0.2 n_train=None ===
+[20:31:50]   MAE 5.869 | AUC50 0.881 | R2 0.591 | R4_s44_f16_cls_abframes16.json (195.2s)
+[20:32:10] === R4_MEAN seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[20:36:00]   MAE 5.858 | AUC50 0.887 | R2 0.608 | R4_MEAN_s42_f32_cls_abpoolmean.json (230.3s)
+[20:36:16] === R4_MEAN seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[20:41:48]   MAE 6.043 | AUC50 0.866 | R2 0.575 | R4_MEAN_s43_f32_cls_abpoolmean.json (331.8s)
+[20:42:02] === R4_MEAN seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[20:47:41]   MAE 5.913 | AUC50 0.885 | R2 0.579 | R4_MEAN_s44_f32_cls_abpoolmean.json (339.0s)
+[20:47:55] === R5 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[20:55:15]   MAE 5.922 | AUC50 0.882 | R2 0.578 | R5_s42_f32_cls_abcalib.json (440.3s)
+[20:55:29] === R5 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[21:02:49]   MAE 5.994 | AUC50 0.874 | R2 0.571 | R5_s43_f32_cls_abcalib.json (440.4s)
+[21:03:04] === R5 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[21:10:32]   MAE 5.964 | AUC50 0.889 | R2 0.577 | R5_s44_f32_cls_abcalib.json (447.8s)
+[21:10:48] === R6 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[21:11:01]   MAE 5.971 | AUC50 0.879 | R2 0.562 | R6_s42_f32_cls_a10_20_abcalib.json (13.6s)
+[21:11:14] === R6 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[21:11:28]   MAE 5.815 | AUC50 0.874 | R2 0.578 | R6_s43_f32_cls_a10_20_abcalib.json (14.0s)
+[21:11:42] === R6 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[21:11:56]   MAE 5.925 | AUC50 0.883 | R2 0.577 | R6_s44_f32_cls_a10_20_abcalib.json (13.8s)
+[21:12:11] === R1 seed=42 frames=32 pool=cls top=0.1 n_train=None ===
+[21:12:24]   MAE 10.900 | AUC50 0.732 | R2 -0.227 | R1_s42_f32_cls_top10_abtop10.json (13.6s)
+[21:12:35] === R1 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[21:12:48]   MAE 11.035 | AUC50 0.738 | R2 -0.238 | R1_s42_f32_cls_abtop20.json (12.5s)
+[21:13:00] === R1 seed=42 frames=32 pool=cls top=0.3 n_train=None ===
+[21:13:14]   MAE 10.692 | AUC50 0.746 | R2 -0.155 | R1_s42_f32_cls_top30_abtop30.json (14.2s)
+[21:13:26] === R4 seed=42 frames=32 pool=cls top=0.2 n_train=500 ===
+[21:15:29]   MAE 6.197 | AUC50 0.869 | R2 0.553 | R4_s42_f32_cls_n500_abscale500.json (122.5s)
+[21:15:53] === R4 seed=43 frames=32 pool=cls top=0.2 n_train=500 ===
+[21:18:13]   MAE 6.242 | AUC50 0.865 | R2 0.534 | R4_s43_f32_cls_n500_abscale500.json (139.9s)
+[21:18:28] === R4 seed=44 frames=32 pool=cls top=0.2 n_train=500 ===
+[21:20:50]   MAE 6.219 | AUC50 0.881 | R2 0.542 | R4_s44_f32_cls_n500_abscale500.json (142.6s)
+[21:21:06] === R4 seed=42 frames=32 pool=cls top=0.2 n_train=1000 ===
+[21:23:46]   MAE 5.860 | AUC50 0.885 | R2 0.595 | R4_s42_f32_cls_n1000_abscale1000.json (159.7s)
+[21:24:00] === R4 seed=43 frames=32 pool=cls top=0.2 n_train=1000 ===
+[21:26:30]   MAE 5.894 | AUC50 0.872 | R2 0.559 | R4_s43_f32_cls_n1000_abscale1000.json (150.0s)
+[21:26:44] === R4 seed=44 frames=32 pool=cls top=0.2 n_train=1000 ===
+[21:28:57]   MAE 6.085 | AUC50 0.883 | R2 0.571 | R4_s44_f32_cls_n1000_abscale1000.json (133.2s)
+[21:29:11] === R4 seed=42 frames=32 pool=cls top=0.2 n_train=2000 ===
+[21:33:23]   MAE 5.650 | AUC50 0.896 | R2 0.629 | R4_s42_f32_cls_n2000_abscale2000.json (252.0s)
+[21:33:37] === R4 seed=43 frames=32 pool=cls top=0.2 n_train=2000 ===
+[21:37:10]   MAE 5.992 | AUC50 0.883 | R2 0.575 | R4_s43_f32_cls_n2000_abscale2000.json (212.3s)
+[21:37:25] === R4 seed=44 frames=32 pool=cls top=0.2 n_train=2000 ===
+[21:40:29]   MAE 5.801 | AUC50 0.890 | R2 0.607 | R4_s44_f32_cls_n2000_abscale2000.json (183.5s)
+[21:40:46] === R4 seed=42 frames=32 pool=cls top=0.2 n_train=4000 ===
+[21:45:46]   MAE 5.892 | AUC50 0.880 | R2 0.564 | R4_s42_f32_cls_n4000_abscale4000.json (298.7s)
+[21:46:00] === R4 seed=43 frames=32 pool=cls top=0.2 n_train=4000 ===
+[21:51:11]   MAE 6.120 | AUC50 0.866 | R2 0.542 | R4_s43_f32_cls_n4000_abscale4000.json (310.2s)
+[21:51:26] === R4 seed=44 frames=32 pool=cls top=0.2 n_train=4000 ===
+[21:56:02]   MAE 5.751 | AUC50 0.895 | R2 0.602 | R4_s44_f32_cls_n4000_abscale4000.json (276.0s)
+[22:11:23] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[22:13:04] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[22:17:26] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[22:22:11] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[22:48:04] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[22:48:09] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[22:55:58]   MAE 7.642 | AUC50 0.884 | R2 0.361 | R5_EDES_s42_f32_cls.json (469.0s)
+[22:58:19]   MAE 5.970 | AUC50 0.886 | R2 0.578 | R5_EDES_s42_f32_cls_edes.json (615.3s)
+[23:05:03] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[23:24:29] === R5_EDES seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[01:00:02]   MAE 5.836 | AUC50 0.887 | R2 0.594 | R5_EDES_s42_f32_cls.json (5732.3s)
+[01:21:40] === R2 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[01:22:06]   MAE 6.417 | AUC50 0.860 | R2 0.515 | R2_s42_f32_cls.json (26.5s)

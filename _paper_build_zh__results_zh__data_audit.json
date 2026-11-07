@@ -1,0 +1,283 @@
+{
+ "filelist": {
+  "path": "E:\\Datasets\\EchoNet-Dynamic\\FileList.csv",
+  "sha256": "31942534b7bb3debb9f0f3de42af2fb4342f7ea918b32a4095a0b66e91fbace1",
+  "rows": 10030,
+  "columns": [
+   "FileName",
+   "EF",
+   "ESV",
+   "EDV",
+   "FrameHeight",
+   "FrameWidth",
+   "FPS",
+   "NumberOfFrames",
+   "Split",
+   "stem"
+  ],
+  "split_counts": {
+   "TRAIN": 7465,
+   "VAL": 1288,
+   "TEST": 1277
+  },
+  "split_sum_check": true,
+  "ef": {
+   "min": 6.907258122,
+   "max": 96.96723658,
+   "mean": 55.748248101920346,
+   "sd": 12.371482640411136
+  },
+  "frames": {
+   "min": 28,
+   "max": 1002,
+   "mean": 176.53399800598206
+  },
+  "duplicate_file_names": 0,
+  "nan_ef": 0
+ },
+ "videos": {
+  "dir": "E:\\Datasets\\EchoNet-Dynamic\\Videos",
+  "n_avi": 10030,
+  "filelist_unique": 10030,
+  "missing_on_disk": 0,
+  "extra_on_disk": 0,
+  "name_agreement": true
+ },
+ "manifests": {
+  "train": {
+   "path": "E:\\Projects\\20260522-EchoCLIP\\data\\echonet_dynamic\\train.json",
+   "sha256": "5f353e5a237ebfef9d91a77f648e06a09eab7921d1bd31601bc6cbe7b86a41b3",
+   "n_pairs": 7465,
+   "meta_n_pairs": 7465,
+   "split_field": "TRAIN",
+   "n_skipped": 0,
+   "n_unique_ids": 7465,
+   "duplicate_ids": 0,
+   "ef_mean": 55.77764325112096,
+   "with_ed_es": 7460
+  },
+  "val": {
+   "path": "E:\\Projects\\20260522-EchoCLIP\\data\\echonet_dynamic\\val.json",
+   "sha256": "05f80925f329ba73499c70d2d1d9629808968ff4926da56cf917f41511de956c",
+   "n_pairs": 1288,
+   "meta_n_pairs": 1288,
+   "split_field": "VAL",
+   "n_skipped": 0,
+   "n_unique_ids": 1288,
+   "duplicate_ids": 0,
+   "ef_mean": 55.82450206743245,
+   "with_ed_es": 1288
+  },
+  "test": {
+   "path": "E:\\Projects\\20260522-EchoCLIP\\data\\echonet_dynamic\\test.json",
+   "sha256": "b5169d7ced17349f08056b6e88186f383399aa59d60349e5355a943ef8eabe68",
+   "n_pairs": 1277,
+   "meta_n_pairs": 1277,
+   "split_field": "TEST",
+   "n_skipped": 0,
+   "n_unique_ids": 1277,
+   "duplicate_ids": 0,
+   "ef_mean": 55.499501119647604,
+   "with_ed_es": 1276
+  },
+  "test_subset_500": {
+   "path": "E:\\Projects\\20260522-EchoCLIP\\data\\echonet_dynamic\\test_subset_500.json",
+   "sha256": "5ab4828bbcb4bcbdc86d0e6c7da8a41d69a474a291218cc60ff370df372f79c1",
+   "n_pairs": 500,
+   "meta_n_pairs": 500,
+   "split_field": "TEST",
+   "n_skipped": 0,
+   "n_unique_ids": 500,
+   "duplicate_ids": 0,
+   "ef_mean": 54.822263885599995,
+   "with_ed_es": 500
+  },
+  "r0_external_anchor_5000": {
+   "path": "E:\\Projects\\20260522-EchoCLIP\\data\\echonet_dynamic\\r0_external_anchor_5000.json",
+   "sha256": "2fcb8037b22dd7f2321c377660507a60daaf770f0f22bf481d8cdfbde4b85fb0",
+   "n_pairs": 5000,
+   "meta_n_pairs": 5000,
+   "split_field": null,
+   "n_skipped": 0,
+   "n_unique_ids": 5000,
+   "duplicate_ids": 0,
+   "ef_mean": 55.7595033323538,
+   "with_ed_es": 4999
+  }
+ },
+ "manifest_vs_filelist": {
+  "train": {
+   "manifest_n": 7465,
+   "filelist_n": 7465,
+   "equal": true,
+   "only_manifest": 0,
+   "only_filelist": 0
+  },
+  "val": {
+   "manifest_n": 1288,
+   "filelist_n": 1288,
+   "equal": true,
+   "only_manifest": 0,
+   "only_filelist": 0
+  },
+  "test": {
+   "manifest_n": 1277,
+   "filelist_n": 1277,
+   "equal": true,
+   "only_manifest": 0,
+   "only_filelist": 0
+  }
+ },
+ "test_subset_500": {
+  "n": 500,
+  "subset_of_test": true,
+  "fraction_of_test": 0.39154267815191857
+ },
+ "r0_external_anchor": {
+  "n": 5000,
+  "overlap_with_train": 3747,
+  "overlap_with_val": 627,
+  "overlap_with_test": 626,
+  "note": "Mixed historical pool of EchoNet-Dynamic ids. Used only as an external anchor for R0 scale checks, never for any R2-R6 number in the paper."
+ },
+ "split_isolation": {
+  "train_cap_val": {
+   "n": 0,
+   "examples": []
+  },
+  "train_cap_test": {
+   "n": 0,
+   "examples": []
+  },
+  "val_cap_test": {
+   "n": 0,
+   "examples": []
+  },
+  "all_zero": true
+ },
+ "volume_tracings": {
+  "path": "E:\\Datasets\\EchoNet-Dynamic\\VolumeTracings.csv",
+  "sha256": "a51a49a8294b031cac7dfb2dc01e02e6efef93a8a1b9d58d607be12ab5a716e7",
+  "rows": 425010,
+  "columns": [
+   "FileName",
+   "X1",
+   "Y1",
+   "X2",
+   "Y2",
+   "Frame",
+   "stem"
+  ],
+  "n_files": 10025,
+  "frames_per_file_values": [
+   2
+  ],
+  "rows_per_file_median": 42.0,
+  "files_with_two_distinct_frames": 10025,
+  "coverage_of_filelist": 0.9995014955134596
+ },
+ "ed_es_coverage": {
+  "train": {
+   "n": 7465,
+   "valid_ed_es": 7460,
+   "invalid": 5,
+   "coverage": 0.999330207635633
+  },
+  "val": {
+   "n": 1288,
+   "valid_ed_es": 1288,
+   "invalid": 0,
+   "coverage": 1.0
+  },
+  "test": {
+   "n": 1277,
+   "valid_ed_es": 1276,
+   "invalid": 1,
+   "coverage": 0.9992169146436961
+  },
+  "test_subset_500": {
+   "n": 500,
+   "valid_ed_es": 500,
+   "invalid": 0,
+   "coverage": 1.0
+  }
+ },
+ "cache_labels": {
+  "test500_32_bgr.npz": {
+   "n": 500,
+   "frames_per_video": 32,
+   "dim": 512,
+   "ef_mean": 54.822265625,
+   "ef_sd": 12.842586517333984,
+   "n_ef_lt50": 126,
+   "n_ef_lt40": 74,
+   "n_ef_lt30": 37,
+   "norm_min": 0.9999998807907104,
+   "norm_max": 1.0,
+   "bytes": 32815706
+  },
+  "test500_stride_bgr.npz": {
+   "n": 500,
+   "frames_per_video": 20,
+   "dim": 512,
+   "ef_mean": 54.822265625,
+   "ef_sd": 12.842586517333984,
+   "n_ef_lt50": 126,
+   "n_ef_lt40": 74,
+   "n_ef_lt30": 37,
+   "norm_min": 0.9999999403953552,
+   "norm_max": 1.0,
+   "bytes": 20527706
+  },
+  "train_32_bgr.npz": {
+   "n": 2000,
+   "frames_per_video": 32,
+   "dim": 512,
+   "ef_mean": 55.71613311767578,
+   "ef_sd": 12.413714408874512,
+   "n_ef_lt50": 451,
+   "n_ef_lt40": 268,
+   "n_ef_lt30": 117,
+   "norm_min": 0.9999999403953552,
+   "norm_max": 1.0000001192092896,
+   "bytes": 131257706
+  },
+  "val_32_bgr.npz": {
+   "n": 1288,
+   "frames_per_video": 32,
+   "dim": 512,
+   "ef_mean": 55.82449722290039,
+   "ef_sd": 12.305055618286133,
+   "n_ef_lt50": 289,
+   "n_ef_lt40": 156,
+   "n_ef_lt30": 81,
+   "norm_min": 0.9999999403953552,
+   "norm_max": 1.0,
+   "bytes": 84530570
+  }
+ },
+ "train_distribution": {
+  "n": 2000,
+  "ef_mean": 55.71613311767578,
+  "ef_sd": 12.413714408874512,
+  "frac_50_65": 0.586,
+  "frac_lt30": 0.0585,
+  "frac_lt40": 0.134,
+  "frac_gt70": 0.033,
+  "lt50": 0.2255
+ },
+ "test_distribution": {
+  "full_test_n": 1277,
+  "full_test_ef_mean": 55.499501119647604,
+  "full_test_ef_sd": 12.230281885368434,
+  "full_test_lt50": 0.2231793265465936,
+  "full_test_lt40": 0.12529365700861395,
+  "full_test_lt30": 0.06499608457321848,
+  "subset_n": 500,
+  "subset_ef_mean": 54.822263885599995,
+  "subset_ef_sd": 12.855448580261202,
+  "subset_lt50": 0.252,
+  "subset_lt40": 0.148,
+  "subset_lt30": 0.074
+ }
+}

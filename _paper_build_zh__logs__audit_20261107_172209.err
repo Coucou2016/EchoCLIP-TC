@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "E:\Projects\20260522-EchoCLIP\scripts\audit_data.py", line 248, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "E:\Projects\20260522-EchoCLIP\scripts\audit_data.py", line 206, in main
+    tr_npz = cache_dir / "train_32_bgr.npz"
+             ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for /: 'function' and 'str'

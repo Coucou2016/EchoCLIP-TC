@@ -1,0 +1,119 @@
+[18:09:32] split=train n=2000 frames=32 color=bgr device=cuda batch=4
+[18:16:12] text prompts cached: (202, 512)
+[18:16:12] 2000 videos to encode
+[18:17:25] 20/2000 videos, 0.27 vid/s, eta 121.1 min
+[18:18:02] 40/2000 videos, 0.36 vid/s, eta 90.2 min
+[18:18:39] 60/2000 videos, 0.41 vid/s, eta 79.4 min
+[18:19:16] 80/2000 videos, 0.43 vid/s, eta 73.8 min
+[18:19:53] 100/2000 videos, 0.45 vid/s, eta 70.2 min
+[18:20:12]   checkpoint at 110 videos
+[18:20:31] 120/2000 videos, 0.46 vid/s, eta 67.6 min
+[18:21:08] 140/2000 videos, 0.47 vid/s, eta 65.6 min
+[18:21:45] 160/2000 videos, 0.48 vid/s, eta 63.9 min
+[18:22:22] 180/2000 videos, 0.49 vid/s, eta 62.4 min
+[18:22:59] 200/2000 videos, 0.49 vid/s, eta 61.1 min
+[18:23:36] 220/2000 videos, 0.49 vid/s, eta 60.0 min
+[18:24:13] 240/2000 videos, 0.50 vid/s, eta 58.9 min
+[18:24:14]   checkpoint at 240 videos
+[18:24:51] 260/2000 videos, 0.50 vid/s, eta 57.9 min
+[18:25:28] 280/2000 videos, 0.50 vid/s, eta 57.0 min
+[18:26:05] 300/2000 videos, 0.51 vid/s, eta 56.0 min
+[18:26:42] 320/2000 videos, 0.51 vid/s, eta 55.1 min
+[18:27:19] 340/2000 videos, 0.51 vid/s, eta 54.3 min
+[18:27:56] 360/2000 videos, 0.51 vid/s, eta 53.5 min
+[18:28:15]   checkpoint at 370 videos
+[18:28:34] 380/2000 videos, 0.51 vid/s, eta 52.7 min
+[18:29:12] 400/2000 videos, 0.51 vid/s, eta 52.0 min
+[18:29:50] 420/2000 videos, 0.51 vid/s, eta 51.3 min
+[18:30:27] 440/2000 videos, 0.51 vid/s, eta 50.6 min
+[18:31:05] 460/2000 videos, 0.52 vid/s, eta 49.8 min
+[18:31:42] 480/2000 videos, 0.52 vid/s, eta 49.1 min
+[18:32:18]   checkpoint at 499 videos
+[18:32:20] 500/2000 videos, 0.52 vid/s, eta 48.4 min
+[18:32:57] 520/2000 videos, 0.52 vid/s, eta 47.7 min
+[18:33:34] 540/2000 videos, 0.52 vid/s, eta 47.0 min
+[18:34:11] 560/2000 videos, 0.52 vid/s, eta 46.3 min
+[18:34:48] 580/2000 videos, 0.52 vid/s, eta 45.6 min
+[18:35:25] 600/2000 videos, 0.52 vid/s, eta 44.9 min
+[18:36:02] 620/2000 videos, 0.52 vid/s, eta 44.2 min
+[18:36:20]   checkpoint at 629 videos
+[18:36:40] 640/2000 videos, 0.52 vid/s, eta 43.5 min
+[18:37:17] 660/2000 videos, 0.52 vid/s, eta 42.8 min
+[18:37:54] 680/2000 videos, 0.52 vid/s, eta 42.1 min
+[18:38:31] 700/2000 videos, 0.52 vid/s, eta 41.5 min
+[18:39:08] 720/2000 videos, 0.52 vid/s, eta 40.8 min
+[18:39:46] 740/2000 videos, 0.52 vid/s, eta 40.1 min
+[18:40:22]   checkpoint at 759 videos
+[18:40:24] 760/2000 videos, 0.52 vid/s, eta 39.5 min
+[18:41:01] 780/2000 videos, 0.52 vid/s, eta 38.8 min
+[18:41:38] 800/2000 videos, 0.52 vid/s, eta 38.2 min
+[18:42:15] 820/2000 videos, 0.52 vid/s, eta 37.5 min
+[18:42:52] 840/2000 videos, 0.52 vid/s, eta 36.8 min
+[18:43:29] 860/2000 videos, 0.53 vid/s, eta 36.2 min
+[18:44:06] 880/2000 videos, 0.53 vid/s, eta 35.5 min
+[18:44:25]   checkpoint at 889 videos
+[18:44:45] 900/2000 videos, 0.53 vid/s, eta 34.9 min
+[18:45:22] 920/2000 videos, 0.53 vid/s, eta 34.2 min
+[18:45:59] 940/2000 videos, 0.53 vid/s, eta 33.6 min
+[18:46:36] 960/2000 videos, 0.53 vid/s, eta 32.9 min
+[18:47:13] 980/2000 videos, 0.53 vid/s, eta 32.3 min
+[18:47:50] 1000/2000 videos, 0.53 vid/s, eta 31.6 min
+[18:48:27]   checkpoint at 1019 videos
+[18:48:29] 1020/2000 videos, 0.53 vid/s, eta 31.0 min
+[18:49:06] 1040/2000 videos, 0.53 vid/s, eta 30.4 min
+[18:49:43] 1060/2000 videos, 0.53 vid/s, eta 29.7 min
+[18:50:21] 1080/2000 videos, 0.53 vid/s, eta 29.1 min
+[18:50:58] 1100/2000 videos, 0.53 vid/s, eta 28.4 min
+[18:51:35] 1120/2000 videos, 0.53 vid/s, eta 27.8 min
+[18:52:12] 1140/2000 videos, 0.53 vid/s, eta 27.2 min
+[18:52:32]   checkpoint at 1149 videos
+[18:52:53] 1160/2000 videos, 0.53 vid/s, eta 26.6 min
+[18:53:30] 1180/2000 videos, 0.53 vid/s, eta 25.9 min
+[18:54:07] 1200/2000 videos, 0.53 vid/s, eta 25.3 min
+[18:54:44] 1220/2000 videos, 0.53 vid/s, eta 24.6 min
+[18:55:21] 1240/2000 videos, 0.53 vid/s, eta 24.0 min
+[18:55:58] 1260/2000 videos, 0.53 vid/s, eta 23.4 min
+[18:56:35]   checkpoint at 1279 videos
+[18:56:37] 1280/2000 videos, 0.53 vid/s, eta 22.7 min
+[18:57:14] 1300/2000 videos, 0.53 vid/s, eta 22.1 min
+[18:57:51] 1320/2000 videos, 0.53 vid/s, eta 21.5 min
+[18:58:29] 1340/2000 videos, 0.53 vid/s, eta 20.8 min
+[18:59:06] 1360/2000 videos, 0.53 vid/s, eta 20.2 min
+[18:59:43] 1380/2000 videos, 0.53 vid/s, eta 19.6 min
+[19:00:20] 1400/2000 videos, 0.53 vid/s, eta 18.9 min
+[19:00:40]   checkpoint at 1409 videos
+[19:01:00] 1420/2000 videos, 0.53 vid/s, eta 18.3 min
+[19:01:37] 1440/2000 videos, 0.53 vid/s, eta 17.7 min
+[19:02:14] 1460/2000 videos, 0.53 vid/s, eta 17.0 min
+[19:02:51] 1480/2000 videos, 0.53 vid/s, eta 16.4 min
+[19:03:28] 1500/2000 videos, 0.53 vid/s, eta 15.8 min
+[19:04:05] 1520/2000 videos, 0.53 vid/s, eta 15.1 min
+[19:04:43]   checkpoint at 1539 videos
+[19:04:44] 1540/2000 videos, 0.53 vid/s, eta 14.5 min
+[19:05:22] 1560/2000 videos, 0.53 vid/s, eta 13.9 min
+[19:05:59] 1580/2000 videos, 0.53 vid/s, eta 13.2 min
+[19:06:36] 1600/2000 videos, 0.53 vid/s, eta 12.6 min
+[19:07:13] 1620/2000 videos, 0.53 vid/s, eta 12.0 min
+[19:07:50] 1640/2000 videos, 0.53 vid/s, eta 11.3 min
+[19:08:27] 1660/2000 videos, 0.53 vid/s, eta 10.7 min
+[19:08:46]   checkpoint at 1669 videos
+[19:09:07] 1680/2000 videos, 0.53 vid/s, eta 10.1 min
+[19:09:45] 1700/2000 videos, 0.53 vid/s, eta 9.4 min
+[19:10:26] 1720/2000 videos, 0.53 vid/s, eta 8.8 min
+[19:11:07] 1740/2000 videos, 0.53 vid/s, eta 8.2 min
+[19:11:47] 1760/2000 videos, 0.53 vid/s, eta 7.6 min
+[19:12:27] 1780/2000 videos, 0.53 vid/s, eta 7.0 min
+[19:12:50]   checkpoint at 1790 videos
+[19:13:11] 1800/2000 videos, 0.53 vid/s, eta 6.3 min
+[19:13:52] 1820/2000 videos, 0.53 vid/s, eta 5.7 min
+[19:14:31] 1840/2000 videos, 0.53 vid/s, eta 5.1 min
+[19:15:12] 1860/2000 videos, 0.53 vid/s, eta 4.4 min
+[19:15:53] 1880/2000 videos, 0.53 vid/s, eta 3.8 min
+[19:16:33] 1900/2000 videos, 0.52 vid/s, eta 3.2 min
+[19:16:54]   checkpoint at 1909 videos
+[19:17:16] 1920/2000 videos, 0.52 vid/s, eta 2.5 min
+[19:17:57] 1940/2000 videos, 0.52 vid/s, eta 1.9 min
+[19:18:38] 1960/2000 videos, 0.52 vid/s, eta 1.3 min
+[19:19:16] 1980/2000 videos, 0.52 vid/s, eta 0.6 min
+[19:19:53] 2000/2000 videos, 0.52 vid/s, eta 0.0 min
+[19:19:57] saved E:\Projects\20260522-EchoCLIP\_paper_build_zh\cache\train_32_bgr.npz emb=(2000, 32, 512) total 3825.6s errors=0

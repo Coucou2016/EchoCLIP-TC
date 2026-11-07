@@ -1,0 +1,6 @@
+[19:35:36] === R4 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:39:18]   MAE 5.868 | AUC50 0.876 | R2 0.600 | R4_s42_f32_cls.json (222.0s)
+[19:39:18] === R4 seed=43 frames=32 pool=cls top=0.2 n_train=None ===
+[19:42:44]   MAE 5.756 | AUC50 0.892 | R2 0.603 | R4_s43_f32_cls.json (205.6s)
+[19:42:44] === R4 seed=44 frames=32 pool=cls top=0.2 n_train=None ===
+[19:46:06]   MAE 5.915 | AUC50 0.879 | R2 0.586 | R4_s44_f32_cls.json (202.1s)

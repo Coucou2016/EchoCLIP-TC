@@ -1,0 +1,3 @@
+[19:31:14] === R0 seed=42 frames=32 pool=cls top=0.2 n_train=None ===
+[19:31:14]   val cache absent; test-only zero-shot report
+[19:31:25]   MAE 10.986 | AUC50 0.740 | R2 -0.239 | R0_s42_f20_cls.json (10.2s)

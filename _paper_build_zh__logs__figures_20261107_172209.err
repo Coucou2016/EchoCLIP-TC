@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "E:\Projects\20260522-EchoCLIP\scripts\make_figures.py", line 34, in <module>
+    if str(_SCRIPTS) not in sys.path:
+                            ^^^
+NameError: name 'sys' is not defined. Did you forget to import 'sys'?

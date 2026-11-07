@@ -1,0 +1,4 @@
+[16:17:08] split=test500 n=5 frames=32 color=bgr device=cpu batch=4
+[16:19:35] text prompts cached: (202, 512)
+[16:19:35] 5 videos to encode
+[16:21:25] saved E:\Projects\20260522-EchoCLIP\_paper_build_zh\cache\test500_32_bgr.npz emb=(5, 32, 512) total 110.4s errors=0

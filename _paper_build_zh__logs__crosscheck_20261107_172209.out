@@ -1,0 +1,47 @@
+checked table cells: 70
+PROBLEMS
+ - R2.MAE: docx 6.47 vs json 6.4492
+ - R2.RMSE: docx 8.94 vs json 8.9661
+ - R2.R2: docx 0.515 vs json 0.5126
+ - R2.bias: docx 1.42 vs json 1.5564
+ - R2.spearman: docx 0.593 vs json 0.5900
+ - R3.MAE: docx 6.3 vs json 6.3333
+ - R3.RMSE: docx 8.91 vs json 8.9570
+ - R3.R2: docx 0.519 vs json 0.5135
+ - R3.bias: docx 1.9 vs json 2.1227
+ - R3.spearman: docx 0.602 vs json 0.5994
+ - R4.MAE: docx 5.88 vs json 5.8462
+ - R4.RMSE: docx 8.33 vs json 8.1566
+ - R4.R2: docx 0.579 vs json 0.5966
+ - R4.bias: docx 1.8 vs json 1.1283
+ - R4.pearson: docx 0.774 vs json 0.7783
+ - R4.spearman: docx 0.656 vs json 0.6506
+ - R4.AUC50: docx 0.877 vs json 0.8823
+ - R5.MAE: docx 5.87 vs json 5.9037
+ - R5.RMSE: docx 8.28 vs json 8.3979
+ - R5.R2: docx 0.584 vs json 0.5724
+ - R5.bias: docx 1.36 vs json 1.4794
+ - R5.pearson: docx 0.772 vs json 0.7676
+ - R5.spearman: docx 0.651 vs json 0.6452
+ - R6.MAE: docx 5.87 vs json 5.9037
+ - R6.RMSE: docx 8.28 vs json 8.3979
+ - R6.R2: docx 0.584 vs json 0.5724
+ - R6.bias: docx 1.36 vs json 1.4794
+ - R6.pearson: docx 0.772 vs json 0.7676
+ - R6.spearman: docx 0.651 vs json 0.6452
+ - table5 帧数 8.MAE: docx 6.1 vs json 5.8522
+ - table5 帧数 8.AUC: docx 0.873 vs json 0.8789
+ - table5 帧数 16.MAE: docx 6.1 vs json 5.8462
+ - table5 帧数 16.AUC: docx 0.869 vs json 0.8823
+ - table5 帧数 32.MAE: docx 5.88 vs json 5.8462
+ - table5 帧数 32.AUC: docx 0.877 vs json 0.8823
+ - table5 池化 可学习词元.MAE: docx 5.88 vs json 5.8462
+ - table5 池化 可学习词元.AUC: docx 0.877 vs json 0.8823
+ - table5 池化 输出均值: no JSON
+ - table5 训练规模 500: no JSON
+ - table5 训练规模 1000: no JSON
+ - table5 训练规模 2000.MAE: docx 5.88 vs json 5.8462
+ - table5 训练规模 2000.AUC: docx 0.877 vs json 0.8823
+ - table5 零样本比例 10%: no JSON
+ - table5 零样本比例 30%: no JSON
+ - table5 对比预训练 标注 ED/ES 帧: no JSON

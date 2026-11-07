@@ -1,0 +1,76 @@
+{
+ "head_at_write": "3abc57905ead43187e2cf1086ebb18496f13c75a",
+ "stamped_in_results": [
+  "39533b9f01d020b7f5d70e733f1bef26697f2118",
+  "3abc57905ead43187e2cf1086ebb18496f13c75a"
+ ],
+ "note": "结果文件内的 git_commit 字段记录的是该次运行时的 HEAD。重建期间路径改造尚未提交，因此该字段早于实际运行所用的脚本版本。下面的 sha256 是逐脚本实测值，matches_head 表示与当前提交中的内容逐字节一致，可据此复核代码版本。",
+ "scripts": {
+  "scripts/_paths.py": {
+   "sha256": "e6aa7ed54360d0c24df0c34b7e406aef6d55e98ecfb88cf2524f65a1716be216",
+   "matches_head": true
+  },
+  "scripts/extract_frames_embeddings.py": {
+   "sha256": "5f40a107e24e70514bb22db96260335cf4c67fe699d382fb9bc1d02636b56ffa",
+   "matches_head": true
+  },
+  "scripts/train_heads_from_cache.py": {
+   "sha256": "0663e3da968b3a0b2298da8f6e5a6c3fbe0d2739238a9ad6abf6b81e41391d75",
+   "matches_head": true
+  },
+  "scripts/run_ablation_matrix.py": {
+   "sha256": "3aa77f9d87fb489aeb8d381d9a3721ad69ede94297ceb66dc6939f3e25184d9d",
+   "matches_head": true
+  },
+  "scripts/audit_data.py": {
+   "sha256": "5655c1f4abe6b250c68e957fb54f2029fdbe9d35a2bf3ba27348c224273b60e4",
+   "matches_head": true
+  },
+  "scripts/make_figures.py": {
+   "sha256": "4944628a8fbda5c03166cc1f7ab05ca693992387c69cb7bf668d75b747573f55",
+   "matches_head": true
+  },
+  "scripts/build_manuscript.py": {
+   "sha256": "656c1d8e4f6362a6ef0ac11a5f9058d536bfcfcdab0aae218fc7eac335ab4a5c",
+   "matches_head": true
+  },
+  "scripts/build_review_doc.py": {
+   "sha256": "24ee9fa8f9e1428e16d292a759b52a1c120065ffdf6fbd1d7755b5183a593f7d",
+   "matches_head": true
+  },
+  "scripts/crosscheck_numbers.py": {
+   "sha256": "c53c3d0a51e84c163f49da55010658d576d191a466db4558a604907e06e81d2f",
+   "matches_head": true
+  },
+  "scripts/verify_references.py": {
+   "sha256": "6ccb10aea4388eb4add26666d9c7546413e3977998a420a47829d41af76d39de",
+   "matches_head": true
+  },
+  "scripts/verify_rebuild_vs_paper.py": {
+   "sha256": "9adca478a2607f8f217161dfa930f92188bed72323fb6830f1c2edaa8be6f298",
+   "matches_head": true
+  }
+ },
+ "scripts_matching_head": "11/11",
+ "weights": {
+  "file": "E:\\Projects\\20260522-EchoCLIP\\models\\echo-clip\\open_clip_pytorch_model.bin",
+  "sha256": "016e26e15da539b3a97dec89d7fa9a30f106e1c38d36ce64789cb99420786fe0",
+  "bytes": 606262375
+ },
+ "data": {
+  "filelist": "E:\\Datasets\\EchoNet-Dynamic\\FileList.csv",
+  "sha256": "31942534b7bb3debb9f0f3de42af2fb4342f7ea918b32a4095a0b66e91fbace1",
+  "manifest_sha256": {
+   "manifest.json": "1ab5c55fa934463741783eb713a196b3e2a7112ef3e96ca790e476457d372501",
+   "r0_external_anchor_5000.json": "2fcb8037b22dd7f2321c377660507a60daaf770f0f22bf481d8cdfbde4b85fb0",
+   "r0_external_anchor_5000_ids.json": "0fc1bcbe4d2c744d503021451f02b615d04df6c139593e93c6fcb3d7749cc062",
+   "test.json": "b5169d7ced17349f08056b6e88186f383399aa59d60349e5355a943ef8eabe68",
+   "test_subset_500.json": "5ab4828bbcb4bcbdc86d0e6c7da8a41d69a474a291218cc60ff370df372f79c1",
+   "test_subset_500_ids.json": "79d38a486435ec7fb9fc6cc9b0c2f42ef8a2aa104ec108ee59090fc970b32ad0",
+   "train.json": "5f353e5a237ebfef9d91a77f648e06a09eab7921d1bd31601bc6cbe7b86a41b3",
+   "val.json": "05f80925f329ba73499c70d2d1d9629808968ff4926da56cf917f41511de956c"
+  }
+ },
+ "torch": "2.7.1+cu118",
+ "python": "3.13.12"
+}

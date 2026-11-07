@@ -1,0 +1,2 @@
+[19:32:02] === R1U16 seed=42 frames=16 pool=cls top=0.2 n_train=None ===
+[19:32:13]   MAE 11.000 | AUC50 0.740 | R2 -0.226 | R1U16_s42_f16_cls.json (11.7s)
