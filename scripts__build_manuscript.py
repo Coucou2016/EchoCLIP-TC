@@ -1383,7 +1383,7 @@ def _r_scatter(present, audit_train=None) -> List[str]:
         f"误差最大的五个样本的参考值与预测值依次为 {worst_desc}，"
         f"它们的参考值都低于三十五，预测值都贴近五十，方向一致。",
         f"预测值对参考值的回归斜率为 {slope:.3f}，明显小于一，"
-        f"预测值的标准差为 {np.std(p):.2f}，参考值的标准差为 {np.std(y):.2f}。"
+        f"预测值的标准差为 {np.std(p, ddof=1):.2f}，参考值的标准差为 {np.std(y, ddof=1):.2f}。"
         f"这两项一起说明模型的输出向中间收拢，"
         f"误差最大的百分之十样本的平均参考值为 {np.mean(y[bad]):.1f}，"
         f"平均预测值为 {np.mean(p[bad]):.1f}，"

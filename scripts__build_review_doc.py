@@ -544,8 +544,8 @@ def build_traceability(runs: List[dict]) -> List[tuple]:
                     "predictions.test_pred 与 test_true 之差的最大绝对值"))
         out.append(("5.5 节 回归斜率", fmt(float(np.polyfit(y, p, 1)[0])), r5["_file"],
                     "predictions 上 test_pred 对 test_true 的最小二乘斜率"))
-        out.append(("5.5 节 预测标准差", fmt(float(np.std(p)), 2), r5["_file"], "metrics.pred_sd"))
-        out.append(("5.5 节 参考标准差", fmt(float(np.std(y)), 2), r5["_file"], "metrics.y_sd"))
+        out.append(("5.5 节 预测标准差", fmt(float(np.std(p, ddof=1)), 2), r5["_file"], "metrics.pred_sd"))
+        out.append(("5.5 节 参考标准差", fmt(float(np.std(y, ddof=1)), 2), r5["_file"], "metrics.y_sd"))
 
     # 5.6 section: bootstrap intervals from the same per-sample predictions
     for exp in ("R0", "R1", "R2", "R3", "R4", "R5", "ORACLE_EDES"):

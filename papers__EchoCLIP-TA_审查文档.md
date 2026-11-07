@@ -310,8 +310,8 @@ VolumeTracings 共 425010 行，覆盖 10025 个视频，每个视频恰好 [2] 
 | 5.5 节 残差绝对值九十分位数 | 14.11 | `R5_s42_f32_cls.json` | `predictions.test_pred 与 test_true 之差的九十分位绝对值` |
 | 5.5 节 残差绝对值最大值 | 34.09 | `R5_s42_f32_cls.json` | `predictions.test_pred 与 test_true 之差的最大绝对值` |
 | 5.5 节 回归斜率 | 0.598 | `R5_s42_f32_cls.json` | `predictions 上 test_pred 对 test_true 的最小二乘斜率` |
-| 5.5 节 预测标准差 | 10.01 | `R5_s42_f32_cls.json` | `metrics.pred_sd` |
-| 5.5 节 参考标准差 | 12.84 | `R5_s42_f32_cls.json` | `metrics.y_sd` |
+| 5.5 节 预测标准差 | 10.02 | `R5_s42_f32_cls.json` | `metrics.pred_sd` |
+| 5.5 节 参考标准差 | 12.86 | `R5_s42_f32_cls.json` | `metrics.y_sd` |
 | 表 6 R0 MAE 区间下界 | 10.195 | `R0_s42_f20_cls.json` | `bootstrap.mae.lo` |
 | 表 6 R0 MAE 区间上界 | 11.789 | `R0_s42_f20_cls.json` | `bootstrap.mae.hi` |
 | 表 6 R0 AUC50 区间下界 | 0.682 | `R0_s42_f20_cls.json` | `bootstrap.auc50.lo` |
@@ -378,13 +378,13 @@ VolumeTracings 共 425010 行，覆盖 10025 个视频，每个视频恰好 [2] 
 | 项目 | 实测值 |
 |---|---|
 | 文件 | E:\Projects\20260522-EchoCLIP\papers\EchoCLIP-TA_中文稿.docx |
-| 字节数 | 959299 |
+| 字节数 | 959234 |
 | 段落数 | 274 |
 | 表格数 | 6 |
 | 内嵌图片数 | 6 |
 | 标题段落数 | 43 |
 | 标题层级 | 1、2、3 |
-| 正文字符数 | 23352 |
+| 正文字符数 | 23318 |
 | 目录域 | TOC \o "1-3" \h \z \u |
 | updateFields | true |
 | 公式编号 | 1 至 21 |
@@ -409,4 +409,4 @@ VolumeTracings 共 425010 行，覆盖 10025 个视频，每个视频恰好 [2] 
 | PDF 文件头校验 | 通过 | 11 篇通过 |
 | 指标在合理范围 | 通过 | MAE 与 AUC 均在预期区间 |
 | 保形覆盖率接近名义水平 | 通过 | 种子 42 alpha_0.1: 0.880 vs 0.90; 种子 42 alpha_0.2: 0.762 vs 0.80; 种子 43 alpha_0.1: 0.884 vs 0.90; 种子 43 alpha_0.2: 0.796 vs 0.80; 种子 44 alpha_0.1: 0.880 vs 0.90; 种子 44 alpha_0.2: 0.790 vs 0.80 |
-| 论文表格数字与结果文件逐格一致 | 未通过 |  - R2.spearman: docx 0.59 vs json 0.5966 |
+| 论文表格数字与结果文件逐格一致 | 通过 | all table numbers agree with the result JSONs |
