@@ -1,12 +1,12 @@
 {
   "repository": "Coucou2016/EchoCLIP-TC",
   "layout": "flat (no subfolders, by design)",
-  "generated_utc": "2026-11-07T17:37:27+00:00",
+  "generated_utc": "2026-11-07T17:48:23+00:00",
   "naming_convention": "<original_dir_1>__<original_dir_2>__...__<filename>",
   "rationale": "See FLAT_LAYOUT.md - full-context ingestion and cross-agent review",
   "file_count": 471,
   "note": "file_count excludes .gitignore, FLAT_LAYOUT_MANIFEST.json, FLAT_LAYOUT.md, README.md and restore_flat_to_tree.ps1",
-  "total_size_bytes": 64686369,
+  "total_size_bytes": 64686445,
   "count_by_category": {
     "ci": 1,
     "code": 102,
@@ -325,8 +325,8 @@
       "flat_name": "_paper_build_zh__exports__EchoCLIP-TA_中文稿.docx",
       "original_path": "_paper_build_zh/exports/EchoCLIP-TA_中文稿.docx",
       "category": "other",
-      "size_bytes": 959286,
-      "sha256": "ab914d7001590f4248bbc8c598de1cac5e8f27d0a2f06e75435d72f5346d9a46"
+      "size_bytes": 959233,
+      "sha256": "0ca48c8d074727685097c522bb8b6ad006963e577ae452d53e948b020a6a1c89"
     },
     {
       "flat_name": "_paper_build_zh__exports__EchoCLIP-TA_审查文档.docx",
@@ -2208,8 +2208,8 @@
       "flat_name": "papers__EchoCLIP-TA_中文稿.docx",
       "original_path": "papers/EchoCLIP-TA_中文稿.docx",
       "category": "manuscript",
-      "size_bytes": 959286,
-      "sha256": "ab914d7001590f4248bbc8c598de1cac5e8f27d0a2f06e75435d72f5346d9a46"
+      "size_bytes": 959233,
+      "sha256": "0ca48c8d074727685097c522bb8b6ad006963e577ae452d53e948b020a6a1c89"
     },
     {
       "flat_name": "papers__EchoCLIP-TA_审查文档.docx",
@@ -2810,8 +2810,8 @@
       "flat_name": "scripts__build_manuscript.py",
       "original_path": "scripts/build_manuscript.py",
       "category": "code",
-      "size_bytes": 96606,
-      "sha256": "a8732523d8fedff44de1c3a9505d5dcf09349f055ff58082abc9c0dbc7817d59"
+      "size_bytes": 96788,
+      "sha256": "4905f048aae81206238285f434b889d68a0e098650f2b07ca38ffb3b31cd7468"
     },
     {
       "flat_name": "scripts__build_provenance.py",

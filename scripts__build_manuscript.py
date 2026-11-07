@@ -1574,11 +1574,16 @@ def _conclusion(present, best_exp) -> List[str]:
             cov10 = float(np.mean([r["calibration"]["conformal"]["alpha_0.1"]["coverage"] for r in r6s]))
             w10 = float(np.mean([r["calibration"]["conformal"]["alpha_0.1"]["width_mean"] for r in r6s]))
             out.append(
-                f"校准层不改变点估计。EF 低于 50% 上校准前的期望校准误差为 {raw50:.3f}，"
-                f"Platt 后为 {pl50:.3f}，温度缩放后为 {ts50:.3f}，两种校准都没有把该阈值上的误差降下来，"
-                f"说明这一阈值下初始概率的尺度已经接近最优。"
-                f"EF 低于 40% 上校准前为 {raw40:.3f}，Platt 后为 {pl40:.3f}，下降明显。"
-                f"保形区间在 90% 名义水平上的实测覆盖率为 {cov10:.3f}，平均半宽 {w10 / 2:.2f} 个百分点，"
+                f"EF 低于 50% 上校准前的期望校准误差为 {raw50:.3f}，"
+                f"Platt 后为 {pl50:.3f}，温度缩放后为 {ts50:.3f}，"
+                + (
+                    "两种校准都降低了该阈值上的误差。"
+                    if pl50 < raw50 and ts50 < raw50
+                    else "下降幅度有限，说明这一阈值下初始概率的尺度已经接近最优。"
+                )
+                + f"EF 低于 40% 上校准前为 {raw40:.3f}，Platt 后为 {pl40:.3f}，"
+                + ("下降明显。" if pl40 < raw40 - 0.01 else "变化有限。")
+                + f"保形区间在 90% 名义水平上的实测覆盖率为 {cov10:.3f}，平均半宽 {w10 / 2:.2f} 个百分点，"
                 f"三个种子的取值接近。"
             )
     out.append(
